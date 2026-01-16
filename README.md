@@ -125,3 +125,4 @@ sonar-scanner -Dsonar.projectKey=project-name -Dsonar.sources=. -Dsonar.host.url
 ```
 
 ### Note: Update project-token with the token generated after step 4
+# Notes-App
