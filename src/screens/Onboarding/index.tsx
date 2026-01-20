@@ -1,31 +1,63 @@
-import React from 'react';
+import { Image, Text, TouchableOpacity, View } from "react-native";
+import styles from "./styles";
+import CustomButton from "@components/atoms/CustomInput";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "src/navigation/types";
+import { useDispatch } from "react-redux";
+import { google, guest } from "@redux/slice/authSlice";
+import { useGuestMutation } from "@redux/api/authApi";
 
-import { View, Text, Pressable } from 'react-native';
-
-import { loginUser } from '../../redux/CommonReducer';
-import { useAppDispatch } from '../../redux/store';
-
-const OnboardingScreen = () => {
-  const dispatch = useAppDispatch();
-  const login = () => {
-    dispatch(loginUser({ token: 'sjkdfkdjfkj' }));
-  };
+type OnboardingProps = NativeStackScreenProps<RootStackParamList, "Onboarding">;
+export default function Onboarding({ navigation }: OnboardingProps) {
+  const BULLET = "\u25CF";
+  const dispatch = useDispatch();
+  const [guestApi, { isLoading }] = useGuestMutation();
+  async function handleGuestLogin() {
+    const response = await guestApi().unwrap();
+    console.log(response);
+    dispatch(
+      google({
+        token: response.data.token,
+      }),
+    );
+  }
   return (
-    <View
-      style={{
-        display: 'flex',
-        height: '100%',
-        backgroundColor: '#fff',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Text>OnboardingScreen</Text>
-      <Pressable onPress={login}>
-        <Text>Login</Text>
-      </Pressable>
+    <View style={styles.outerContainer}>
+      <View style={styles.container}>
+        <Image
+          source={require("../../../assets/notes.png")}
+          style={styles.image}
+        />
+        <Text style={styles.name}>NoteSmart</Text>
+        <Text style={styles.text}>Your intelligent note-taking companion</Text>
+        <Text style={styles.ai}>AI - Powered summaries</Text>
+      </View>
+      <View style={styles.innerContainer}>
+        <TouchableOpacity
+          style={styles.signin}
+          onPress={() => navigation.navigate("Login")}
+        >
+          <Text style={styles.signinText}>Sign In</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.create}
+          onPress={() => navigation.navigate("Register")}
+        >
+          <Text style={styles.createText}>Create Account</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.guest}
+          onPress={() => handleGuestLogin()}
+        >
+          <Text style={styles.guestText}>
+            {isLoading ? "Signing in as Guest.." : "Continue as Guest"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <Text style={styles.footer}>
+        Secure . Offline Support . Smart Reminders
+      </Text>
     </View>
   );
-};
-
-export default OnboardingScreen;
+}

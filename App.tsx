@@ -1,17 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
-import { TextInput, TextStyle } from 'react-native';
+import { TextInput, TextStyle } from "react-native";
 
-import { preloadFonts } from '@utils/constants';
-import { preloadImages } from '@utils/images';
+import { preloadFonts } from "@utils/constants";
+import { preloadImages } from "@utils/images";
 
-import RootNavigator from './src/navigation/RootNavigator';
-import store, { persistor } from './src/redux/store';
-import './src/localization';
+import RootNavigator from "./src/navigation/RootNavigator";
+import store from "./src/redux/store/index";
+import "./src/localization";
 
-import * as SplashScreen from 'expo-splash-screen';
-import { Provider } from 'react-redux';
-import { PersistGate } from 'redux-persist/integration/react';
+import * as SplashScreen from "expo-splash-screen";
+import { Provider } from "react-redux";
 
 SplashScreen.preventAutoHideAsync();
 interface ExtendedText extends Text {
@@ -42,9 +41,7 @@ export default function App() {
 
   return (
     <Provider store={store}>
-      <PersistGate persistor={persistor}>
-        <RootNavigator />
-      </PersistGate>
+      <RootNavigator />
     </Provider>
   );
 }
