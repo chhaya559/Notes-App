@@ -6,6 +6,10 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     paddingLeft: 10,
   },
+  line: {
+    backgroundColor: "#bab2b2ff",
+    height: 1,
+  },
 });
 
 export default styles;

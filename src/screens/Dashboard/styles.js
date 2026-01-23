@@ -1,5 +1,4 @@
 import { StyleSheet } from "react-native";
-import { SearchBar } from "react-native-screens";
 
 const styles = StyleSheet.create({
   container: {
@@ -9,17 +8,23 @@ const styles = StyleSheet.create({
   heading: {
     fontWeight: "bold",
     fontSize: 26,
+    paddingLeft: 10,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    margin: 10,
+    marginBottom: 0,
   },
-  upperContainer: {},
-  scrollContainer: {},
+  upperContainer: {
+    paddingTop: 10,
+  },
+  scrollContainer: {
+    backgroundColor: "#ffffffff",
+  },
   innerContainer: {
     flexDirection: "row",
     gap: 30,
+    paddingRight: 10,
   },
   search: {
     // position: "relative",
@@ -41,7 +46,7 @@ const styles = StyleSheet.create({
   },
   line: {
     marginTop: 10,
-    marginBottom: 10,
+
     height: 1,
     backgroundColor: "#949494ff",
   },
@@ -50,6 +55,12 @@ const styles = StyleSheet.create({
     bottom: 40,
     //left: 20,
     right: 40,
+  },
+  image: {
+    height: 26,
+    width: 26,
+    borderRadius: 15,
+    marginRight: 10,
   },
 });
 

@@ -1,12 +1,8 @@
 import { ROUTES } from "./constants";
 import { RootStackParamList } from "./types";
-import {
-  NavigationContainer,
-  useNavigationContainerRef,
-} from "@react-navigation/native";
+import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useReactNavigationDevTools } from "@dev-plugins/react-navigation";
 import Login from "@screens/Login";
 import Register from "@screens/Register";
 import Dashboard from "@screens/Dashboard";
@@ -14,19 +10,34 @@ import Onboarding from "@screens/Onboarding";
 import Header from "@components/atoms/Header";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-import { STRINGS } from "@utils/strings";
 import ForgotPassword from "@screens/ForgotPassword";
+import Profile from "@screens/Profile";
+import CreateNote from "@screens/CreateNote";
+import ResetPassword from "@screens/ResetPassword";
+import * as Linking from "expo-linking";
+import EditProfile from "@screens/EditProfile";
+import GuestConversion from "@screens/GuestConversion";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const prefix = Linking.createURL("/");
+
+const linking = {
+  prefixes: [prefix, "notesapp://"],
+  config: {
+    screens: {
+      ResetPassword: "reset-password",
+    },
+  },
+};
 
 const RootNavigator = () => {
   const token = useSelector((state: RootState) => state.auth.token);
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
+      <NavigationContainer linking={linking}>
         <Stack.Navigator>
-          {token ? (
+          {token == null ? (
             <Stack.Group
               screenOptions={{ header: (props) => <Header {...props} /> }}
             >
@@ -36,6 +47,11 @@ const RootNavigator = () => {
                 name={ROUTES.FORGOTPASSWORD}
                 component={ForgotPassword}
               />
+              <Stack.Screen
+                name={ROUTES.RESETPASSWORD}
+                component={ResetPassword}
+              />
+
               <Stack.Screen name={ROUTES.REGISTER} component={Register} />
             </Stack.Group>
           ) : (
@@ -43,6 +59,17 @@ const RootNavigator = () => {
               screenOptions={{ header: (props) => <Header {...props} /> }}
             >
               <Stack.Screen name={ROUTES.DASHBOARD} component={Dashboard} />
+              <Stack.Screen name={ROUTES.PROFILE} component={Profile} />
+              <Stack.Screen
+                name={ROUTES.RESETPASSWORD}
+                component={ResetPassword}
+              />
+              <Stack.Screen name={ROUTES.CREATENOTE} component={CreateNote} />
+              <Stack.Screen name={ROUTES.EDITPROFILE} component={EditProfile} />
+              <Stack.Screen
+                name={ROUTES.GUESTCONVERSION}
+                component={GuestConversion}
+              />
             </Stack.Group>
           )}
         </Stack.Navigator>

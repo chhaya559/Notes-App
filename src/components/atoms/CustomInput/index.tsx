@@ -26,11 +26,11 @@ export default function CustomInput({
   isVisible,
   onToggleVisibility,
   secureTextEntry,
-}: props) {
+}: Readonly<props>) {
   const [focused, setFocused] = useState(false);
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{text}*</Text>
+      <Text style={styles.label}>{text}</Text>
       <View style={isPassword && styles.passwordWrapper}>
         <TextInput
           placeholder={placeholder}

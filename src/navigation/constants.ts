@@ -5,4 +5,11 @@ export enum ROUTES {
   DASHBOARD = "Dashboard",
   FORGOTPASSWORD = "ForgotPassword",
   REMINDERS = "Reminders",
+  PROFILE = "Profile",
+  CHANGEPASSWORD = "ChangePassword",
+  CREATENOTE = "CreateNote",
+  RESETPASSWORD = "ResetPassword",
+  VIEWPROFILE = "ViewProfile",
+  EDITPROFILE = "EditProfile",
+  GUESTCONVERSION = "GuestConversion",
 }

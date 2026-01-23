@@ -8,9 +8,10 @@ import { preloadImages } from "@utils/images";
 import RootNavigator from "./src/navigation/RootNavigator";
 import store from "./src/redux/store/index";
 import "./src/localization";
-
+import Toast from "react-native-toast-message";
 import * as SplashScreen from "expo-splash-screen";
 import { Provider } from "react-redux";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 SplashScreen.preventAutoHideAsync();
 interface ExtendedText extends Text {
@@ -40,8 +41,15 @@ export default function App() {
   }, []);
 
   return (
-    <Provider store={store}>
-      <RootNavigator />
-    </Provider>
+    <>
+      {/* <SafeAreaProvider>
+        <SafeAreaView style={{ flex: 1 }}> */}
+      <Provider store={store}>
+        <RootNavigator />
+        <Toast />
+      </Provider>
+      {/* </SafeAreaView>
+      </SafeAreaProvider> */}
+    </>
   );
 }

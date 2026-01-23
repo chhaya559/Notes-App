@@ -23,6 +23,7 @@ import { AppDispatch } from "@redux/store";
 import { login, google } from "@redux/slice/authSlice";
 import { loginSchema } from "src/validations/loginSchema";
 import { MaterialIcons } from "@expo/vector-icons";
+import Toast from "react-native-toast-message";
 type LoginProps = NativeStackScreenProps<RootStackParamList, "Login">;
 export default function Login({ navigation }: LoginProps) {
   const [isVisible, setIsVisible] = useState(true);
@@ -56,6 +57,7 @@ export default function Login({ navigation }: LoginProps) {
         Alert.alert("Google Sign-In failed");
         return;
       }
+
       const idToken = userInfo.data.idToken;
 
       if (!idToken) {
@@ -68,12 +70,20 @@ export default function Login({ navigation }: LoginProps) {
       dispatch(
         google({
           token: response.data.token,
+          email: userInfo.data.user.email,
+          firstName: userInfo.data.user.name,
+          profileImageUrl: userInfo.data.user.photo,
         }),
       );
-      Alert.alert("Success", "Logged in with google");
+      Toast.show({
+        type: "success",
+        text1: "Logged in with gogle",
+      });
     } catch (error: any) {
       console.log("Google Sign-In Error:", error);
-      Alert.alert("Google login failed", error.message);
+      Toast.show({
+        text1: "Google login failed",
+      });
     }
   }
   async function handleLogin(data: any) {
@@ -82,19 +92,35 @@ export default function Login({ navigation }: LoginProps) {
         identifier: data.identifier,
         password: data.password,
       }).unwrap();
+      console.log(response.data);
       if (response.success) {
         dispatch(
           login({
             identifier: response.data.email,
             token: response.data.token,
+            profileImageUrl: response.data.profileImageUrl,
+            username: response.data.userName,
+            firstName: response.data.firstName,
+            lastName: response.data.lastName,
+            email: response.data.email,
           }),
         );
       } else {
-        Alert.alert("Sign in failed", response.message);
+        Toast.show({
+          text1: "Sign in failed",
+        });
       }
     } catch (error: any) {
-      const errorMessage = error || "Something went wrong";
-      Alert.alert("error", errorMessage);
+      if (error.data.Errors.includes("Invalid credentials")) {
+        Toast.show({
+          text1: "Invalid Credentials",
+        });
+      } else {
+        const errorMessage = error || "Something went wrong";
+        Toast.show({
+          text1: "Something went wrong",
+        });
+      }
     }
   }
 
@@ -110,7 +136,7 @@ export default function Login({ navigation }: LoginProps) {
           name="identifier"
           render={({ field: { onChange, value, onBlur } }) => (
             <CustomInput
-              text="Email / Username"
+              text="Email / Username*"
               placeholder="Email or Username"
               color="#707070ff"
               value={value}
@@ -127,7 +153,7 @@ export default function Login({ navigation }: LoginProps) {
           name="password"
           render={({ field: { onChange, value, onBlur } }) => (
             <CustomInput
-              text="Password"
+              text="Password*"
               placeholder="Password"
               color="#707070ff"
               value={value}

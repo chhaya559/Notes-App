@@ -11,7 +11,7 @@ export default function Card() {
         ease ...
       </Text>
       <View style={styles.createdContainer}>
-        <Feather name="calendar" size={20} />
+        <Feather name="calendar" size={16} />
         <Text style={styles.created}>less than a min ago</Text>
       </View>
     </View>

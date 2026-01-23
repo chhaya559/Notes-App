@@ -1,12 +1,12 @@
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import styles from "./styles";
-import CustomButton from "@components/atoms/CustomInput";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 import { useDispatch } from "react-redux";
 import { google, guest } from "@redux/slice/authSlice";
 import { useGuestMutation } from "@redux/api/authApi";
-
+import { useEffect } from "react";
+import NetInfo from "@react-native-community/netinfo";
 type OnboardingProps = NativeStackScreenProps<RootStackParamList, "Onboarding">;
 export default function Onboarding({ navigation }: OnboardingProps) {
   const BULLET = "\u25CF";
@@ -21,6 +21,11 @@ export default function Onboarding({ navigation }: OnboardingProps) {
       }),
     );
   }
+  useEffect(() => {
+    NetInfo.fetch().then((state) => {
+      console.log("Network", state.isConnected);
+    });
+  });
   return (
     <View style={styles.outerContainer}>
       <View style={styles.container}>

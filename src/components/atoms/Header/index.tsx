@@ -16,15 +16,13 @@ export default function Header({
   return (
     <View style={styles.header}>
       {back && (
-        <>
-          <TouchableOpacity onPress={handleBack}>
-            <MaterialIcons
-              name="keyboard-arrow-left"
-              size={30}
-              color="#000000ff"
-            />
-          </TouchableOpacity>
-        </>
+        <TouchableOpacity onPress={handleBack}>
+          <MaterialIcons
+            name="keyboard-arrow-left"
+            size={30}
+            color="#000000ff"
+          />
+        </TouchableOpacity>
       )}
       <Text>{options?.title}</Text>
     </View>

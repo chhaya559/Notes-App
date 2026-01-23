@@ -15,21 +15,13 @@ export const authApi = createApi({
   }),
   reducerPath: "authApi",
   endpoints: (builder) => ({
-    login: builder.mutation<
-      {
-        success: boolean;
-        data: { email: string; token: string };
-        message: string;
-      },
-      { identifier: string; password: string }
-    >({
+    login: builder.mutation({
       query: (data) => ({
         url: "/auth/login",
         method: "POST",
         body: data,
       }),
     }),
-
     register: builder.mutation({
       query: (data) => ({
         url: "/auth/register",
@@ -50,6 +42,54 @@ export const authApi = createApi({
         method: "POST",
       }),
     }),
+    forgotpassword: builder.mutation({
+      query: (data) => ({
+        url: "/auth/forgot-password",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    changePassword: builder.mutation({
+      query: (data) => ({
+        url: "/auth/change-password",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    resetPassword: builder.mutation<
+      any,
+      { newPassword: string; token: string }
+    >({
+      query: ({ newPassword, token }) => ({
+        url: "/auth/reset-password",
+        method: "POST",
+        body: { newPassword },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+    }),
+
+    guestConversion: builder.mutation({
+      query: (data) => ({
+        url: "/auth/guest-conversion",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    editUser: builder.mutation({
+      query: (data) => ({
+        url: "/users/me",
+        method: "PUT",
+        body: data,
+      }),
+    }),
+    deleteUser: builder.mutation({
+      query: () => ({
+        url: "/users/me",
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
@@ -58,4 +98,10 @@ export const {
   useRegisterMutation,
   useGoogleMutation,
   useGuestMutation,
+  useForgotpasswordMutation,
+  useChangePasswordMutation,
+  useResetPasswordMutation,
+  useGuestConversionMutation,
+  useDeleteUserMutation,
+  useEditUserMutation,
 } = authApi;

@@ -1,17 +1,9 @@
 import CustomInput from "@components/atoms/CustomInput";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import styles from "./styles";
 import {
   GoogleSignin,
   isSuccessResponse,
-  statusCodes,
 } from "@react-native-google-signin/google-signin";
 import { useEffect, useState } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -22,10 +14,10 @@ import { register, google } from "@redux/slice/authSlice";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { registerSchema } from "src/validations/registerSchema";
-import { MaterialIcons } from "@expo/vector-icons";
+import Toast from "react-native-toast-message";
 
 type RegisterProps = NativeStackScreenProps<RootStackParamList, "Register">;
-export default function Register({ navigation }: RegisterProps) {
+export default function Register({ navigation }: Readonly<RegisterProps>) {
   const dispatch = useDispatch();
   const [isVisible, setIsVisible] = useState(false);
   const [registerApi, { isLoading }] = useRegisterMutation();
@@ -53,68 +45,42 @@ export default function Register({ navigation }: RegisterProps) {
       iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     });
   }, []);
-  // async function handleGoogleSignin() {
-  //   try {
-  //     await GoogleSignin.hasPlayServices();
-  //     const userInfo = await GoogleSignin.signIn();
-  //     if (!isSuccessResponse(userInfo)) {
-  //       Alert.alert("Google Sign-In failed");
-  //       return;
-  //     }
-  //     const idToken = userInfo.data.idToken;
 
-  //     if (!idToken) {
-  //       Alert.alert("Error", "No ID token found from Googe");
-  //       return;
-  //     }
-
-  //     const response = await googleApi({ idToken });
-  //     console.log("Response", response);
-  //     if (response?.data?.Token) {
-  //       dispatch(
-  //         google({
-  //           IdToken: response.data.Token,
-  //         }),
-  //       );
-  //       Alert.alert("Success", "Logged in with google");
-  //     } else {
-  //       Alert.alert("Error");
-  //     }
-  //   } catch (error: any) {
-  //     console.log("Google Sign-In Error:", error);
-  //     Alert.alert("Google login failed", error.message);
-  //   }
-  // }
   async function handleGoogleSignin() {
     try {
       await GoogleSignin.hasPlayServices();
-
       const userInfo = await GoogleSignin.signIn();
-      const idToken = userInfo?.data?.idToken;
-      console.log("idtoekn", idToken);
-      if (!idToken) {
-        Alert.alert("Error", "No Google ID token received");
+      if (!isSuccessResponse(userInfo)) {
+        Alert.alert("Google Sign-In failed");
         return;
       }
 
-      const response = await googleApi({ idToken });
-      console.log("Response", response);
-      if (!response.data.success) {
-        Alert.alert("Google login failed");
+      const idToken = userInfo.data.idToken;
+
+      if (!idToken) {
+        Alert.alert("Error", "No ID token found from Googe");
         return;
       }
-      const jwtToken = response.data.data.token;
+
+      const response = await googleApi({ idToken }).unwrap();
 
       dispatch(
         google({
-          token: jwtToken,
+          token: response.data.token,
+          email: userInfo.data.user.email,
+          firstName: userInfo.data.user.name,
+          profileImageUrl: userInfo.data.user.photo,
         }),
       );
-
-      Alert.alert("Success", "Logged in with Google");
+      Toast.show({
+        type: "success",
+        text1: "Logged in with gogle",
+      });
     } catch (error: any) {
       console.log("Google Sign-In Error:", error);
-      Alert.alert("Google login failed", error.message);
+      Toast.show({
+        text1: "Google login failed",
+      });
     }
   }
   async function handleSignup(data: any) {
@@ -126,6 +92,10 @@ export default function Register({ navigation }: RegisterProps) {
           register({
             token: response.data.token,
             email: response.data.email,
+            profileImageUrl: response.data.profileImageUrl,
+            username: response.data.userName,
+            firstName: response.data.firstName,
+            lastName: response.data.lastName,
           }),
         );
       } else {
@@ -133,12 +103,18 @@ export default function Register({ navigation }: RegisterProps) {
       }
     } catch (error: any) {
       if (error.data.Errors.includes("Email already exists")) {
-        Alert.alert("Email already exists");
+        Toast.show({
+          text1: "Email already exists",
+        });
       }
       if (error.data.Errors.includes("Username already exists")) {
-        Alert.alert("Username already exists");
+        Toast.show({
+          text1: "Username already exists",
+        });
       } else {
-        Alert.alert("Something went wrong");
+        Toast.show({
+          text1: "Something went wrong",
+        });
       }
     }
   }
@@ -155,7 +131,7 @@ export default function Register({ navigation }: RegisterProps) {
           name="username"
           render={({ field: { onChange, value, onBlur } }) => (
             <CustomInput
-              text="Username"
+              text="Username*"
               placeholder="Username"
               color="#707070ff"
               value={value}
@@ -172,7 +148,7 @@ export default function Register({ navigation }: RegisterProps) {
           name="firstName"
           render={({ field: { onChange, value, onBlur } }) => (
             <CustomInput
-              text="First Name"
+              text="First Name*"
               placeholder="First Name"
               color="#707070ff"
               value={value}
@@ -189,7 +165,7 @@ export default function Register({ navigation }: RegisterProps) {
           name="lastName"
           render={({ field: { onChange, value, onBlur } }) => (
             <CustomInput
-              text="Last Name"
+              text="Last Name*"
               placeholder="Last Name"
               color="#707070ff"
               value={value}
@@ -206,7 +182,7 @@ export default function Register({ navigation }: RegisterProps) {
           name="email"
           render={({ field: { onChange, value, onBlur } }) => (
             <CustomInput
-              text="Email"
+              text="Email*"
               placeholder="Email"
               color="#707070ff"
               value={value}
@@ -223,7 +199,7 @@ export default function Register({ navigation }: RegisterProps) {
           name="password"
           render={({ field: { onChange, value, onBlur } }) => (
             <CustomInput
-              text="Password"
+              text="Password*"
               placeholder="Email or password"
               color="#707070ff"
               value={value}
@@ -242,6 +218,7 @@ export default function Register({ navigation }: RegisterProps) {
           <Text style={styles.error}>{errors.password.message}</Text>
         )}
       </View>
+
       <TouchableOpacity
         style={styles.pressable}
         onPress={handleSubmit(handleSignup)}
@@ -250,16 +227,19 @@ export default function Register({ navigation }: RegisterProps) {
           {isLoading ? "Creating Account..." : "Create Account"}
         </Text>
       </TouchableOpacity>
-      <View style={styles.lineContainer}>
-        <View style={styles.line} />
-        <Text style={styles.continueText}>or continue with</Text>
-        <View style={styles.line} />
+
+      <View>
+        <View style={styles.lineContainer}>
+          <View style={styles.line} />
+          <Text style={styles.continueText}>or continue with</Text>
+          <View style={styles.line} />
+        </View>
+        <TouchableOpacity style={styles.google} onPress={handleGoogleSignin}>
+          <Text style={styles.googleText}>
+            {isGoogleLoading ? "Signing up..." : "Sign up with Google"}
+          </Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.google} onPress={handleGoogleSignin}>
-        <Text style={styles.googleText}>
-          {isGoogleLoading ? "Signing up..." : "Sign up with Google"}
-        </Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }

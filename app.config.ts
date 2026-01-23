@@ -11,6 +11,7 @@ const BUNDLE_IDENTIFIER = IS_DEV
 const config: ExpoConfig = {
   name: IS_DEV ? "expo-notes-dev" : "expo-notes",
   slug: "expo-boilerplate",
+  scheme: "notesapp",
   version: packageJson.version,
   orientation: "portrait",
   icon: "./assets/icon.png",
@@ -28,6 +29,7 @@ const config: ExpoConfig = {
       CFBundleURLTypes: [
         {
           CFBundleURLSchemes: [
+            "notesapp",
             "com.googleusercontent.apps.984667336417-2n2vvvr20i33m0dpl9vu03mcf9k76hsv",
           ],
         },
@@ -49,6 +51,7 @@ const config: ExpoConfig = {
   },
   experiments: { reactCompiler: true },
   plugins: [
+    "expo-sqlite",
     [
       "expo-dev-client",
       {
