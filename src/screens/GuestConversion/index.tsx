@@ -6,11 +6,18 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, Text, View } from "react-native";
 import Toast from "react-native-toast-message";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { registerSchema } from "src/validations/registerSchema";
 import style from "./styles";
+import { RootState } from "@redux/store";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "src/navigation/types";
 
-export default function GuestConversion() {
+type ConversionProps = NativeStackScreenProps<
+  RootStackParamList,
+  "GuestConversion"
+>;
+export default function GuestConversion({ navigation }: ConversionProps) {
   const {
     control,
     handleSubmit,
@@ -31,9 +38,15 @@ export default function GuestConversion() {
 
   async function handleConversion(data: any) {
     try {
-      console.log("jeukf");
-      const response = await conversionApi(data).unwrap();
-      console.log("response");
+      console.log(data, "ftyjf");
+      const response = await conversionApi({
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        password: data.password,
+        username: data.username,
+      }).unwrap();
+
       if (response.success) {
         dispatch(
           conversion({
@@ -43,6 +56,9 @@ export default function GuestConversion() {
             email: response.data.email,
           }),
         );
+        Toast.show({
+          text1: "Guest converted to User",
+        });
       }
     } catch (error) {
       console.log(error);
@@ -50,11 +66,12 @@ export default function GuestConversion() {
         text1: "Error converting guest to user",
       });
     }
+    navigation.replace("Dashboard");
   }
   return (
     <View style={style.container}>
       <Text style={style.heading}>Convert Guest to User</Text>
-      <Text>Sign up to save your notes</Text>
+      <Text style={style.text}>Sign up to save your notes</Text>
       <Controller
         control={control}
         name="username"
@@ -103,6 +120,21 @@ export default function GuestConversion() {
       {errors.lastName?.message && <Text>{errors.lastName.message}</Text>}
       <Controller
         control={control}
+        name="email"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <CustomInput
+            text="Email*"
+            placeholder="Email"
+            color="#707070ff"
+            value={value}
+            onChangeText={onChange}
+            onBlur={onBlur}
+          />
+        )}
+      />
+      {errors.email?.message && <Text>{errors.email.message}</Text>}
+      <Controller
+        control={control}
         name="password"
         render={({ field: { onChange, onBlur, value } }) => (
           <CustomInput
@@ -126,7 +158,7 @@ export default function GuestConversion() {
         onPress={handleSubmit(handleConversion)}
         style={style.pressable}
       >
-        <Text>Convert to User</Text>
+        <Text style={style.pressableText}>Convert to User</Text>
       </Pressable>
     </View>
   );

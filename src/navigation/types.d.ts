@@ -6,7 +6,11 @@ export type RootStackParamList = {
   ForgotPassword: undefined;
   Reminders: undefined;
   Profile: undefined;
-  CreateNote: undefined;
+  CreateNote: {
+    title?: string;
+    id?: number;
+    content?: string;
+  };
   ChangePassword: undefined;
   ResetPassword: undefined;
   ViewProfile: undefined;

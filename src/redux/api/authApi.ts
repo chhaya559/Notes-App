@@ -72,7 +72,7 @@ export const authApi = createApi({
 
     guestConversion: builder.mutation({
       query: (data) => ({
-        url: "/auth/guest-conversion",
+        url: "/auth/convert-guest",
         method: "POST",
         body: data,
       }),
@@ -88,6 +88,17 @@ export const authApi = createApi({
       query: () => ({
         url: "/users/me",
         method: "DELETE",
+      }),
+    }),
+    getNotes: builder.query({
+      query: () => ({
+        url: "/notes",
+      }),
+    }),
+    saveNotes: builder.mutation({
+      query: () => ({
+        url: "/notes",
+        method: "POST",
       }),
     }),
   }),

@@ -11,16 +11,20 @@ const style = StyleSheet.create({
   },
   text: {
     textAlign: "center",
-    fontWeight: 18,
+    fontSize: 18,
+    padding: 10,
+    fontWeight: "500",
   },
   pressable: {
     padding: 15,
     margin: 15,
     backgroundColor: "#5757f8",
+    borderRadius: 10,
   },
   pressableText: {
     color: "#fff",
     textAlign: "center",
+    fontSize: 18,
   },
 });
 

@@ -1,17 +1,14 @@
 import { useEffect } from "react";
-
 import { TextInput, TextStyle } from "react-native";
-
 import { preloadFonts } from "@utils/constants";
 import { preloadImages } from "@utils/images";
-
 import RootNavigator from "./src/navigation/RootNavigator";
-import store from "./src/redux/store/index";
+import { store, persistor } from "./src/redux/store/index";
 import "./src/localization";
 import Toast from "react-native-toast-message";
 import * as SplashScreen from "expo-splash-screen";
 import { Provider } from "react-redux";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { PersistGate } from "redux-persist/integration/react";
 
 SplashScreen.preventAutoHideAsync();
 interface ExtendedText extends Text {
@@ -35,7 +32,8 @@ export default function App() {
   // This ensures that the app is ready to display content without a loading screen
   useEffect(() => {
     (async () => {
-      await Promise.all([preloadImages(), preloadFonts()]);
+      preloadImages();
+      await preloadFonts();
       SplashScreen.hideAsync();
     })();
   }, []);
@@ -45,8 +43,10 @@ export default function App() {
       {/* <SafeAreaProvider>
         <SafeAreaView style={{ flex: 1 }}> */}
       <Provider store={store}>
+        {/* <PersistGate persistor={persistor} loading={null}> */}
         <RootNavigator />
         <Toast />
+        {/* </PersistGate> */}
       </Provider>
       {/* </SafeAreaView>
       </SafeAreaProvider> */}

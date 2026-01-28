@@ -1,19 +1,25 @@
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import styles from "./styles";
 import { Feather } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
-export default function Card() {
+export default function Card(props: any) {
+  const navigation = useNavigation<any>();
+  function handlePress() {
+    navigation.navigate("CreateNote", {
+      title: props.title,
+      content: props.content,
+      id: props.id,
+    });
+  }
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Heading</Text>
-      <Text style={styles.text}>
-        This is your first note! You can create,edit, and organize notes with
-        ease ...
-      </Text>
+    <TouchableOpacity style={styles.container} onPress={handlePress}>
+      <Text style={styles.heading}>{props.title}</Text>
+      <Text style={styles.text}>{props.content}</Text>
       <View style={styles.createdContainer}>
         <Feather name="calendar" size={16} />
         <Text style={styles.created}>less than a min ago</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }

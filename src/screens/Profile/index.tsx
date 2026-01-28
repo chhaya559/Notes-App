@@ -6,7 +6,6 @@ import { AntDesign, SimpleLineIcons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 import { logout } from "@redux/slice/authSlice";
-import { useEffect } from "react";
 import Toast from "react-native-toast-message";
 import { useDeleteUserMutation } from "@redux/api/authApi";
 
@@ -14,24 +13,24 @@ type ProfileProps = NativeStackScreenProps<RootStackParamList, "Profile">;
 
 export default function Profile({ navigation }: Readonly<ProfileProps>) {
   const dispatch = useDispatch<AppDispatch>();
-  const token = useSelector((state: RootState) => state.auth.token);
+  // const token = useSelector((state: RootState) => state.auth.token);
   const username = useSelector((state: RootState) => state.auth.firstName);
   const email = useSelector((state: RootState) => state.auth.email);
   const [deleteApi] = useDeleteUserMutation();
   function handleLogout() {
     dispatch(logout());
   }
-  useEffect(() => {
-    if (token == null) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Onboarding" }],
-      });
-    }
-  }, [token]);
+  // useEffect(() => {
+  //   if (token == null) {
+  //     navigation.reset({
+  //       index: 0,
+  //       routes: [{ name: "Onboarding" }],
+  //     });
+  //   }
+  // }, [token]);
   async function handleDelete() {
     try {
-      const response = await deleteApi().unwrap();
+      const response = await deleteApi(" ").unwrap();
       dispatch(logout());
       if (response.success) {
         Toast.show({

@@ -20,6 +20,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     backgroundColor: "#ffffffff",
+    height: 650,
   },
   innerContainer: {
     flexDirection: "row",
@@ -52,6 +53,7 @@ const styles = StyleSheet.create({
   },
   add: {
     position: "absolute",
+
     bottom: 40,
     //left: 20,
     right: 40,

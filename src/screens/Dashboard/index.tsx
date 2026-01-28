@@ -2,9 +2,9 @@ import {
   FlatList,
   Image,
   Pressable,
-  ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import styles from "./styles";
@@ -12,12 +12,16 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 import { AntDesign, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@redux/store";
 import { logout } from "@redux/slice/authSlice";
+import { useGetQuery } from "@redux/api/noteApi";
 import Card from "@components/atoms/Card";
-import { createTable } from "src/db/createTable";
-import { getNotes } from "src/db/getNotes";
+
+import { useNetwork } from "src/network/useNetwork";
+import { Storage } from "src/db/Storage";
+import { db } from "src/db/notes";
+import { notesTable } from "src/db/schema";
 
 type DashboardProps = NativeStackScreenProps<RootStackParamList, "Dashboard">;
 export default function Dashboard({ navigation }: Readonly<DashboardProps>) {
@@ -27,16 +31,36 @@ export default function Dashboard({ navigation }: Readonly<DashboardProps>) {
     dispatch(logout());
   }
   const [notes, setNotes] = useState<any[]>([]);
-  async function loadNotes() {
-    const data = await getNotes();
-    setNotes(data);
-  }
+  const { data } = useGetQuery(undefined, {
+    refetchOnFocus: true,
+    refetchOnMountOrArgChange: true,
+  });
 
   useEffect(() => {
-    createTable();
-    loadNotes();
-  }, []);
-
+    if (!data?.data) return;
+    async function addDatatoLocalDB() {
+      try {
+        for (const note of data.data) {
+          await Storage.setItem(
+            note.id,
+            JSON.stringify({
+              title: note.title,
+              content: note.content,
+              createdAt: note.createdAt,
+              isLocked: note.isLocked,
+              reminder: note.reminder,
+              syncStatus: note.syncStatus,
+            }),
+          );
+        }
+        const notesFromDB = await db.select().from(notesTable);
+        setNotes(notesFromDB);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    addDatatoLocalDB();
+  }, [data]);
   return (
     <View style={styles.container}>
       <View style={styles.upperContainer}>
@@ -79,28 +103,21 @@ export default function Dashboard({ navigation }: Readonly<DashboardProps>) {
         </View>
       </View>
       <View style={styles.line} />
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        bounces={false}
-      >
+      <View style={styles.scrollContainer}>
         <FlatList
           data={notes}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <View>
-              <Text>{item.title}</Text>
-              <Text>{item.body}</Text>
-            </View>
+            <Card title={item.title} content={item.preview} id={item.id} />
           )}
         />
-      </ScrollView>
-      <Ionicons
-        name="add-circle"
-        size={60}
-        color="#5157F8"
+      </View>
+      <TouchableOpacity
         style={styles.add}
-        onPress={() => navigation.navigate("CreateNote")}
-      />
+        onPress={() => navigation.navigate("CreateNote", {})}
+      >
+        <Ionicons name="add-circle" size={60} color="#5157F8" />
+      </TouchableOpacity>
     </View>
   );
 }

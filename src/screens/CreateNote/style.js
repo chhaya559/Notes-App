@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pressables: {
-    backgroundColor: "#a6a6a6ff",
+    backgroundColor: "#5757f8",
     padding: 10,
     borderRadius: 30,
   },
@@ -62,6 +62,16 @@ const styles = StyleSheet.create({
   input: {
     margin: 10,
     height: "100%",
+  },
+  bold: {
+    fontWeight: "800",
+  },
+  italic: {
+    fontStyle: "italic",
+  },
+  buttonText: {
+    fontSize: 20,
+    textAlign: "center",
   },
 });
 

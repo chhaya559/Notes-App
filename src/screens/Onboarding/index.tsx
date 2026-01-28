@@ -21,11 +21,7 @@ export default function Onboarding({ navigation }: OnboardingProps) {
       }),
     );
   }
-  useEffect(() => {
-    NetInfo.fetch().then((state) => {
-      console.log("Network", state.isConnected);
-    });
-  });
+
   return (
     <View style={styles.outerContainer}>
       <View style={styles.container}>

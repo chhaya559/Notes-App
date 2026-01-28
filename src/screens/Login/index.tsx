@@ -111,7 +111,7 @@ export default function Login({ navigation }: LoginProps) {
         });
       }
     } catch (error: any) {
-      if (error.data.Errors.includes("Invalid credentials")) {
+      if (error.data.Errors.includes("Exception: Invalid credentials")) {
         Toast.show({
           text1: "Invalid Credentials",
         });

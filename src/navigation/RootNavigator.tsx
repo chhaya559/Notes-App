@@ -36,8 +36,8 @@ const RootNavigator = () => {
   return (
     <SafeAreaProvider>
       <NavigationContainer linking={linking}>
-        <Stack.Navigator>
-          {token == null ? (
+        {token !== null ? (
+          <Stack.Navigator>
             <Stack.Group
               screenOptions={{ header: (props) => <Header {...props} /> }}
             >
@@ -54,7 +54,9 @@ const RootNavigator = () => {
 
               <Stack.Screen name={ROUTES.REGISTER} component={Register} />
             </Stack.Group>
-          ) : (
+          </Stack.Navigator>
+        ) : (
+          <Stack.Navigator initialRouteName="Dashboard">
             <Stack.Group
               screenOptions={{ header: (props) => <Header {...props} /> }}
             >
@@ -71,8 +73,8 @@ const RootNavigator = () => {
                 component={GuestConversion}
               />
             </Stack.Group>
-          )}
-        </Stack.Navigator>
+          </Stack.Navigator>
+        )}
       </NavigationContainer>
     </SafeAreaProvider>
   );

@@ -32,7 +32,7 @@ export default function EditProfile() {
       const response = await editApi({
         firstName: data.firstName,
         lastName: data.lastName,
-        userName: data.email,
+        userName: data.username,
       }).unwrap();
 
       console.log(response);
