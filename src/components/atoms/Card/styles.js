@@ -3,10 +3,14 @@ import { StyleSheet } from "react-native";
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
-    borderColor: "#a0a0a0ff",
+    borderColor: "#c2c0c0ff",
     padding: 15,
     margin: 10,
-    borderRadius: 15,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 14,
+    height: "auto",
+    width: "auto",
   },
   heading: {
     fontSize: 16,

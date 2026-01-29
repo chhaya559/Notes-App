@@ -1,120 +1,171 @@
 import {
   FlatList,
   Image,
-  Pressable,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import styles from "./styles";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "src/navigation/types";
-import { AntDesign, Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@redux/store";
-import { logout } from "@redux/slice/authSlice";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useCallback, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@redux/store";
 import { useGetQuery } from "@redux/api/noteApi";
 import Card from "@components/atoms/Card";
-
-import { useNetwork } from "src/network/useNetwork";
-import { Storage } from "src/db/Storage";
+import {
+  createDrawerNavigator,
+  DrawerScreenProps,
+} from "@react-navigation/drawer";
 import { db } from "src/db/notes";
 import { notesTable } from "src/db/schema";
+import { createTable } from "src/db/createTable";
+import { useFocusEffect } from "@react-navigation/native";
+import Reminders from "@screens/Reminders";
+import { and, eq } from "drizzle-orm";
+import DashboardHeader from "@components/atoms/DashboardHeader";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useNetInfo } from "@react-native-community/netinfo";
 
-type DashboardProps = NativeStackScreenProps<RootStackParamList, "Dashboard">;
-export default function Dashboard({ navigation }: Readonly<DashboardProps>) {
-  const dispatch = useDispatch<AppDispatch>();
-  const [Theme, setTheme] = useState<"light" | "dark">("light");
-  function handleLogout() {
-    dispatch(logout());
-  }
+type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
+
+export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [notes, setNotes] = useState<any[]>([]);
+  const userId = useSelector((state: RootState) => state.auth.token);
+  const [isFocused, setIsFocused] = useState(false);
   const { data } = useGetQuery(undefined, {
     refetchOnFocus: true,
     refetchOnMountOrArgChange: true,
   });
+  const { isConnected } = useNetInfo();
 
   useEffect(() => {
     if (!data?.data) return;
-    async function addDatatoLocalDB() {
-      try {
-        for (const note of data.data) {
-          await Storage.setItem(
-            note.id,
-            JSON.stringify({
+    if (!userId) return;
+
+    async function syncNotes() {
+      await createTable();
+      // console.log("data", data?.data);
+      for (const note of data.data) {
+        const existing = db
+          .select()
+          .from(notesTable)
+          .where(and(eq(notesTable.id, note.id), eq(notesTable.userId, userId)))
+          .get();
+
+        if (existing && existing.updatedAt === note.updatedAt) {
+          continue;
+        }
+
+        await db
+          .insert(notesTable)
+          .values({
+            id: note.id,
+            userId,
+            title: note.title,
+            content: note.content,
+            updatedAt: note.updatedAt,
+            isPasswordProtected: note.isPasswordProtected ? 1 : 0,
+            reminder: null,
+            syncStatus: "synced",
+          })
+          .onConflictDoUpdate({
+            target: notesTable.id,
+            set: {
               title: note.title,
               content: note.content,
-              createdAt: note.createdAt,
-              isLocked: note.isLocked,
-              reminder: note.reminder,
-              syncStatus: note.syncStatus,
-            }),
-          );
-        }
-        const notesFromDB = await db.select().from(notesTable);
-        setNotes(notesFromDB);
-      } catch (error) {
-        console.log(error);
+              updatedAt: note.updatedAt,
+              syncStatus: "synced",
+            },
+          });
       }
+
+      const notesFromDB = await db
+        .select()
+        .from(notesTable)
+        .where(eq(notesTable.userId, userId));
+
+      if (isConnected) {
+        setNotes(data?.data);
+      } else {
+        setNotes(notesFromDB);
+      }
+      // setNotes(notescFromDB);
     }
-    addDatatoLocalDB();
+
+    syncNotes();
   }, [data]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadNotes = async () => {
+        const notesFromDB = await db
+          .select()
+          .from(notesTable)
+          .where(eq(notesTable.userId, userId));
+
+        setNotes(notesFromDB);
+      };
+
+      loadNotes();
+    }, []),
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.upperContainer}>
-        <View style={styles.header}>
-          <Text style={styles.heading}>My Notes</Text>
-          <View style={styles.innerContainer}>
-            <MaterialIcons name="notifications" size={26} />
-            <AntDesign name="logout" size={26} onPress={handleLogout} />
-            <Pressable
-              onPress={() =>
-                Theme == "dark" ? setTheme("light") : setTheme("dark")
-              }
-            >
-              {Theme == "light" ? (
-                <MaterialIcons name="dark-mode" size={26} />
-              ) : (
-                <MaterialIcons name="light-mode" size={26} />
-              )}
-            </Pressable>
-            <Pressable onPress={() => navigation.navigate("Profile")}>
-              <Image
-                source={require("../../../assets/avatar.png")}
-                style={styles.image}
-              />
-            </Pressable>
-          </View>
+        <View style={styles.bottomHeader}>
+          <Text style={styles.bottomHeaderText}>
+            Ready to write something new?
+          </Text>
+          <Image
+            source={require("../../../assets/dash.png")}
+            style={{ height: 65, width: 65 }}
+          />
         </View>
-        <View style={styles.SearchBar}>
+        <View style={[styles.SearchBar, isFocused && styles.focus]}>
           <Ionicons
             name="search"
-            color="#525252ff"
-            size={20}
+            color="#979090ff"
+            size={22}
             style={styles.searchIcon}
           />
           <TextInput
             placeholder="Search notes..."
-            placeholderTextColor="#525252ff"
+            placeholderTextColor="#979090ff"
             style={styles.search}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
           />
         </View>
       </View>
-      <View style={styles.line} />
-      <View style={styles.scrollContainer}>
+
+      {/* <View style={styles.line} /> */}
+
+      <View style={[styles.scrollContainer, styles.listContent]}>
         <FlatList
           data={notes}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: 120 }}
           renderItem={({ item }) => (
-            <Card title={item.title} content={item.preview} id={item.id} />
+            <Card
+              id={item.id}
+              title={item.title}
+              content={item.content}
+              updatedAt={item.updatedAt}
+            />
           )}
+          ListEmptyComponent={
+            <Text style={{ textAlign: "center", marginTop: 40 }}>
+              No notes yet
+            </Text>
+          }
         />
       </View>
+
       <TouchableOpacity
         style={styles.add}
-        onPress={() => navigation.navigate("CreateNote", {})}
+        onPress={() => navigation.navigate("CreateNote" as never)}
       >
         <Ionicons name="add-circle" size={60} color="#5157F8" />
       </TouchableOpacity>

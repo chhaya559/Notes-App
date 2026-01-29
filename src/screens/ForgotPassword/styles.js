@@ -4,6 +4,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     //alignContent: "flex-start",
+    backgroundColor: "#f5f5f5",
   },
   heading: {
     fontSize: 25,
@@ -51,6 +52,36 @@ const styles = StyleSheet.create({
     width: "a",
     alignSelf: "flex-start",
     borderRadius: 10,
+  },
+  modal: {
+    height: 300,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f2f2f2",
+    position: "relative",
+    borderRadius: 10,
+  },
+  modalHeading: {
+    color: "#5757f8",
+    fontSize: 18,
+    fontWeight: "500",
+  },
+  modalText: {
+    textAlign: "center",
+    margin: 10,
+    marginTop: 40,
+    marginBottom: 40,
+  },
+  cross: {
+    position: "absolute",
+    right: 15,
+    top: 268,
+  },
+  modalLogin: {
+    color: "#5757f8",
+    fontWeight: "400",
+    fontSize: 16,
   },
 });
 

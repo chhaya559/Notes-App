@@ -4,6 +4,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignContent: "flex-start",
+    backgroundColor: "#f5f5f5",
   },
   heading: {
     fontSize: 30,

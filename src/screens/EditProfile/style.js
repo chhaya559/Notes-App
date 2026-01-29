@@ -3,6 +3,7 @@ import { StyleSheet } from "react-native";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f5f5f5",
   },
   heading: {
     textAlign: "center",
@@ -27,6 +28,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#fff",
     textAlign: "center",
+  },
+  error: {
+    textAlign: "left",
+    flexDirection: "row",
+    gap: 6,
+    marginLeft: 20,
+    fontSize: 12,
+    padding: 5,
+    width: "a",
+    alignSelf: "flex-start",
+    borderRadius: 10,
+    color: "#ff0000ff",
   },
 });
 

@@ -7,10 +7,14 @@ export type RootStackParamList = {
   Reminders: undefined;
   Profile: undefined;
   CreateNote: {
+    id?: string;
     title?: string;
-    id?: number;
     content?: string;
+    updatedAt?: string;
+    isPasswordProtected?: boolean;
+    reminder?: string | null;
   };
+
   ChangePassword: undefined;
   ResetPassword: undefined;
   ViewProfile: undefined;

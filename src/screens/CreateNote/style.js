@@ -3,10 +3,10 @@ import { StyleSheet } from "react-native";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f5f5f5",
   },
   upperContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
   },
   editorContainer: {
     borderTopWidth: 1,
@@ -62,6 +62,7 @@ const styles = StyleSheet.create({
   input: {
     margin: 10,
     height: "100%",
+    color: "#000",
   },
   bold: {
     fontWeight: "800",
@@ -72,6 +73,10 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 20,
     textAlign: "center",
+  },
+  content: {
+    backgroundColor: "#000",
+    height: 600,
   },
 });
 

@@ -1,4 +1,4 @@
-import { Text, View, Image, Pressable } from "react-native";
+import { Text, View, Image, Pressable, TouchableOpacity } from "react-native";
 import styles from "./styles";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@redux/store";
@@ -20,14 +20,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   function handleLogout() {
     dispatch(logout());
   }
-  // useEffect(() => {
-  //   if (token == null) {
-  //     navigation.reset({
-  //       index: 0,
-  //       routes: [{ name: "Onboarding" }],
-  //     });
-  //   }
-  // }, [token]);
+
   async function handleDelete() {
     try {
       const response = await deleteApi(" ").unwrap();
@@ -65,6 +58,10 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
           onPress={() => navigation.navigate("GuestConversion")}
         >
           <Text style={styles.registerText}> Register Yourself</Text>
+        </Pressable>
+        <Pressable style={styles.pressable} onPress={handleLogout}>
+          <AntDesign name="logout" size={16} />
+          <Text>Logout</Text>
         </Pressable>
       </View>
     );

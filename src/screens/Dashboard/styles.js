@@ -4,6 +4,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     position: "relative",
+    backgroundColor: "#F5F5F5",
+    margin: 10,
+    marginBottom: 0,
   },
   heading: {
     fontWeight: "bold",
@@ -19,8 +22,9 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   scrollContainer: {
-    backgroundColor: "#ffffffff",
+    // backgroundColor: "#ffffffff",
     height: 650,
+    marginTop: 15,
   },
   innerContainer: {
     flexDirection: "row",
@@ -28,22 +32,27 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   search: {
-    // position: "relative",
+    flex: 1,
+    fontSize: 15,
+    marginLeft: 10,
+    color: "#000000ff",
   },
-  searchIcon: {
-    // position: "absolute",
-  },
+  searchIcon: {},
   SearchBar: {
     flexDirection: "row",
-    gap: 8,
-    margin: 5,
-    marginLeft: 10,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: "#949494ff",
+    alignItems: "center",
+    marginHorizontal: 16,
+    marginTop: 5,
+    marginLeft: 15,
+    marginRight: 15,
+    paddingHorizontal: 15,
     padding: 15,
-    borderRadius: 10,
-    backgroundColor: "#e6e2e2ff",
+    borderRadius: 25,
+    backgroundColor: "#fff",
+  },
+  focus: {
+    borderWidth: 1,
+    borderColor: "#5757f8",
   },
   line: {
     marginTop: 10,
@@ -54,15 +63,30 @@ const styles = StyleSheet.create({
   add: {
     position: "absolute",
 
-    bottom: 40,
+    bottom: 20,
     //left: 20,
-    right: 40,
+    right: 20,
+    elevation: 6,
   },
   image: {
     height: 26,
     width: 26,
     borderRadius: 15,
     marginRight: 10,
+  },
+  listContent: {
+    paddingBottom: 30,
+  },
+  bottomHeaderText: {
+    fontSize: 20,
+    width: 160,
+    fontWeight: "600",
+  },
+  bottomHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginLeft: 15,
+    marginRight: 15,
   },
 });
 

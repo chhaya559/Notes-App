@@ -1,12 +1,16 @@
 import { sqliteTable, int, text } from "drizzle-orm/sqlite-core";
 
+export type SyncStatus = "pending" | "synced";
 export const notesTable = sqliteTable("notes_table", {
-  id: int().primaryKey({ autoIncrement: true }),
-  key: text(),
-  title: text(),
-  content: text(),
-  createdAt: text().notNull(),
-  isLocked: int({ mode: "boolean" }).default(false),
-  reminder: text(),
-  syncStatus: text(),
+  id: text("id").primaryKey(),
+  userId: text().notNull(),
+  title: text("title"),
+  content: text("content"),
+  updatedAt: text().notNull(),
+  isPasswordProtected: int("isPasswordProtected").default(0),
+  reminder: text("reminder"),
+  syncStatus: text("syncStatus")
+    .$type<SyncStatus>()
+    .notNull()
+    .default("pending"),
 });

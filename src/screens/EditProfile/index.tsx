@@ -66,7 +66,9 @@ export default function EditProfile() {
           />
         )}
       />
-      {errors.firstName?.message && <Text>{errors.firstName.message}</Text>}
+      {errors.firstName?.message && (
+        <Text style={styles.error}>{errors.firstName.message}</Text>
+      )}
       <Controller
         control={control}
         name="lastName"
@@ -81,7 +83,9 @@ export default function EditProfile() {
           />
         )}
       />
-      {errors.lastName?.message && <Text>{errors.lastName.message}</Text>}
+      {errors.lastName?.message && (
+        <Text style={styles.error}>{errors.lastName.message}</Text>
+      )}
       <Controller
         control={control}
         name="username"
@@ -96,7 +100,9 @@ export default function EditProfile() {
           />
         )}
       />
-      {errors.username?.message && <Text>{errors.username.message}</Text>}
+      {errors.username?.message && (
+        <Text style={styles.error}>{errors.username.message}</Text>
+      )}
 
       <TouchableOpacity style={styles.pressable} onPress={handleSubmit(handle)}>
         <Text style={styles.pressableText}>Update Profile</Text>

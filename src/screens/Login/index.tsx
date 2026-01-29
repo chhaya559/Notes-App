@@ -22,13 +22,12 @@ import { useDispatch } from "react-redux";
 import { AppDispatch } from "@redux/store";
 import { login, google } from "@redux/slice/authSlice";
 import { loginSchema } from "src/validations/loginSchema";
-import { MaterialIcons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 type LoginProps = NativeStackScreenProps<RootStackParamList, "Login">;
-export default function Login({ navigation }: LoginProps) {
+export default function Login({ navigation }: Readonly<LoginProps>) {
   const [isVisible, setIsVisible] = useState(true);
   const dispatch = useDispatch<AppDispatch>();
-  const [loginapi, { isLoading, error }] = useLoginMutation();
+  const [loginapi, { isLoading }] = useLoginMutation();
   const [googleApi, { isLoading: isGoogleLoading }] = useGoogleMutation();
 
   const {
@@ -92,7 +91,7 @@ export default function Login({ navigation }: LoginProps) {
         identifier: data.identifier,
         password: data.password,
       }).unwrap();
-      console.log(response.data);
+      console.log("dwefr", response.data);
       if (response.success) {
         dispatch(
           login({
@@ -116,7 +115,6 @@ export default function Login({ navigation }: LoginProps) {
           text1: "Invalid Credentials",
         });
       } else {
-        const errorMessage = error || "Something went wrong";
         Toast.show({
           text1: "Something went wrong",
         });

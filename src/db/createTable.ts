@@ -1,14 +1,20 @@
-import { db } from "./notes";
+import { sqlite } from "./notes";
 
-export function createTable() {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS notes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      content TEXT NOT NULL,
-      is_locked INTEGER DEFAULT 0,
+export async function createTable() {
+  await sqlite.execAsync(`
+    DROP TABLE IF EXISTS notes_table;
+  `);
+
+  await sqlite.execAsync(`
+    CREATE TABLE  notes_table (
+      id TEXT PRIMARY KEY ,
+      userId TEXT NOT NULL,
+      title TEXT,
+      content TEXT,
+      updatedAt TEXT NOT NULL,
+      isPasswordProtected INTEGER ,
       reminder TEXT,
-      created_at TEXT NOT NULL
+      syncStatus TEXT
     );
   `);
 }

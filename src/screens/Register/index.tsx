@@ -1,5 +1,5 @@
 import CustomInput from "@components/atoms/CustomInput";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 import styles from "./styles";
 import {
   GoogleSignin,
@@ -15,6 +15,7 @@ import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { registerSchema } from "src/validations/registerSchema";
 import Toast from "react-native-toast-message";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 type RegisterProps = NativeStackScreenProps<RootStackParamList, "Register">;
 export default function Register({ navigation }: Readonly<RegisterProps>) {
@@ -29,8 +30,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
     formState: { errors },
   } = useForm({
     resolver: yupResolver(registerSchema),
-    mode: "onBlur",
-    reValidateMode: "onBlur",
+
     defaultValues: {
       email: "",
       username: "",
@@ -120,7 +120,8 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container} scrollEnabled={true}>
+    <KeyboardAwareScrollView style={[styles.container]}>
+      {/* <ScrollView contentContainerStyle={styles.container} scrollEnabled={true}> */}
       <View style={styles.innerContainer}>
         <Text style={styles.heading}>Create Account</Text>
         <Text style={styles.text}>Join NoteSmart today</Text>
@@ -240,6 +241,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           </Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      {/* </ScrollView> */}
+    </KeyboardAwareScrollView>
   );
 }

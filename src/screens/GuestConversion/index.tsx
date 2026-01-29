@@ -6,10 +6,9 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, Text, View } from "react-native";
 import Toast from "react-native-toast-message";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { registerSchema } from "src/validations/registerSchema";
 import style from "./styles";
-import { RootState } from "@redux/store";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 
@@ -17,7 +16,9 @@ type ConversionProps = NativeStackScreenProps<
   RootStackParamList,
   "GuestConversion"
 >;
-export default function GuestConversion({ navigation }: ConversionProps) {
+export default function GuestConversion({
+  navigation,
+}: Readonly<ConversionProps>) {
   const {
     control,
     handleSubmit,
@@ -87,7 +88,9 @@ export default function GuestConversion({ navigation }: ConversionProps) {
         )}
       />
 
-      {errors.username?.message && <Text>{errors.username.message}</Text>}
+      {errors.username?.message && (
+        <Text style={style.error}>{errors.username.message}</Text>
+      )}
       <Controller
         control={control}
         name="firstName"
@@ -102,7 +105,9 @@ export default function GuestConversion({ navigation }: ConversionProps) {
           />
         )}
       />
-      {errors.firstName?.message && <Text>{errors.firstName.message}</Text>}
+      {errors.firstName?.message && (
+        <Text style={style.error}>{errors.firstName.message}</Text>
+      )}
       <Controller
         control={control}
         name="lastName"
@@ -117,7 +122,9 @@ export default function GuestConversion({ navigation }: ConversionProps) {
           />
         )}
       />
-      {errors.lastName?.message && <Text>{errors.lastName.message}</Text>}
+      {errors.lastName?.message && (
+        <Text style={style.error}>{errors.lastName.message}</Text>
+      )}
       <Controller
         control={control}
         name="email"
@@ -132,7 +139,9 @@ export default function GuestConversion({ navigation }: ConversionProps) {
           />
         )}
       />
-      {errors.email?.message && <Text>{errors.email.message}</Text>}
+      {errors.email?.message && (
+        <Text style={style.error}>{errors.email.message}</Text>
+      )}
       <Controller
         control={control}
         name="password"
@@ -153,7 +162,9 @@ export default function GuestConversion({ navigation }: ConversionProps) {
           />
         )}
       />
-      {errors.password?.message && <Text>{errors.password.message}</Text>}
+      {errors.password?.message && (
+        <Text style={style.error}>{errors.password.message}</Text>
+      )}
       <Pressable
         onPress={handleSubmit(handleConversion)}
         style={style.pressable}

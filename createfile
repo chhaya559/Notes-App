@@ -14,11 +14,6 @@ import {
   OnChangeStateEvent,
 } from "react-native-enriched";
 import {
-  actions,
-  RichEditor,
-  RichToolbar,
-} from "react-native-pell-rich-editor";
-import {
   useDeleteMutation,
   useSetMutation,
   useUpdateMutation,
@@ -35,7 +30,12 @@ import { db } from "src/db/notes";
 import { useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import { and, eq } from "drizzle-orm";
-import { Entypo, Ionicons } from "@expo/vector-icons";
+import {
+  Menu,
+  MenuOption,
+  MenuOptions,
+  MenuProvider,
+} from "react-native-popup-menu";
 
 type CreateNoteProps = NativeStackScreenProps<RootStackParamList, "CreateNote">;
 
@@ -55,6 +55,7 @@ export default function CreateNote({
     isPasswordProtected: false,
     reminder: null,
   });
+  const [isTextEditorVisible, setIsTextEditorVisible] = useState(false);
   const [saveApi] = useSetMutation();
   const [editApi] = useUpdateMutation();
   const [deleteApi] = useDeleteMutation();
@@ -156,69 +157,98 @@ export default function CreateNote({
       });
     return id;
   }
-  const richText = React.createRef() || useRef();
+
   return (
-    <>
-      <ScrollView>
-        <KeyboardAvoidingView style={styles.all}>
-          <View style={styles.container}>
-            <View style={styles.upperContainer}>
-              <TouchableOpacity onPress={handleSave}>
-                <Entypo name="check" size={26} color="#5757f8" />
-              </TouchableOpacity>
-              {/* <TouchableOpacity
-                style={styles.pressables}
-                onPress={handleDelete}
-              >
-                <Text style={styles.pressablesText}>Delete</Text>
-              </TouchableOpacity> */}
-              <TouchableOpacity>
-                <Ionicons
-                  name="ellipsis-vertical-circle"
-                  size={34}
-                  color="#5757f8"
-                />
-              </TouchableOpacity>
-            </View>
+    <KeyboardAvoidingView style={styles.all}>
+      <View style={styles.container}>
+        <View style={styles.upperContainer}>
+          <TouchableOpacity style={styles.pressables}>
+            <Text style={styles.pressablesText}>Lock</Text>
+          </TouchableOpacity>
 
-            <View style={styles.line} />
+          <TouchableOpacity style={styles.pressables}>
+            <Text style={styles.pressablesText}>Reminder</Text>
+          </TouchableOpacity>
 
-            <TextInput
-              placeholder="Title"
-              style={styles.title}
-              value={notes.title}
-              onChangeText={(value) =>
-                setNotes((prev) => ({ ...prev, title: value }))
-              }
+          <TouchableOpacity style={styles.pressables}>
+            <Text style={styles.pressablesText}>AI Summary</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.pressables} onPress={handleSave}>
+            <Text style={styles.pressablesText}>Save</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.pressables} onPress={handleDelete}>
+            <Text style={styles.pressablesText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.line} />
+
+        <TextInput
+          placeholder="Title"
+          style={styles.title}
+          value={notes.title}
+          onChangeText={(value) =>
+            setNotes((prev) => ({ ...prev, title: value }))
+          }
+        />
+
+        <View style={styles.editorContainer}>
+          <ScrollView contentContainerStyle={{ height: 550 }}>
+            <EnrichedTextInput
+              ref={ref}
+              onChangeState={(e) => setStyleState(e.nativeEvent)}
+              onChangeHtml={(e) => {
+                const text = e.nativeEvent.value;
+                setNotes((prev) => ({
+                  ...prev,
+                  content: text,
+                }));
+              }}
+              style={styles.input}
             />
+          </ScrollView>
+        </View>
 
-            <View style={styles.editorContainer}>
-              <RichEditor
-                ref={richText}
-                onChange={(val) =>
-                  setNotes((prev) => ({ ...prev, content: val }))
-                }
-                editorStyle={{ backgroundColor: "#f5f5f5", color: "#000" }}
-                initialHeight={600}
-              />
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </ScrollView>
-      <RichToolbar
-        editor={richText}
-        actions={[
-          actions.setBold,
-          actions.setItalic,
-          actions.setUnderline,
-          actions.checkboxList,
-          actions.insertBulletsList,
-          actions.insertOrderedList,
-          actions.setStrikethrough,
-          actions.insertImage,
-        ]}
-        iconSize={28}
-      />
-    </>
+        <View style={styles.buttons}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => ref.current?.toggleBold()}
+          >
+            <Text style={[styles.buttonText, styles.bold]}>B</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => ref.current?.toggleItalic()}
+          >
+            <Text style={[styles.italic, styles.buttonText]}>I</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => ref.current?.toggleUnderline()}
+          >
+            <Text style={styles.buttonText}>U</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => ref.current?.toggleOrderedList()}
+          >
+            <Text style={styles.buttonText}>1</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => ref.current?.toggleUnorderedList()}
+          >
+            <Text style={styles.buttonText}>•</Text>
+          </TouchableOpacity>
+        </View>
+
+       
+    </KeyboardAvoidingView>
   );
 }
