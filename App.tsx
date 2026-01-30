@@ -10,8 +10,9 @@ import * as SplashScreen from "expo-splash-screen";
 import { Provider } from "react-redux";
 import { MenuProvider } from "react-native-popup-menu";
 import { KeyboardProvider } from "react-native-keyboard-controller";
-import { PersistGate } from "redux-persist/integration/react";
+// import { PersistGate } from "redux-persist/integration/react";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { PersistGate } from "redux-persist/integration/react";
 
 SplashScreen.preventAutoHideAsync();
 interface ExtendedText extends Text {
@@ -43,19 +44,19 @@ export default function App() {
 
   return (
     <Provider store={store}>
-      {/* <PersistGate persistor={persistor} loading={null}> */}
-      <SafeAreaProvider>
-        <KeyboardProvider>
-          <SafeAreaView
-            style={{ flex: 1, backgroundColor: "#f5f5f5" }}
-            edges={["bottom"]}
-          >
-            <RootNavigator />
-            <Toast />
-          </SafeAreaView>
-        </KeyboardProvider>
-      </SafeAreaProvider>
-      {/* </PersistGate> */}
+      <PersistGate persistor={persistor}>
+        <SafeAreaProvider>
+          <KeyboardProvider>
+            <SafeAreaView
+              style={{ flex: 1, backgroundColor: "#f5f5f5" }}
+              edges={["bottom"]}
+            >
+              <RootNavigator />
+              <Toast />
+            </SafeAreaView>
+          </KeyboardProvider>
+        </SafeAreaProvider>
+      </PersistGate>
     </Provider>
   );
 }

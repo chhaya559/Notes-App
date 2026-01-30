@@ -4,7 +4,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: "#f5f5f5",
     flexDirection: "row",
-    paddingTop: 70,
+    paddingTop: 60,
     justifyContent: "space-between",
     padding: 15,
     paddingBottom: 0,
@@ -15,6 +15,10 @@ const styles = StyleSheet.create({
   },
   right: {},
   title: {},
+  headerButton: {
+    backgroundColor: "#e6e4e4ff",
+    borderRadius: 50,
+  },
 });
 
 export default styles;

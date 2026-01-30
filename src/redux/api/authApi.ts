@@ -90,15 +90,11 @@ export const authApi = createApi({
         method: "DELETE",
       }),
     }),
-    getNotes: builder.query({
+
+    getUser: builder.query({
       query: () => ({
-        url: "/notes",
-      }),
-    }),
-    saveNotes: builder.mutation({
-      query: () => ({
-        url: "/notes",
-        method: "POST",
+        url: "/users/me",
+        method: "GET",
       }),
     }),
   }),
@@ -115,4 +111,5 @@ export const {
   useGuestConversionMutation,
   useDeleteUserMutation,
   useEditUserMutation,
+  useGetUserQuery,
 } = authApi;

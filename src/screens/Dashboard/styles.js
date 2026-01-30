@@ -46,9 +46,9 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     marginRight: 15,
     paddingHorizontal: 15,
-    padding: 15,
     borderRadius: 25,
     backgroundColor: "#fff",
+    height: 55,
   },
   focus: {
     borderWidth: 1,

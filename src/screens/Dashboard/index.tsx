@@ -7,55 +7,52 @@ import {
   View,
 } from "react-native";
 import styles from "./styles";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import { useGetQuery } from "@redux/api/noteApi";
 import Card from "@components/atoms/Card";
-import {
-  createDrawerNavigator,
-  DrawerScreenProps,
-} from "@react-navigation/drawer";
 import { db } from "src/db/notes";
 import { notesTable } from "src/db/schema";
 import { createTable } from "src/db/createTable";
 import { useFocusEffect } from "@react-navigation/native";
-import Reminders from "@screens/Reminders";
 import { and, eq } from "drizzle-orm";
-import DashboardHeader from "@components/atoms/DashboardHeader";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useNetInfo } from "@react-native-community/netinfo";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
 
+type NotesResponse = {
+  data: any[];
+};
+
 export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [notes, setNotes] = useState<any[]>([]);
-  const userId = useSelector((state: RootState) => state.auth.token);
   const [isFocused, setIsFocused] = useState(false);
-  const { data } = useGetQuery(undefined, {
+
+  const userId = useSelector((state: RootState) => state.auth.token);
+  const { isConnected } = useNetInfo();
+
+  const { data } = useGetQuery<NotesResponse>(undefined, {
     refetchOnFocus: true,
     refetchOnMountOrArgChange: true,
   });
-  const { isConnected } = useNetInfo();
 
   useEffect(() => {
-    if (!data?.data) return;
+    if (!data || data.length === 0) return;
     if (!userId) return;
 
     async function syncNotes() {
       await createTable();
-      // console.log("data", data?.data);
-      for (const note of data.data) {
+      for (const note of data?.data) {
         const existing = db
           .select()
           .from(notesTable)
           .where(and(eq(notesTable.id, note.id), eq(notesTable.userId, userId)))
           .get();
 
-        if (existing && existing.updatedAt === note.updatedAt) {
-          continue;
-        }
+        if (existing && existing.updatedAt === note.updatedAt) continue;
 
         await db
           .insert(notesTable)
@@ -85,19 +82,16 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         .from(notesTable)
         .where(eq(notesTable.userId, userId));
 
-      if (isConnected) {
-        setNotes(data?.data);
-      } else {
-        setNotes(notesFromDB);
-      }
-      // setNotes(notescFromDB);
+      setNotes(isConnected ? data.data : notesFromDB);
     }
 
     syncNotes();
-  }, [data]);
+  }, [data, userId, isConnected]);
 
   useFocusEffect(
     useCallback(() => {
+      if (!userId) return;
+
       const loadNotes = async () => {
         const notesFromDB = await db
           .select()
@@ -108,7 +102,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       };
 
       loadNotes();
-    }, []),
+    }, [userId]),
   );
 
   return (
@@ -123,6 +117,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             style={{ height: 65, width: 65 }}
           />
         </View>
+
         <View style={[styles.SearchBar, isFocused && styles.focus]}>
           <Ionicons
             name="search"
@@ -140,20 +135,14 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         </View>
       </View>
 
-      {/* <View style={styles.line} /> */}
-
       <View style={[styles.scrollContainer, styles.listContent]}>
         <FlatList
           data={notes}
+          bounces={false}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingBottom: 120 }}
           renderItem={({ item }) => (
-            <Card
-              id={item.id}
-              title={item.title}
-              content={item.content}
-              updatedAt={item.updatedAt}
-            />
+            <Card id={item.id} title={item.title} updatedAt={item.updatedAt} />
           )}
           ListEmptyComponent={
             <Text style={{ textAlign: "center", marginTop: 40 }}>

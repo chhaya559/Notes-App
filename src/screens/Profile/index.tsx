@@ -7,13 +7,16 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 import { logout } from "@redux/slice/authSlice";
 import Toast from "react-native-toast-message";
-import { useDeleteUserMutation } from "@redux/api/authApi";
+import { useDeleteUserMutation, useGetUserQuery } from "@redux/api/authApi";
 
 type ProfileProps = NativeStackScreenProps<RootStackParamList, "Profile">;
 
 export default function Profile({ navigation }: Readonly<ProfileProps>) {
   const dispatch = useDispatch<AppDispatch>();
-  // const token = useSelector((state: RootState) => state.auth.token);
+  const { data } = useGetUserQuery(undefined, {
+    refetchOnFocus: true,
+    refetchOnMountOrArgChange: true,
+  });
   const username = useSelector((state: RootState) => state.auth.firstName);
   const email = useSelector((state: RootState) => state.auth.email);
   const [deleteApi] = useDeleteUserMutation();
@@ -28,6 +31,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       if (response.success) {
         Toast.show({
           text1: "Account Deleted Successfully!",
+          visibilityTime: 1000,
         });
       }
     } catch (error) {

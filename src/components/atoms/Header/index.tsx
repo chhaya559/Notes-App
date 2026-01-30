@@ -1,6 +1,6 @@
 import { NativeStackHeaderProps } from "@react-navigation/native-stack";
 import { TouchableOpacity, View, Text } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import styles from "./styles";
 
 export default function Header({
@@ -12,8 +12,16 @@ export default function Header({
     <View style={styles.header}>
       <View style={styles.left}>
         {back ? (
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back-outline" size={30} color="#5757f8" />
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.headerButton}
+          >
+            <Ionicons
+              name="arrow-back-outline"
+              size={30}
+              color="#5757f8"
+              style={{ padding: 5 }}
+            />
           </TouchableOpacity>
         ) : (
           options.headerLeft?.({})

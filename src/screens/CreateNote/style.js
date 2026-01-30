@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   },
   line: {
     height: 1,
-    backgroundColor: "#575757ff",
+    backgroundColor: "#a8a3a3ff",
     marginTop: 10,
     marginBottom: 10,
   },
@@ -36,6 +36,7 @@ const styles = StyleSheet.create({
   },
   all: {
     flex: 1,
+    backgroundColor: "#f5f5f5",
   },
   buttons: {
     flexDirection: "row",
@@ -76,7 +77,63 @@ const styles = StyleSheet.create({
   },
   content: {
     backgroundColor: "#000",
-    height: 600,
+    height: "100%",
+  },
+
+  headerButton: {
+    backgroundColor: "#e6e4e4ff",
+    borderRadius: 50,
+    padding: 4,
+  },
+  header: {
+    flexDirection: "row",
+    alignSelf: "baseline",
+    gap: 20,
+  },
+  modal: {
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    padding: 15,
+  },
+  options: {
+    backgroundColor: "#91a2dfff",
+    flexDirection: "row",
+    borderRadius: 50,
+    justifyContent: "space-around",
+    margin: 45,
+    marginTop: 0,
+    marginBottom: 5,
+    padding: 7,
+  },
+  optionButton: {
+    padding: 2,
+    backgroundColor: "#e6e4e4",
+    borderRadius: 25,
+  },
+  optionIcon: {
+    color: "#5757f8",
+    padding: 5,
+  },
+  headerMenu: {
+    alignSelf: "flex-end",
+    width: "auto",
+    backgroundColor: "#fafafa",
+    padding: 15,
+    paddingBottom: 0,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+  },
+  touchables: {
+    flexDirection: "row",
+    gap: 5,
+    padding: 6,
+  },
+  touchableText: {
+    textAlign: "center",
+    alignSelf: "center",
   },
 });
 

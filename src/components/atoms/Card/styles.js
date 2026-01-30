@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 14,
     height: "auto",
-    width: "auto",
+    width: "50%",
   },
   heading: {
     fontSize: 16,

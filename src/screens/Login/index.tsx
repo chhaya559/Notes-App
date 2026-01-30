@@ -23,6 +23,7 @@ import { AppDispatch } from "@redux/store";
 import { login, google } from "@redux/slice/authSlice";
 import { loginSchema } from "src/validations/loginSchema";
 import Toast from "react-native-toast-message";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 type LoginProps = NativeStackScreenProps<RootStackParamList, "Login">;
 export default function Login({ navigation }: Readonly<LoginProps>) {
   const [isVisible, setIsVisible] = useState(true);
@@ -110,7 +111,8 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
         });
       }
     } catch (error: any) {
-      if (error.data.Errors.includes("Exception: Invalid credentials")) {
+      console.log(error.data.message, "ughkj");
+      if (error.data.message.includes("Invalid email or password")) {
         Toast.show({
           text1: "Invalid Credentials",
         });
@@ -123,7 +125,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container} scrollEnabled={true}>
+    <KeyboardAwareScrollView style={styles.container}>
       <View style={styles.innerContainer}>
         <Text style={styles.heading}>Welcome Back</Text>
         <Text style={styles.text}>Sign in to continue</Text>
@@ -196,6 +198,6 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
           {isGoogleLoading ? "Sigining you in" : "Sign in with Google"}
         </Text>
       </TouchableOpacity>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }

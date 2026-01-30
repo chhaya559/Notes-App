@@ -8,8 +8,14 @@ import { EditSchema } from "src/validations/EditProfile";
 import styles from "./style";
 import { useEditUserMutation } from "@redux/api/authApi";
 import Toast from "react-native-toast-message";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "src/navigation/types";
 
-export default function EditProfile() {
+type EditProfileProps = NativeStackScreenProps<
+  RootStackParamList,
+  "EditProfile"
+>;
+export default function EditProfile({ navigation }: EditProfileProps) {
   const username = useSelector((state: RootState) => state.auth.username);
   const firstName = useSelector((state: RootState) => state.auth.firstName);
   const lastName = useSelector((state: RootState) => state.auth.lastName);
@@ -40,6 +46,7 @@ export default function EditProfile() {
         Toast.show({
           text1: "Profile updated successfully!",
         });
+        navigation.goBack();
       }
     } catch (error) {
       console.log(error);

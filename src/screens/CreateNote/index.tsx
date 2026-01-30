@@ -2,17 +2,15 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   TextInput,
   View,
-  Text,
   KeyboardAvoidingView,
   ScrollView,
   TouchableOpacity,
+  Platform,
+  Text,
+  Modal,
 } from "react-native";
 import styles from "./style";
-import {
-  EnrichedTextInputInstance,
-  EnrichedTextInput,
-  OnChangeStateEvent,
-} from "react-native-enriched";
+import { EnrichedTextInputInstance } from "react-native-enriched";
 import {
   actions,
   RichEditor,
@@ -20,6 +18,7 @@ import {
 } from "react-native-pell-rich-editor";
 import {
   useDeleteMutation,
+  useGetNoteByIdQuery,
   useSetMutation,
   useUpdateMutation,
 } from "@redux/api/noteApi";
@@ -35,7 +34,12 @@ import { db } from "src/db/notes";
 import { useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import { and, eq } from "drizzle-orm";
-import { Entypo, Ionicons } from "@expo/vector-icons";
+import {
+  AntDesign,
+  Entypo,
+  Ionicons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 
 type CreateNoteProps = NativeStackScreenProps<RootStackParamList, "CreateNote">;
 
@@ -44,11 +48,17 @@ export default function CreateNote({
   route,
 }: Readonly<CreateNoteProps>) {
   const ref = useRef<EnrichedTextInputInstance>(null);
-  const [styleState, setStyleState] = useState<OnChangeStateEvent | null>(null);
   const userId = useSelector((state: RootState) => state.auth.token);
 
   const { isConnected } = useNetInfo();
-
+  const [textToolBarVisibility, setTextToolBarVisibility] = useState(false);
+  function toggleTextToolBarVisibility() {
+    setTextToolBarVisibility(!textToolBarVisibility);
+  }
+  const [headerModalVisibility, setHeaderModalVisibility] = useState(false);
+  function toggleHeaderModalVisibility() {
+    setHeaderModalVisibility(!headerModalVisibility);
+  }
   const [notes, setNotes] = useState({
     title: "",
     content: "",
@@ -60,43 +70,80 @@ export default function CreateNote({
   const [deleteApi] = useDeleteMutation();
 
   const noteId = route?.params?.id;
+  const { data: NotesData } = useGetNoteByIdQuery({ id: noteId });
+  console.log(NotesData, "notesdata");
   const isEditMode = Boolean(noteId);
 
   useEffect(() => {
-    if (!isEditMode) return;
+    if (!NotesData?.data) return;
+    setNotes({
+      title: NotesData.data.title ?? "",
+      content: NotesData.data.content ?? "",
+      isPasswordProtected: NotesData.data.isPasswordProtected ?? false,
+      reminder: NotesData.data.reminder ?? null,
+    });
 
-    setNotes((prev) => ({
-      ...prev,
-      title: route.params?.title ?? "",
-      content: route.params?.content ?? "",
-    }));
+    richText.current?.setContentHTML(NotesData.data.content ?? "");
+  }, [NotesData]);
+  async function handleUpdate() {
+    const response = await editApi({
+      id: noteId,
+      title: notes.title,
+      content: notes.content,
+      isPasswordProtected: notes.isPasswordProtected,
+    }).unwrap();
+    console.log("hrkghlk", response);
+  }
+  // async function handleSave() {
+  //   try {
+  //     if (isEditMode) {
+  //       handleUpdate();
+  //     }
+  //     const localId = await saveToLocalDB(isConnected ? "synced" : "pending");
 
-    ref.current?.setValue?.(route.params?.content ?? "");
-  }, [isEditMode]);
-
+  //     if (isConnected) {
+  //       await saveApi({
+  //         id: localId,
+  //         title: notes.title,
+  //         content: notes.content,
+  //         isPasswordProtected: notes.isPasswordProtected,
+  //       }).unwrap();
+  //     }
+  //     navigation.goBack();
+  //     navigation.replace("Dashboard");
+  //   } catch (error) {
+  //     console.log("Save error:", error);
+  //   }
+  // }
   async function handleSave() {
     try {
+      if (isEditMode) {
+        if (isConnected) {
+          await editApi({
+            id: noteId,
+            title: notes.title.trim(),
+            content: notes.content,
+            isPasswordProtected: notes.isPasswordProtected,
+          }).unwrap();
+        }
+        await saveToLocalDB("synced");
+
+        navigation.goBack();
+        return;
+      }
+
       const localId = await saveToLocalDB(isConnected ? "synced" : "pending");
 
-      // if (isConnected) {
-      if (isEditMode) {
-        await editApi({
-          id: localId,
-          title: notes.title,
-          content: notes.content,
-          isPasswordProtected: notes.isPasswordProtected,
-        }).unwrap();
-      } else {
+      if (isConnected) {
         await saveApi({
           id: localId,
-          title: notes.title,
+          title: notes.title.trim(),
           content: notes.content,
           isPasswordProtected: notes.isPasswordProtected,
         }).unwrap();
       }
-      //  }
-      //navigation.goBack();
-      navigation.replace("Dashboard");
+
+      navigation.goBack();
     } catch (error) {
       console.log("Save error:", error);
     }
@@ -104,7 +151,12 @@ export default function CreateNote({
 
   async function handleDelete() {
     try {
-      if (!noteId) return;
+      if (!noteId) {
+        Toast.show({
+          text1: "Empty note can’t be deleted",
+        });
+        return;
+      }
       if (!userId) throw new Error("userID is not correct");
       await db
         .delete(notesTable)
@@ -116,13 +168,12 @@ export default function CreateNote({
       Toast.show({
         text1: "Deleted",
       });
+      navigation.goBack();
     } catch (error) {
       console.log("Delete error:", error);
     }
-    // navigation.goBack();
-    navigation.replace("Dashboard");
   }
-
+  //header
   async function saveToLocalDB(status: SyncStatus) {
     await createTable();
     if (!userId) {
@@ -156,69 +207,140 @@ export default function CreateNote({
       });
     return id;
   }
-  const richText = React.createRef() || useRef();
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleSave}>
+            <Entypo
+              name="check"
+              size={30}
+              color="#5757f8"
+              style={styles.headerButton}
+            />
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  });
+  const richText = React.useRef<any>(null);
   return (
-    <>
-      <ScrollView>
-        <KeyboardAvoidingView style={styles.all}>
-          <View style={styles.container}>
-            <View style={styles.upperContainer}>
-              <TouchableOpacity onPress={handleSave}>
-                <Entypo name="check" size={26} color="#5757f8" />
-              </TouchableOpacity>
-              {/* <TouchableOpacity
+    <KeyboardAvoidingView
+      style={styles.all}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <View style={styles.container}>
+        <View style={styles.upperContainer}>
+          {/* <TouchableOpacity
                 style={styles.pressables}
                 onPress={handleDelete}
               >
                 <Text style={styles.pressablesText}>Delete</Text>
               </TouchableOpacity> */}
-              <TouchableOpacity>
-                <Ionicons
-                  name="ellipsis-vertical-circle"
-                  size={34}
-                  color="#5757f8"
-                />
-              </TouchableOpacity>
-            </View>
+        </View>
 
+        <View style={styles.line} />
+
+        <TextInput
+          placeholder="Title"
+          placeholderTextColor="#000"
+          style={styles.title}
+          value={notes.title}
+          onChangeText={(value) =>
+            setNotes((prev) => ({ ...prev, title: value }))
+          }
+        />
+        <ScrollView bounces={false}>
+          <View style={styles.editorContainer}>
+            <RichEditor
+              ref={richText}
+              initialContentHTML={notes.content}
+              onChange={(val) =>
+                setNotes((prev) => ({ ...prev, content: val }))
+              }
+              editorStyle={{ backgroundColor: "#f5f5f5", color: "#000" }}
+              initialHeight={600}
+              placeholder="Type Here..."
+            />
+          </View>
+        </ScrollView>
+      </View>
+      {textToolBarVisibility && (
+        <View style={styles.modal}>
+          <RichToolbar
+            editor={richText}
+            actions={[
+              actions.setBold,
+              actions.setItalic,
+              actions.setUnderline,
+              actions.checkboxList,
+              actions.insertBulletsList,
+              actions.insertOrderedList,
+              actions.setStrikethrough,
+            ]}
+            iconSize={28}
+            selectIconTint="#000"
+            iconTint="#5757f8"
+          />
+        </View>
+      )}
+      {headerModalVisibility && (
+        <View style={{ position: "absolute", bottom: 80, right: 20 }}>
+          <View style={styles.headerMenu}>
+            <TouchableOpacity style={styles.touchables}>
+              <Entypo name="lock" color="#5757f8" size={24} />
+              <Text style={styles.touchableText}>Lock</Text>
+            </TouchableOpacity>
+            <View style={styles.line} />
+            <TouchableOpacity style={styles.touchables}>
+              <Ionicons color="#5757f8" size={24} name="notifications" />
+              <Text style={styles.touchableText}>Reminder</Text>
+            </TouchableOpacity>
             <View style={styles.line} />
 
-            <TextInput
-              placeholder="Title"
-              style={styles.title}
-              value={notes.title}
-              onChangeText={(value) =>
-                setNotes((prev) => ({ ...prev, title: value }))
-              }
-            />
-
-            <View style={styles.editorContainer}>
-              <RichEditor
-                ref={richText}
-                onChange={(val) =>
-                  setNotes((prev) => ({ ...prev, content: val }))
-                }
-                editorStyle={{ backgroundColor: "#f5f5f5", color: "#000" }}
-                initialHeight={600}
-              />
-            </View>
+            <TouchableOpacity style={styles.touchables} onPress={handleDelete}>
+              <MaterialCommunityIcons name="delete" size={24} color="#5757f8" />
+              <Text style={styles.touchableText}>Delete</Text>
+            </TouchableOpacity>
+            <View />
           </View>
-        </KeyboardAvoidingView>
-      </ScrollView>
-      <RichToolbar
-        editor={richText}
-        actions={[
-          actions.setBold,
-          actions.setItalic,
-          actions.setUnderline,
-          actions.checkboxList,
-          actions.insertBulletsList,
-          actions.insertOrderedList,
-          actions.setStrikethrough,
-          actions.insertImage,
-        ]}
-        iconSize={28}
-      />
-    </>
+        </View>
+      )}
+
+      <View style={styles.options}>
+        <TouchableOpacity
+          onPress={toggleTextToolBarVisibility}
+          style={styles.optionButton}
+        >
+          {textToolBarVisibility ? (
+            <AntDesign name="close" size={24} style={styles.optionIcon} />
+          ) : (
+            <MaterialCommunityIcons
+              name="format-text"
+              size={24}
+              style={styles.optionIcon}
+            />
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.optionButton}>
+          <AntDesign name="link" size={24} style={styles.optionIcon} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={toggleHeaderModalVisibility}
+          style={styles.optionButton}
+        >
+          {headerModalVisibility ? (
+            <AntDesign name="close" size={24} style={styles.optionIcon} />
+          ) : (
+            <Ionicons
+              name="ellipsis-vertical-circle-outline"
+              size={24}
+              style={styles.optionIcon}
+            />
+          )}
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 }

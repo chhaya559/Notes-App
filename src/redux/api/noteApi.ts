@@ -38,6 +38,14 @@ export const noteApi = createApi({
         },
       }),
     }),
+    getNoteById: builder.query({
+      query: ({ id, ...queryParams }) => ({
+        url: `/notes/${id}`,
+        method: "GET",
+        params: queryParams,
+      }),
+    }),
+
     delete: builder.mutation({
       query: ({ id, ...body }) => ({
         url: `/notes/${id}`,
@@ -56,4 +64,5 @@ export const {
   useGetQuery,
   useDeleteMutation,
   useSetMutation,
+  useGetNoteByIdQuery,
 } = noteApi;
