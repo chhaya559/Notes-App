@@ -9,6 +9,7 @@ export const notesTable = sqliteTable("notes_table", {
   updatedAt: text().notNull(),
   isPasswordProtected: int("isPasswordProtected").default(0),
   reminder: text("reminder"),
+  backgroundColor : text(),
   syncStatus: text("syncStatus")
     .$type<SyncStatus>()
     .notNull()
