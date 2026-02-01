@@ -15,6 +15,7 @@ export async function createTable() {
       isPasswordProtected INTEGER ,
       reminder TEXT,
       syncStatus TEXT
+      backgroundColor TEXT
     );
   `);
 }
