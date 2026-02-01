@@ -1,15 +1,16 @@
 import CustomInput from "@components/atoms/CustomInput";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { RootState } from "@redux/store";
+import { AppDispatch, RootState } from "@redux/store";
 import { Controller, useForm } from "react-hook-form";
 import { Text, TouchableOpacity, View } from "react-native";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { EditSchema } from "src/validations/EditProfile";
 import styles from "./style";
 import { useEditUserMutation } from "@redux/api/authApi";
 import Toast from "react-native-toast-message";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
+import { edit } from "@redux/slice/authSlice";
 
 type EditProfileProps = NativeStackScreenProps<
   RootStackParamList,
@@ -20,7 +21,7 @@ export default function EditProfile({ navigation }: EditProfileProps) {
   const firstName = useSelector((state: RootState) => state.auth.firstName);
   const lastName = useSelector((state: RootState) => state.auth.lastName);
   const [editApi] = useEditUserMutation();
-
+  const dispatch = useDispatch<AppDispatch>()
   const {
     control,
     handleSubmit,
@@ -43,6 +44,13 @@ export default function EditProfile({ navigation }: EditProfileProps) {
 
       console.log(response);
       if (response.success) {
+        dispatch(
+          edit({
+            firstName : data.firstName,
+            lastName : data.lastName,
+            username : data.username
+          })
+        )
         Toast.show({
           text1: "Profile updated successfully!",
         });
