@@ -38,11 +38,10 @@ export const noteApi = createApi({
         },
       }),
     }),
-    getNoteById: builder.query({
-      query: ({ id, ...queryParams }) => ({
+    getNoteById: builder.query<any, { id: string }>({
+      query: ({ id }) => ({
         url: `/notes/${id}`,
         method: "GET",
-        params: queryParams,
       }),
     }),
 
@@ -56,6 +55,13 @@ export const noteApi = createApi({
         },
       }),
     }),
+    searchNotes: builder.query<any, string>({
+      query: (text) => `/notes?search=${text}`,
+    }),
+
+    aiSummary: builder.query<{ summary: string }, { id: string }>({
+      query: ({ id }) => `notes/${id}/generate-summary`,
+    }),
   }),
 });
 
@@ -64,5 +70,7 @@ export const {
   useGetQuery,
   useDeleteMutation,
   useSetMutation,
+  useSearchNotesQuery,
   useGetNoteByIdQuery,
+  useAiSummaryQuery,
 } = noteApi;
