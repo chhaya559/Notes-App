@@ -93,6 +93,18 @@ const authSlice = createSlice({
       state.token = action.payload.token;
       state.isGuest = true;
     },
+    edit: (
+      state,
+      action: PayloadAction<{
+        firstName: string;
+        lastName: string;
+        username: string;
+      }>,
+    ) => {
+      state.firstName = action.payload.firstName;
+      state.lastName = action.payload.lastName;
+      state.username = action.payload.username;
+    },
     conversion: (
       state,
       action: PayloadAction<{
@@ -111,6 +123,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { login, logout, register, google, guest, conversion } =
+export const { login, logout, register, google, guest, conversion,edit } =
   authSlice.actions;
 export default authSlice.reducer;
