@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   },
   line: {
     height: 1,
-    backgroundColor: "#a8a3a3ff",
+    backgroundColor: "rgb(215, 212, 212)",
     marginTop: 10,
     marginBottom: 10,
   },
@@ -81,9 +81,9 @@ const styles = StyleSheet.create({
   },
 
   headerButton: {
-    backgroundColor: "#e6e4e4ff",
+    backgroundColor: "#E0E7FF",
     borderRadius: 50,
-    padding: 4,
+    padding: 5,
   },
   header: {
     flexDirection: "row",
@@ -94,21 +94,20 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 10,
-    padding: 15,
+    padding: 5,
+    elevation: 5,
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    justifyContent: "space-around",
   },
   options: {
-    backgroundColor: "#91a2dfff",
     flexDirection: "row",
-    borderRadius: 50,
     justifyContent: "space-around",
-    margin: 45,
-    marginTop: 0,
-    marginBottom: 5,
-    padding: 7,
+    //elevation: 5,
   },
   optionButton: {
-    padding: 2,
-    backgroundColor: "#e6e4e4",
+    padding: 5,
+    backgroundColor: "#E0E7FF",
     borderRadius: 25,
   },
   optionIcon: {
@@ -135,6 +134,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     alignSelf: "center",
   },
+  toolbar: {
+    backgroundColor: "#fff",
+  },
+ 
 });
 
 export default styles;
