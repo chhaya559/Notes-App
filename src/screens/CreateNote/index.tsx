@@ -34,12 +34,18 @@ import { db } from "src/db/notes";
 import { useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import { and, eq } from "drizzle-orm";
+import BackgroundColor from "@components/Molecules/BackgroundColor";
 import {
   AntDesign,
   Entypo,
+  EvilIcons,
+  Feather,
   Ionicons,
   MaterialCommunityIcons,
+  MaterialIcons,
 } from "@expo/vector-icons";
+import Reminder from "@components/atoms/Reminder";
+import AISummary from "@components/atoms/AISummary";
 
 type CreateNoteProps = NativeStackScreenProps<RootStackParamList, "CreateNote">;
 
@@ -47,9 +53,8 @@ export default function CreateNote({
   navigation,
   route,
 }: Readonly<CreateNoteProps>) {
-  const ref = useRef<EnrichedTextInputInstance>(null);
   const userId = useSelector((state: RootState) => state.auth.token);
-
+  const [noteBackground, setNoteBackground] = useState<string>("#f5f5f5");
   const { isConnected } = useNetInfo();
   const [textToolBarVisibility, setTextToolBarVisibility] = useState(false);
   function toggleTextToolBarVisibility() {
@@ -59,11 +64,24 @@ export default function CreateNote({
   function toggleHeaderModalVisibility() {
     setHeaderModalVisibility(!headerModalVisibility);
   }
+  const [isColorPaletteVisible, setIsColorPaletteVisible] = useState(false);
+  function toggleColorPaletteVisibility() {
+    setIsColorPaletteVisible(!isColorPaletteVisible);
+  }
+  const [showReminder, setShowReminder] = useState(false);
+  function toggleReminderVisibility() {
+    setShowReminder(!showReminder);
+  }
+  const [showSummary, setShowSummary] = useState(false);
+  function toggleShowSummary() {
+    setShowSummary(!showSummary);
+  }
   const [notes, setNotes] = useState({
     title: "",
     content: "",
     isPasswordProtected: false,
     reminder: null,
+    backgroundColor: "#ffffff",
   });
   const [saveApi] = useSetMutation();
   const [editApi] = useUpdateMutation();
@@ -81,40 +99,17 @@ export default function CreateNote({
       content: NotesData.data.content ?? "",
       isPasswordProtected: NotesData.data.isPasswordProtected ?? false,
       reminder: NotesData.data.reminder ?? null,
+      backgroundColor: NotesData.data.backgroundColor ?? "#f5f5f5",
     });
 
     richText.current?.setContentHTML(NotesData.data.content ?? "");
   }, [NotesData]);
-  async function handleUpdate() {
-    const response = await editApi({
-      id: noteId,
-      title: notes.title,
-      content: notes.content,
-      isPasswordProtected: notes.isPasswordProtected,
-    }).unwrap();
-    console.log("hrkghlk", response);
-  }
-  // async function handleSave() {
-  //   try {
-  //     if (isEditMode) {
-  //       handleUpdate();
-  //     }
-  //     const localId = await saveToLocalDB(isConnected ? "synced" : "pending");
+  useEffect(() => {
+    if (NotesData?.data?.backgroundColor) {
+      setNoteBackground(NotesData.data.backgroundColor);
+    }
+  }, [NotesData]);
 
-  //     if (isConnected) {
-  //       await saveApi({
-  //         id: localId,
-  //         title: notes.title,
-  //         content: notes.content,
-  //         isPasswordProtected: notes.isPasswordProtected,
-  //       }).unwrap();
-  //     }
-  //     navigation.goBack();
-  //     navigation.replace("Dashboard");
-  //   } catch (error) {
-  //     console.log("Save error:", error);
-  //   }
-  // }
   async function handleSave() {
     try {
       if (isEditMode) {
@@ -140,6 +135,7 @@ export default function CreateNote({
           title: notes.title.trim(),
           content: notes.content,
           isPasswordProtected: notes.isPasswordProtected,
+          backgroundColor: notes.backgroundColor ?? "#f5f5f5",
         }).unwrap();
       }
 
@@ -193,6 +189,7 @@ export default function CreateNote({
         isPasswordProtected: notes.isPasswordProtected ? 1 : 0,
         reminder: notes.reminder ?? null,
         syncStatus: status,
+        backgroundColor: notes.backgroundColor ?? "#f5f5f5",
       })
       .onConflictDoUpdate({
         target: notesTable.id,
@@ -203,12 +200,17 @@ export default function CreateNote({
           isPasswordProtected: notes.isPasswordProtected ? 1 : 0,
           reminder: notes.reminder,
           syncStatus: status,
+          backgroundColor: notes.backgroundColor ?? "#f5f5f5",
         },
       });
     return id;
   }
   useEffect(() => {
     navigation.setOptions({
+      headerStyle: {
+        backgroundColor: noteBackground,
+      },
+      headerShadowVisible: false,
       headerRight: () => (
         <View style={styles.header}>
           <TouchableOpacity onPress={handleSave}>
@@ -222,14 +224,14 @@ export default function CreateNote({
         </View>
       ),
     });
-  });
-  const richText = React.useRef<any>(null);
+  }, [navigation, handleSave]);
+  const richText = useRef<RichEditor | null>(null);
   return (
     <KeyboardAvoidingView
-      style={styles.all}
+      style={[styles.all]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: noteBackground }]}>
         <View style={styles.upperContainer}>
           {/* <TouchableOpacity
                 style={styles.pressables}
@@ -243,22 +245,27 @@ export default function CreateNote({
 
         <TextInput
           placeholder="Title"
-          placeholderTextColor="#000"
+          placeholderTextColor="#5c5c5c"
           style={styles.title}
           value={notes.title}
           onChangeText={(value) =>
             setNotes((prev) => ({ ...prev, title: value }))
           }
         />
-        <ScrollView bounces={false}>
-          <View style={styles.editorContainer}>
+        <ScrollView bounces={false} style={{ backgroundColor: noteBackground }}>
+          <View
+            style={[
+              styles.editorContainer,
+              { backgroundColor: noteBackground },
+            ]}
+          >
             <RichEditor
               ref={richText}
               initialContentHTML={notes.content}
               onChange={(val) =>
                 setNotes((prev) => ({ ...prev, content: val }))
               }
-              editorStyle={{ backgroundColor: "#f5f5f5", color: "#000" }}
+              editorStyle={{ backgroundColor: noteBackground, color: "#000" }}
               initialHeight={600}
               placeholder="Type Here..."
             />
@@ -281,66 +288,138 @@ export default function CreateNote({
             iconSize={28}
             selectIconTint="#000"
             iconTint="#5757f8"
+            style={styles.toolbar}
           />
+          <TouchableOpacity
+            onPress={toggleTextToolBarVisibility}
+            style={{
+              alignSelf: "center",
+              backgroundColor: "#E0E7FF",
+              borderRadius: 25,
+              padding: 2,
+            }}
+          >
+            <AntDesign name="close" size={24} style={[styles.optionIcon]} />
+          </TouchableOpacity>
         </View>
       )}
       {headerModalVisibility && (
         <View style={{ position: "absolute", bottom: 80, right: 20 }}>
           <View style={styles.headerMenu}>
-            <TouchableOpacity style={styles.touchables}>
-              <Entypo name="lock" color="#5757f8" size={24} />
-              <Text style={styles.touchableText}>Lock</Text>
-            </TouchableOpacity>
-            <View style={styles.line} />
-            <TouchableOpacity style={styles.touchables}>
-              <Ionicons color="#5757f8" size={24} name="notifications" />
+            {notes.isPasswordProtected == true ? (
+              <TouchableOpacity style={styles.touchables}>
+                <AntDesign name="unlock" color="#5757f8" size={24} />
+                <Text style={styles.touchableText}>Lock</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.touchables}>
+                <AntDesign name="lock" color="#5757f8" size={24} />
+                <Text style={styles.touchableText}>Unlock</Text>
+              </TouchableOpacity>
+            )}
+            {/* <View style={styles.line} /> */}
+            <TouchableOpacity
+              style={styles.touchables}
+              onPress={toggleReminderVisibility}
+            >
+              <Ionicons
+                color="#5757f8"
+                size={24}
+                name="notifications-outline"
+              />
               <Text style={styles.touchableText}>Reminder</Text>
             </TouchableOpacity>
-            <View style={styles.line} />
+            {/* <View style={styles.line} /> */}
 
-            <TouchableOpacity style={styles.touchables} onPress={handleDelete}>
-              <MaterialCommunityIcons name="delete" size={24} color="#5757f8" />
-              <Text style={styles.touchableText}>Delete</Text>
-            </TouchableOpacity>
+            {isEditMode && (
+              <TouchableOpacity
+                style={styles.touchables}
+                onPress={handleDelete}
+              >
+                <MaterialIcons
+                  name="delete-outline"
+                  size={24}
+                  color="#5757f8"
+                />
+                <Text style={styles.touchableText}>Delete</Text>
+              </TouchableOpacity>
+            )}
             <View />
           </View>
         </View>
       )}
-
-      <View style={styles.options}>
-        <TouchableOpacity
-          onPress={toggleTextToolBarVisibility}
-          style={styles.optionButton}
-        >
-          {textToolBarVisibility ? (
-            <AntDesign name="close" size={24} style={styles.optionIcon} />
-          ) : (
+      {/* color palette */}
+      {isColorPaletteVisible && (
+        <BackgroundColor
+          selectedColor={noteBackground}
+          onSelectColor={(color) => {
+            setNoteBackground(color);
+            setNotes((prev) => ({ ...prev, backgroundColor: color }));
+          }}
+        />
+      )}
+      <View style={styles.line} />
+      {/* reminder */}
+      {showReminder ? (
+        <Reminder onClose={() => setShowReminder(false)} />
+      ) : null}
+      {/* ai summary */}
+      {showSummary ? <AISummary onClose={() => setShowSummary(false)} /> : null}
+      // {/* options  */}
+      {!textToolBarVisibility ? (
+        <View style={styles.options}>
+          <TouchableOpacity
+            onPress={toggleTextToolBarVisibility}
+            style={styles.optionButton}
+          >
             <MaterialCommunityIcons
               name="format-text"
               size={24}
               style={styles.optionIcon}
             />
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.optionButton}>
-          <AntDesign name="link" size={24} style={styles.optionIcon} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={toggleHeaderModalVisibility}
-          style={styles.optionButton}
-        >
-          {headerModalVisibility ? (
-            <AntDesign name="close" size={24} style={styles.optionIcon} />
-          ) : (
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.optionButton}>
+            <Entypo name="attachment" size={24} style={styles.optionIcon} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.optionButton}
+            onPress={toggleShowSummary}
+          >
             <Ionicons
-              name="ellipsis-vertical-circle-outline"
+              name="sparkles-outline"
               size={24}
               style={styles.optionIcon}
             />
-          )}
-        </TouchableOpacity>
-      </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.optionButton}
+            onPress={toggleColorPaletteVisibility}
+          >
+            <Ionicons
+              name="color-palette-outline"
+              size={24}
+              style={styles.optionIcon}
+            />
+          </TouchableOpacity>
+          {/* <TouchableOpacity style={styles.optionButton}>
+          <Entypo name="lock" size={24} style={styles.optionIcon} />
+        </TouchableOpacity> */}
+          <TouchableOpacity
+            onPress={toggleHeaderModalVisibility}
+            style={styles.optionButton}
+          >
+            {headerModalVisibility ? (
+              <AntDesign name="close" size={24} style={styles.optionIcon} />
+            ) : (
+              <MaterialIcons
+                name="more-vert"
+                size={24}
+                style={styles.optionIcon}
+              />
+            )}
+          </TouchableOpacity>
+        </View>
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
