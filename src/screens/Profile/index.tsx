@@ -1,4 +1,11 @@
-import { Text, View, Image, Pressable, TouchableOpacity } from "react-native";
+import {
+  Text,
+  View,
+  Image,
+  Pressable,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import styles from "./styles";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@redux/store";
@@ -8,6 +15,8 @@ import { RootStackParamList } from "src/navigation/types";
 import { logout } from "@redux/slice/authSlice";
 import Toast from "react-native-toast-message";
 import { useDeleteUserMutation, useGetUserQuery } from "@redux/api/authApi";
+import { db } from "src/db/notes";
+import { notesTable } from "src/db/schema";
 
 type ProfileProps = NativeStackScreenProps<RootStackParamList, "Profile">;
 
@@ -20,10 +29,45 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   const username = useSelector((state: RootState) => state.auth.firstName);
   const email = useSelector((state: RootState) => state.auth.email);
   const [deleteApi] = useDeleteUserMutation();
-  function handleLogout() {
-    dispatch(logout());
-  }
 
+  async function handleLogout() {
+    try {
+      await db.delete(notesTable);
+      dispatch(logout());
+    } catch (error) {
+      console.log("Logout failed", error);
+    }
+  }
+  function confirmLogout() {
+    Alert.alert(
+      "Log out",
+      "Are you sure you want to log out?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Log out",
+          style: "destructive",
+          onPress: handleLogout,
+        },
+      ],
+      { cancelable: true },
+    );
+  }
+  function confirmDelete() {
+    Alert.alert(
+      "Log out",
+      "Are you sure you want to log out?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Log out",
+          style: "destructive",
+          onPress: handleDelete,
+        },
+      ],
+      { cancelable: true },
+    );
+  }
   async function handleDelete() {
     try {
       const response = await deleteApi(" ").unwrap();
@@ -63,7 +107,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         >
           <Text style={styles.registerText}> Register Yourself</Text>
         </Pressable>
-        <Pressable style={styles.pressable} onPress={handleLogout}>
+        <Pressable style={styles.pressable} onPress={confirmLogout}>
           <AntDesign name="logout" size={16} />
           <Text>Logout</Text>
         </Pressable>
@@ -99,11 +143,11 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         >
           <Text>Change Password</Text>
         </Pressable>
-        <Pressable style={styles.pressable} onPress={handleLogout}>
+        <Pressable style={styles.pressable} onPress={confirmLogout}>
           <AntDesign name="logout" size={16} />
           <Text>Logout</Text>
         </Pressable>
-        <Pressable style={styles.pressable} onPress={handleDelete}>
+        <Pressable style={styles.pressable} onPress={confirmDelete}>
           <Text>Delete Account</Text>
         </Pressable>
       </View>
