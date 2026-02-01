@@ -22,9 +22,11 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   scrollContainer: {
-    // backgroundColor: "#ffffffff",
+    backgroundColor: "#f5f5f5",
     height: 650,
     marginTop: 15,
+    borderRadius: 20,
+    elevation: 5,
   },
   innerContainer: {
     flexDirection: "row",
@@ -78,15 +80,37 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   bottomHeaderText: {
-    fontSize: 20,
+    fontSize: 22,
     width: 160,
-    fontWeight: "600",
+    fontWeight: "500",
+  },
+  headerText: {
+    fontSize : 16,
+    margin : 5,
+    marginLeft : 0,
   },
   bottomHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginLeft: 15,
     marginRight: 15,
+  },
+  emptyText: {
+    fontWeight: "500",
+    fontSize: 22,
+  },
+  text: {
+    textAlign: "center",
+    margin: 10,
+  },
+  emptyContainer: {
+    flex: "1",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 70,
+    paddingBottom: 30,
+    paddingLeft: 50,
+    paddingRight: 50,
   },
 });
 
