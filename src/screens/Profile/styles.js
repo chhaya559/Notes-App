@@ -67,25 +67,23 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   pressable: {
-    flexDirection: "row",
-    padding: 15,
-    margin: 15,
-    borderRadius: 15,
-    gap: 5,
-    borderBottomWidth: 1,
-    borderBottomColor: "#848282ff",
-  },
-  register: {
     backgroundColor: "#5757f8",
     margin: 15,
     padding: 15,
     borderRadius: 15,
   },
+
   registerText: {
     color: "#fff",
     textAlign: "center",
     fontSize: 16,
     fontWeight: "600",
+  },
+  logout: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
   },
 });
 export default styles;

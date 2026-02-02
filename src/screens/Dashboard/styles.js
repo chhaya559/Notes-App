@@ -27,6 +27,8 @@ const styles = StyleSheet.create({
     marginTop: 15,
     borderRadius: 20,
     elevation: 5,
+    shadowColor: "#c9c7c7ff",
+    shadowOpacity: 0.2,
   },
   innerContainer: {
     flexDirection: "row",
@@ -51,6 +53,8 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     backgroundColor: "#fff",
     height: 55,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
   },
   focus: {
     borderWidth: 1,
@@ -78,6 +82,8 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 30,
+    flexWrap: "wrap",
+    flexDirection: "row",
   },
   bottomHeaderText: {
     fontSize: 22,
@@ -85,9 +91,9 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   headerText: {
-    fontSize : 16,
-    margin : 5,
-    marginLeft : 0,
+    fontSize: 16,
+    margin: 5,
+    marginLeft: 0,
   },
   bottomHeader: {
     flexDirection: "row",

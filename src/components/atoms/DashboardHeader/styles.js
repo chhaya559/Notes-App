@@ -2,9 +2,12 @@ import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
   image: {
-    height: 40,
-    width: 40,
-    borderRadius: 20,
+    position: "absolute",
+    right: 15,
+    top: 7,
+  },
+  container: {
+    flex: 1,
   },
 });
 export default styles;

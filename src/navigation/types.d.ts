@@ -13,6 +13,7 @@ export type RootStackParamList = {
     updatedAt?: string;
     isPasswordProtected?: boolean;
     reminder?: string | null;
+    unlockUntil?: any;
   };
 
   ChangePassword: undefined;
@@ -20,4 +21,8 @@ export type RootStackParamList = {
   ViewProfile: undefined;
   EditProfile: undefined;
   GuestConversion: undefined;
+  NotesPassword: {
+    id: string;
+  };
+  ChangeNotePassword: undefined;
 };

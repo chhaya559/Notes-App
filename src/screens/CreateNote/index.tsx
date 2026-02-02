@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   TextInput,
   View,
@@ -7,21 +7,22 @@ import {
   TouchableOpacity,
   Platform,
   Text,
-  Modal,
+  Alert,
 } from "react-native";
 import styles from "./style";
-import { EnrichedTextInputInstance } from "react-native-enriched";
 import {
   actions,
   RichEditor,
   RichToolbar,
 } from "react-native-pell-rich-editor";
 import {
+  useAiSummaryMutation,
   useDeleteMutation,
   useGetNoteByIdQuery,
   useSetMutation,
   useUpdateMutation,
 } from "@redux/api/noteApi";
+import Modal from "react-native-modal";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 import { useNetInfo } from "@react-native-community/netinfo";
@@ -34,18 +35,18 @@ import { db } from "src/db/notes";
 import { useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import { and, eq } from "drizzle-orm";
-import BackgroundColor from "@components/Molecules/BackgroundColor";
+import BackgroundColor from "../../components/molecules/BackgroundColor";
 import {
   AntDesign,
   Entypo,
-  EvilIcons,
-  Feather,
   Ionicons,
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
 import Reminder from "@components/atoms/Reminder";
-import AISummary from "@components/atoms/AISummary";
+import { useFocusEffect } from "@react-navigation/native";
+import Summary from "@components/atoms/Summary";
+import CustomInput from "@components/atoms/CustomInput";
 
 type CreateNoteProps = NativeStackScreenProps<RootStackParamList, "CreateNote">;
 
@@ -76,25 +77,49 @@ export default function CreateNote({
   function toggleShowSummary() {
     setShowSummary(!showSummary);
   }
+
+  const [saveApi] = useSetMutation();
+  const [editApi] = useUpdateMutation();
+  const [deleteApi] = useDeleteMutation();
+
+  const noteId = route?.params?.id;
+  const { data: NotesData, refetch } = useGetNoteByIdQuery(
+    { id: String(noteId) },
+    { skip: !noteId, refetchOnFocus: true },
+  );
+  const [AISummary] = useAiSummaryMutation();
+  const [aiSummary, setAiSummary] = useState("");
+  async function generateSummary() {
+    try {
+      const response = await AISummary({ id: String(noteId) });
+      console.log("summary", response.data.summary);
+      setAiSummary(response.data.summary);
+    } catch (error) {
+      console.log("Error generating AI summary: ", error);
+    }
+  }
+  useFocusEffect(
+    useCallback(() => {
+      if (noteId) {
+        refetch();
+      }
+    }, [noteId]),
+  );
+
+  const isEditMode = Boolean(noteId);
   const [notes, setNotes] = useState({
+    id: "",
     title: "",
     content: "",
     isPasswordProtected: false,
     reminder: null,
     backgroundColor: "#ffffff",
   });
-  const [saveApi] = useSetMutation();
-  const [editApi] = useUpdateMutation();
-  const [deleteApi] = useDeleteMutation();
-
-  const noteId = route?.params?.id;
-  const { data: NotesData } = useGetNoteByIdQuery({ id: noteId });
-  console.log(NotesData, "notesdata");
-  const isEditMode = Boolean(noteId);
-
+  console.log("notesdata", NotesData);
   useEffect(() => {
     if (!NotesData?.data) return;
     setNotes({
+      id: NotesData.data.id ?? "",
       title: NotesData.data.title ?? "",
       content: NotesData.data.content ?? "",
       isPasswordProtected: NotesData.data.isPasswordProtected ?? false,
@@ -109,38 +134,80 @@ export default function CreateNote({
       setNoteBackground(NotesData.data.backgroundColor);
     }
   }, [NotesData]);
+  useEffect(() => {
+    if (!route.params?.unlockUntil) return;
+
+    const remaining = route.params.unlockUntil - Date.now();
+    if (remaining <= 0) return lock();
+
+    const timer = setTimeout(lock, remaining);
+    return () => clearTimeout(timer);
+  }, [route.params?.unlockUntil]);
+
+  function lock() {
+    Toast.show({ text1: "Note locked" });
+    navigation.navigate("Dashboard");
+  }
+
+  const [isLocked, setIsLocked] = useState(notes.isPasswordProtected);
+
+  function toggleLock() {
+    setIsLocked(!isLocked);
+  }
 
   async function handleSave() {
     try {
-      if (isEditMode) {
-        if (isConnected) {
-          await editApi({
-            id: noteId,
-            title: notes.title.trim(),
-            content: notes.content,
-            isPasswordProtected: notes.isPasswordProtected,
-          }).unwrap();
-        }
-        await saveToLocalDB("synced");
-
-        navigation.goBack();
-        return;
-      }
-
       const localId = await saveToLocalDB(isConnected ? "synced" : "pending");
 
       if (isConnected) {
-        await saveApi({
-          id: localId,
-          title: notes.title.trim(),
-          content: notes.content,
-          isPasswordProtected: notes.isPasswordProtected,
-          backgroundColor: notes.backgroundColor ?? "#f5f5f5",
-        }).unwrap();
+        if (isEditMode) {
+          await editApi({
+            id: localId,
+            title: notes.title,
+            content: notes.content,
+            isPasswordProtected: isLocked,
+          }).unwrap();
+        } else {
+          const response = await saveApi({
+            id: localId,
+            title: notes.title,
+            content: notes.content,
+            isPasswordProtected: isLocked,
+          }).unwrap();
+          console.log("save note response", response);
+        }
       }
-
       navigation.goBack();
     } catch (error) {
+      if (
+        error.data.message.includes(
+          "Guest users cannot password protect notes.",
+        )
+      ) {
+        Toast.show({
+          text1: "Password-protected notes aren’t available for guest users.",
+          text2: "Register yourself to use this feature",
+        });
+      } else if (
+        error.data.message.includes(
+          "Password required to lock for the first time",
+        )
+      ) {
+        Alert.alert(
+          "Set Password for Notes first",
+          "Go to Profile section to set password for notes",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Set Password",
+              style: "default",
+              onPress: () =>
+                navigation.navigate("NotesPassword", { id: String(noteId) }),
+            },
+          ],
+          { cancelable: true },
+        );
+      }
       console.log("Save error:", error);
     }
   }
@@ -169,7 +236,7 @@ export default function CreateNote({
       console.log("Delete error:", error);
     }
   }
-  //header
+
   async function saveToLocalDB(status: SyncStatus) {
     await createTable();
     if (!userId) {
@@ -186,10 +253,9 @@ export default function CreateNote({
         title: notes.title,
         content: notes.content,
         updatedAt: new Date().toISOString(),
-        isPasswordProtected: notes.isPasswordProtected ? 1 : 0,
+        isPasswordProtected: isLocked ? 1 : 0,
         reminder: notes.reminder ?? null,
         syncStatus: status,
-        backgroundColor: notes.backgroundColor ?? "#f5f5f5",
       })
       .onConflictDoUpdate({
         target: notesTable.id,
@@ -197,10 +263,9 @@ export default function CreateNote({
           title: notes.title,
           content: notes.content,
           updatedAt: new Date().toISOString(),
-          isPasswordProtected: notes.isPasswordProtected ? 1 : 0,
+          isPasswordProtected: isLocked ? 1 : 0,
           reminder: notes.reminder,
           syncStatus: status,
-          backgroundColor: notes.backgroundColor ?? "#f5f5f5",
         },
       });
     return id;
@@ -224,25 +289,16 @@ export default function CreateNote({
         </View>
       ),
     });
-  }, [navigation, handleSave]);
+  }, [navigation, noteBackground, handleSave]);
+
   const richText = useRef<RichEditor | null>(null);
+
   return (
     <KeyboardAvoidingView
       style={[styles.all]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={[styles.container, { backgroundColor: noteBackground }]}>
-        <View style={styles.upperContainer}>
-          {/* <TouchableOpacity
-                style={styles.pressables}
-                onPress={handleDelete}
-              >
-                <Text style={styles.pressablesText}>Delete</Text>
-              </TouchableOpacity> */}
-        </View>
-
-        <View style={styles.line} />
-
         <TextInput
           placeholder="Title"
           placeholderTextColor="#5c5c5c"
@@ -252,7 +308,14 @@ export default function CreateNote({
             setNotes((prev) => ({ ...prev, title: value }))
           }
         />
-        <ScrollView bounces={false} style={{ backgroundColor: noteBackground }}>
+        <ScrollView
+          bounces={false}
+          contentContainerStyle={{
+            flexGrow: 1,
+            backgroundColor: noteBackground,
+          }}
+          style={{ backgroundColor: noteBackground }}
+        >
           <View
             style={[
               styles.editorContainer,
@@ -272,6 +335,7 @@ export default function CreateNote({
           </View>
         </ScrollView>
       </View>
+
       {textToolBarVisibility && (
         <View style={styles.modal}>
           <RichToolbar
@@ -303,21 +367,21 @@ export default function CreateNote({
           </TouchableOpacity>
         </View>
       )}
+
       {headerModalVisibility && (
         <View style={{ position: "absolute", bottom: 80, right: 20 }}>
           <View style={styles.headerMenu}>
-            {notes.isPasswordProtected == true ? (
-              <TouchableOpacity style={styles.touchables}>
-                <AntDesign name="unlock" color="#5757f8" size={24} />
-                <Text style={styles.touchableText}>Lock</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity style={styles.touchables}>
+            {isLocked ? (
+              <TouchableOpacity style={styles.touchables} onPress={toggleLock}>
                 <AntDesign name="lock" color="#5757f8" size={24} />
                 <Text style={styles.touchableText}>Unlock</Text>
               </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.touchables} onPress={toggleLock}>
+                <AntDesign name="unlock" color="#5757f8" size={24} />
+                <Text style={styles.touchableText}>Lock</Text>
+              </TouchableOpacity>
             )}
-            {/* <View style={styles.line} /> */}
             <TouchableOpacity
               style={styles.touchables}
               onPress={toggleReminderVisibility}
@@ -329,7 +393,6 @@ export default function CreateNote({
               />
               <Text style={styles.touchableText}>Reminder</Text>
             </TouchableOpacity>
-            {/* <View style={styles.line} /> */}
 
             {isEditMode && (
               <TouchableOpacity
@@ -348,7 +411,7 @@ export default function CreateNote({
           </View>
         </View>
       )}
-      {/* color palette */}
+
       {isColorPaletteVisible && (
         <BackgroundColor
           selectedColor={noteBackground}
@@ -359,13 +422,18 @@ export default function CreateNote({
         />
       )}
       <View style={styles.line} />
-      {/* reminder */}
       {showReminder ? (
         <Reminder onClose={() => setShowReminder(false)} />
       ) : null}
-      {/* ai summary */}
-      {showSummary ? <AISummary onClose={() => setShowSummary(false)} /> : null}
-      // {/* options  */}
+
+      {showSummary ? (
+        <Summary
+          id={notes.id}
+          onClose={() => setShowSummary(false)}
+          data={aiSummary}
+        />
+      ) : null}
+
       {!textToolBarVisibility ? (
         <View style={styles.options}>
           <TouchableOpacity
@@ -383,7 +451,10 @@ export default function CreateNote({
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.optionButton}
-            onPress={toggleShowSummary}
+            onPress={() => {
+              toggleShowSummary();
+              generateSummary();
+            }}
           >
             <Ionicons
               name="sparkles-outline"
@@ -401,9 +472,6 @@ export default function CreateNote({
               style={styles.optionIcon}
             />
           </TouchableOpacity>
-          {/* <TouchableOpacity style={styles.optionButton}>
-          <Entypo name="lock" size={24} style={styles.optionIcon} />
-        </TouchableOpacity> */}
           <TouchableOpacity
             onPress={toggleHeaderModalVisibility}
             style={styles.optionButton}

@@ -4,6 +4,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
+    marginTop: 5,
   },
   upperContainer: {
     flexDirection: "row",
@@ -13,6 +14,8 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     paddingBottom: 8,
     flex: 1,
+    backgroundColor: "transparent",
+    padding: 0,
   },
   pressables: {
     backgroundColor: "#5757f8",
@@ -137,7 +140,6 @@ const styles = StyleSheet.create({
   toolbar: {
     backgroundColor: "#fff",
   },
- 
 });
 
 export default styles;

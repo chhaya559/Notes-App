@@ -26,7 +26,7 @@ import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 type LoginProps = NativeStackScreenProps<RootStackParamList, "Login">;
 export default function Login({ navigation }: Readonly<LoginProps>) {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const [loginapi, { isLoading }] = useLoginMutation();
   const [googleApi, { isLoading: isGoogleLoading }] = useGoogleMutation();
@@ -111,14 +111,14 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
         });
       }
     } catch (error: any) {
-      console.log(error.data.message, "ughkj");
+      console.log(error);
       if (error.data.message.includes("Invalid email or password")) {
         Toast.show({
           text1: "Invalid Credentials",
         });
       } else {
         Toast.show({
-          text1: "Something went wrong",
+          text1: "Something went wrong. Please try again later.",
         });
       }
     }

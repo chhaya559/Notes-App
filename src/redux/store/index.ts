@@ -4,20 +4,18 @@ import authSlice from "@redux/slice/authSlice";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistReducer, persistStore } from "redux-persist";
 
-import { Storage } from "src/db/Storage";
-
-const persistConfig = {
-  key: "root",
-  storage: Storage,
-};
+// const persistConfig = {
+//   key: "root",
+//   storage: Storage,
+// };
 const rootReducer = combineReducers({
   auth: authSlice,
   [authApi.reducerPath]: authApi.reducer,
   [noteApi.reducerPath]: noteApi.reducer,
 });
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+//const persistedReducer = persistReducer(persistConfig, rootReducer);
 export const store = configureStore({
-  reducer: persistedReducer,
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,

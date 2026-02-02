@@ -21,7 +21,7 @@ export default function EditProfile({ navigation }: EditProfileProps) {
   const firstName = useSelector((state: RootState) => state.auth.firstName);
   const lastName = useSelector((state: RootState) => state.auth.lastName);
   const [editApi] = useEditUserMutation();
-  const dispatch = useDispatch<AppDispatch>()
+  const dispatch = useDispatch<AppDispatch>();
   const {
     control,
     handleSubmit,
@@ -46,11 +46,11 @@ export default function EditProfile({ navigation }: EditProfileProps) {
       if (response.success) {
         dispatch(
           edit({
-            firstName : data.firstName,
-            lastName : data.lastName,
-            username : data.username
-          })
-        )
+            firstName: data.firstName,
+            lastName: data.lastName,
+            username: data.username,
+          }),
+        );
         Toast.show({
           text1: "Profile updated successfully!",
         });
@@ -58,9 +58,15 @@ export default function EditProfile({ navigation }: EditProfileProps) {
       }
     } catch (error) {
       console.log(error);
-      Toast.show({
-        text1: "Profile updation failed",
-      });
+      if (error?.data?.message.includes("Username is already taken")) {
+        Toast.show({
+          text1: "Username is already taken",
+        });
+      } else {
+        Toast.show({
+          text1: "Profile updation failed",
+        });
+      }
     }
   }
   return (

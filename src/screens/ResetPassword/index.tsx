@@ -32,7 +32,7 @@ export default function ChangePassword({
   navigation,
 }: Readonly<ResetPasswordProps>) {
   const authToken = useSelector((state: RootState) => state.auth.token);
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
 
   const schema = authToken ? changePasswordSchema : resetPasswordSchema;
 

@@ -17,6 +17,7 @@ import Toast from "react-native-toast-message";
 import { useDeleteUserMutation, useGetUserQuery } from "@redux/api/authApi";
 import { db } from "src/db/notes";
 import { notesTable } from "src/db/schema";
+import AccountActions from "@components/atoms/AccountActions";
 
 type ProfileProps = NativeStackScreenProps<RootStackParamList, "Profile">;
 
@@ -102,14 +103,14 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         <Text style={styles.name}>Hi, Guest</Text>
 
         <Pressable
-          style={styles.register}
+          style={styles.pressable}
           onPress={() => navigation.navigate("GuestConversion")}
         >
           <Text style={styles.registerText}> Register Yourself</Text>
         </Pressable>
         <Pressable style={styles.pressable} onPress={confirmLogout}>
           <AntDesign name="logout" size={16} />
-          <Text>Logout</Text>
+          <Text style={styles.registerText}>Logout</Text>
         </Pressable>
       </View>
     );
@@ -129,7 +130,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       <Text style={styles.name}>Hi, {username}</Text>
       <Text style={styles.email}>{email}</Text>
 
-      <Pressable
+      {/* <Pressable
         style={styles.view}
         onPress={() => navigation.navigate("EditProfile")}
       >
@@ -150,7 +151,15 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         <Pressable style={styles.pressable} onPress={confirmDelete}>
           <Text>Delete Account</Text>
         </Pressable>
-      </View>
+      </View> */}
+      <AccountActions />
+      <TouchableOpacity
+        style={[styles.pressable, styles.logout]}
+        onPress={confirmLogout}
+      >
+        <AntDesign name="logout" size={18} color="#fff" />
+        <Text style={styles.registerText}>Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 }

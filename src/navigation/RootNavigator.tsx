@@ -19,6 +19,8 @@ import EditProfile from "@screens/EditProfile";
 import GuestConversion from "@screens/GuestConversion";
 import DashboardHeader from "@components/atoms/DashboardHeader";
 import DashboardLeftHeader from "@components/atoms/DashBoardLeftHeader";
+import NotesPassword from "@screens/NotesPassword";
+import ChangeNotePassword from "@screens/ChangeNotePassword";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const prefix = Linking.createURL("/");
@@ -85,6 +87,14 @@ const RootNavigator = () => {
               <Stack.Screen
                 name={ROUTES.GUESTCONVERSION}
                 component={GuestConversion}
+              />
+              <Stack.Screen
+                name={ROUTES.NOTESPASSWORD}
+                component={NotesPassword}
+              />
+              <Stack.Screen
+                name={ROUTES.CHANGENOTEPASSWORD}
+                component={ChangeNotePassword}
               />
             </Stack.Group>
           </Stack.Navigator>

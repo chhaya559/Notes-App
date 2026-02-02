@@ -12,4 +12,6 @@ export enum ROUTES {
   VIEWPROFILE = "ViewProfile",
   EDITPROFILE = "EditProfile",
   GUESTCONVERSION = "GuestConversion",
+  NOTESPASSWORD = "NotesPassword",
+  CHANGENOTEPASSWORD = "ChangeNotePassword",
 }

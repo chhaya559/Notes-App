@@ -24,10 +24,6 @@ import useDebounce from "src/debounce/debounce";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
 
-type NotesResponse = {
-  data: any[];
-};
-
 export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [notes, setNotes] = useState<any[]>([]);
   const [isFocused, setIsFocused] = useState(false);
@@ -35,18 +31,27 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const userId = useSelector((state: RootState) => state.auth.token);
   const { isConnected } = useNetInfo();
 
-  const { data } = useGetQuery<NotesResponse>(undefined, {
+  const { data } = useGetQuery<any>(undefined, {
     refetchOnFocus: true,
     refetchOnMountOrArgChange: true,
   });
 
- useEffect(() => {
-  if (!data || !userId) return;
+  const loadNotes = useCallback(async () => {
+    if (!userId) return;
 
-  async function syncNotes() {
-    await createTable();
+    const notesFromDB = await db
+      .select()
+      .from(notesTable)
+      .where(eq(notesTable.userId, userId));
 
-    for (const note of data.data) {
+    console.log("notesfrom db", notesFromDB);
+    setNotes(notesFromDB);
+  }, [userId]);
+
+  const syncNotes = useCallback(async () => {
+    if (!data?.items || !userId) return;
+    await db.delete(notesTable).where(eq(notesTable.userId, userId));
+    for (const note of data.items) {
       await db
         .insert(notesTable)
         .values({
@@ -71,28 +76,20 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
           },
         });
     }
-  }
+  }, [data, userId]);
 
-  syncNotes();
-}, [data, userId]);
+  useEffect(() => {
+    if (!isConnected) return;
 
-  useFocusEffect(
-    useCallback(() => {
+    async function run() {
       if (!userId) return;
+      await createTable();
+      await syncNotes();
+      await loadNotes();
+    }
 
-      const loadNotes = async () => {
-        const notesFromDB = await db
-          .select()
-          .from(notesTable)
-          .where(eq(notesTable.userId, userId))
-
-
-        setNotes(notesFromDB);
-      };
-
-      loadNotes();
-    }, [userId]),
-  );
+    run();
+  }, [data, isConnected, userId]);
 
   //search
   const debouncedSearch = useDebounce(searchText, 200);
@@ -101,17 +98,21 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   });
 
   const displayNotes =
-    debouncedSearch.trim().length > 0 ? (SearchedNotes?.data ?? []) : notes;
+    debouncedSearch.trim().length > 0 ? (SearchedNotes.items ?? []) : notes;
+
+  console.log("display notes", displayNotes);
 
   return (
     <View style={styles.container}>
       <View style={styles.upperContainer}>
         <View style={styles.bottomHeader}>
-          <View style={{ flexDirection: "column", gap : 10 }}>
+          <View style={{ flexDirection: "column", gap: 10 }}>
             <Text style={styles.bottomHeaderText}>
               Start Capturing your thoughts
             </Text>
-            <Text style={styles.headerText}>Your ideas deserve a place to live</Text>
+            <Text style={styles.headerText}>
+              Your ideas deserve a place to live
+            </Text>
           </View>
           <Image
             source={require("../../../assets/dash.png")}
@@ -151,8 +152,8 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
               title={item.title}
               updatedAt={item.updatedAt}
               backgroundColor={item.backgroundColor}
-              isPasswordProtected={!!item.isPasswordProtected}
-              isReminderSet={!!item.isReminderSet}
+              isPasswordProtected={item.isPasswordProtected}
+              isReminderSet={item.isReminderSet}
             />
           )}
           ListEmptyComponent={() => (

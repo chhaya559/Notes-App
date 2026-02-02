@@ -13,6 +13,7 @@ export const noteApi = createApi({
       return headers;
     },
   }),
+  tagTypes: ["Notes"],
   reducerPath: "noteApi",
   endpoints: (builder) => ({
     set: builder.mutation({
@@ -21,12 +22,14 @@ export const noteApi = createApi({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: ["Notes"],
     }),
-    get: builder.query<any[], void>({
+    get: builder.query<any, void>({
       query: () => ({
         url: "/notes",
         method: "GET",
       }),
+      providesTags: ["Notes"],
     }),
     update: builder.mutation({
       query: ({ id, ...body }) => ({
@@ -37,6 +40,7 @@ export const noteApi = createApi({
           Authorization: `Bearer ${id}`,
         },
       }),
+      invalidatesTags: ["Notes"],
     }),
     getNoteById: builder.query<any, { id: string }>({
       query: ({ id }) => ({
@@ -54,13 +58,44 @@ export const noteApi = createApi({
           Authorization: `Bearer ${id}`,
         },
       }),
+      invalidatesTags: ["Notes"],
     }),
     searchNotes: builder.query<any, string>({
       query: (text) => `/notes?search=${text}`,
     }),
 
-    aiSummary: builder.query<{ summary: string }, { id: string }>({
-      query: ({ id }) => `notes/${id}/generate-summary`,
+    aiSummary: builder.mutation<any, { id: string }>({
+      query: ({ id }) => ({
+        url: `notes/${id}/generate-summary`,
+        method: "POST",
+      }),
+    }),
+    unlockNote: builder.mutation<
+      any,
+      { id: string; password: string; unlockMinutes: number }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `notes/${id}/unlock`,
+        method: "POST",
+        body,
+      }),
+    }),
+    noteLock: builder.mutation<
+      any,
+      { id: string; isPasswordProtected: boolean; password: string }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `notes/${id}/lock`,
+        method: "POST",
+        body,
+      }),
+    }),
+    changePassword: builder.mutation({
+      query: (data) => ({
+        url: "/users/change-common-password",
+        method: "POST",
+        body: data,
+      }),
     }),
   }),
 });
@@ -72,5 +107,8 @@ export const {
   useSetMutation,
   useSearchNotesQuery,
   useGetNoteByIdQuery,
-  useAiSummaryQuery,
+  useAiSummaryMutation,
+  useUnlockNoteMutation,
+  useNoteLockMutation,
+  useChangePasswordMutation,
 } = noteApi;
