@@ -62,6 +62,7 @@ export default function AccountActions() {
           <SimpleLineIcons name="arrow-right" />
         </TouchableOpacity>
       </View>
+      <View style={styles.line} />
       <View style={styles.wrapper}>
         <View style={styles.wrap}>
           <Pressable style={styles.iconWrap}>
@@ -76,6 +77,7 @@ export default function AccountActions() {
           <SimpleLineIcons name="arrow-right" />
         </TouchableOpacity>
       </View>
+      <View style={styles.line} />
       <View style={styles.wrapper}>
         <View style={styles.wrap}>
           <Pressable style={styles.iconWrap}>
@@ -90,6 +92,7 @@ export default function AccountActions() {
           <SimpleLineIcons name="arrow-right" />
         </TouchableOpacity>
       </View>
+      <View style={styles.line} />
       <View style={styles.wrapper}>
         <View style={styles.wrap}>
           <Pressable style={styles.iconWrap}>

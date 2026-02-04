@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
   right: {},
   title: {},
   headerButton: {
-    backgroundColor: "#e6e4e4ff",
+    backgroundColor: "#e6e4e4",
     borderRadius: 50,
   },
 });

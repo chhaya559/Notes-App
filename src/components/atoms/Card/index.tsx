@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import styles from "./styles";
-import { AntDesign, Feather } from "@expo/vector-icons";
+import { AntDesign, Feather, FontAwesome6 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import CustomInput from "../CustomInput";
@@ -82,7 +82,7 @@ export default function Card(props: any) {
       {showLockedModal && (
         <Modal
           isVisible={showLockedModal}
-          backdropOpacity={0.8}
+          backdropOpacity={0.5}
           style={styles.modal}
         >
           <Text style={styles.unlockHeading}>Unlock your Note</Text>
@@ -117,7 +117,7 @@ export default function Card(props: any) {
             ))}
           </View>
 
-          <TouchableOpacity onPress={handleUnlock} style={styles.pressable}>
+          <TouchableOpacity onPress={handleUnlock} style={[styles.pressable]}>
             <Text style={styles.pressableText}>Unlock </Text>
           </TouchableOpacity>
           <AntDesign
@@ -131,25 +131,40 @@ export default function Card(props: any) {
       )}
 
       <View>
-        <TouchableOpacity style={styles.container} onPress={handlePress}>
+        <TouchableOpacity
+          style={[styles.container, { backgroundColor: props.backgroundColor }]}
+          onPress={handlePress}
+        >
           <Text style={styles.heading}>{props.title}</Text>
           <View style={styles.createdContainer}>
             <Feather name="calendar" size={16} />
             <Text style={styles.created}>{formatDate(props.updatedAt)}</Text>
           </View>
           <View style={styles.iconsWrap}>
-            {props.isPasswordProtected && (
-              <TouchableOpacity>
+            {props.isPasswordProtected ? (
+              <TouchableOpacity style={styles.lock}>
                 <Feather name="lock" size={24} />
               </TouchableOpacity>
-            )}
-            {props.isReminderSet && (
+            ) : null}
+            {props.isReminderSet ? (
+              <TouchableOpacity style={styles.clock}>
+                <Feather name="clock" size={24} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </TouchableOpacity>
+        {/* <View style={styles.iconsWrap}>
+            {props.isPasswordProtected ? (
+              <TouchableOpacity style={styles.icon}>
+                <Feather name="lock" size={24} />
+              </TouchableOpacity>
+            ) : null}
+            {props.isReminderSet ? (
               <TouchableOpacity>
                 <Feather name="clock" size={24} />
               </TouchableOpacity>
-            )}
-          </View>
-        </TouchableOpacity>
+            ) : null}
+          </View> */}
       </View>
     </>
   );

@@ -109,7 +109,6 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
           <Text style={styles.registerText}> Register Yourself</Text>
         </Pressable>
         <Pressable style={styles.pressable} onPress={confirmLogout}>
-          <AntDesign name="logout" size={16} />
           <Text style={styles.registerText}>Logout</Text>
         </Pressable>
       </View>

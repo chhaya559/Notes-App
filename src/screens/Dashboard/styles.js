@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   scrollContainer: {
+    flex: 1,
     backgroundColor: "#f5f5f5",
     height: 650,
     marginTop: 15,
@@ -82,8 +83,8 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 30,
-    flexWrap: "wrap",
-    flexDirection: "row",
+    paddingTop: 10,
+    paddingHorizontal: 10,
   },
   bottomHeaderText: {
     fontSize: 22,

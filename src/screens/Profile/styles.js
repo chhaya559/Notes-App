@@ -71,6 +71,9 @@ const styles = StyleSheet.create({
     margin: 15,
     padding: 15,
     borderRadius: 15,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
   },
 
   registerText: {

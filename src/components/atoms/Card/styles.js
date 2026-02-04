@@ -40,8 +40,8 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   unlockHeading: {
-    fontWeight: "500",
-    fontSize: 18,
+    fontWeight: "600",
+    fontSize: 20,
     textAlign: "center",
     color: "#5757f8",
   },
@@ -52,7 +52,8 @@ const styles = StyleSheet.create({
   pressable: {
     backgroundColor: "#5757f8",
     margin: 15,
-    borderRadius: 10,
+    borderRadius: 15,
+    padding: 10,
   },
   pressableText: {
     color: "#fff",
@@ -72,21 +73,32 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   counterTime: {
-    backgroundColor: "#5757f8",
+    backgroundColor: "#D0DAF3",
     borderRadius: 10,
   },
   time: {
-    color: "#fff",
+    color: "#ffffffff",
     padding: 7,
     fontSize: 22,
   },
   counterActive: {
-    backgroundColor: "#032462ff",
+    backgroundColor: "#5757f8",
   },
   timeText: {
     marginLeft: 15,
-    marginTop: 10,
+    marginTop: 15,
+    marginBottom: 10,
     fontSize: 18,
+  },
+  lock: {
+    position: "absolute",
+    top: -32,
+    right: 33,
+  },
+  clock: {
+    position: "absolute",
+    top: -30,
+    right: 0,
   },
 });
 export default styles;

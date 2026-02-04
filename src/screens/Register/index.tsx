@@ -16,6 +16,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { registerSchema } from "src/validations/registerSchema";
 import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { AntDesign } from "@expo/vector-icons";
 
 type RegisterProps = NativeStackScreenProps<RootStackParamList, "Register">;
 export default function Register({ navigation }: Readonly<RegisterProps>) {
@@ -201,7 +202,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           render={({ field: { onChange, value, onBlur } }) => (
             <CustomInput
               text="Password*"
-              placeholder="Email or password"
+              placeholder="Password"
               color="#707070ff"
               value={value}
               onChangeText={onChange}
@@ -236,6 +237,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           <View style={styles.line} />
         </View>
         <TouchableOpacity style={styles.google} onPress={handleGoogleSignin}>
+          <AntDesign name="google" size={20} color="black" />
           <Text style={styles.googleText}>
             {isGoogleLoading ? "Signing up..." : "Sign up with Google"}
           </Text>

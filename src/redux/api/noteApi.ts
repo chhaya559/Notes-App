@@ -13,7 +13,7 @@ export const noteApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Notes"],
+  tagTypes: ["Notes", "Notifications", "NotificationCount"],
   reducerPath: "noteApi",
   endpoints: (builder) => ({
     set: builder.mutation({
@@ -97,6 +97,48 @@ export const noteApi = createApi({
         body: data,
       }),
     }),
+    getNotifications: builder.query({
+      query: () => ({
+        url: "/notifications",
+        method: "GET",
+        // params: { pageNumber, pageSize },
+      }),
+      providesTags: ["Notifications"],
+    }),
+    markNoificationRead: builder.mutation({
+      query: ({ id }) => ({
+        url: `/notifications/${id}/read`,
+        method: "PUT",
+      }),
+      invalidatesTags: ["NotificationCount", "Notifications"],
+    }),
+    getNotificationsCount: builder.query({
+      query: () => ({
+        url: "/notifications/unread-count",
+        method: "GET",
+      }),
+      providesTags: ["NotificationCount"],
+    }),
+    readAllNotification: builder.mutation<void, void>({
+      query: () => ({
+        url: "/notifications/read-all",
+        method: "PUT",
+      }),
+      invalidatesTags: ["NotificationCount", "Notifications"],
+    }),
+    clearAllNotification: builder.mutation<void, void>({
+      query: () => ({
+        url: "/notifications/clear-all",
+        method: "DELETE",
+      }),
+      invalidatesTags: ["NotificationCount", "Notifications"],
+    }),
+    getNotificationById: builder.mutation({
+      query: ({ id }) => ({
+        url: `/notifications/${id}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -111,4 +153,11 @@ export const {
   useUnlockNoteMutation,
   useNoteLockMutation,
   useChangePasswordMutation,
+  useGetNotificationsCountQuery,
+  useGetNotificationsQuery,
+  useLazyGetNotificationsQuery,
+  useMarkNoificationReadMutation,
+  useClearAllNotificationMutation,
+  useReadAllNotificationMutation,
+  useGetNotificationByIdMutation,
 } = noteApi;

@@ -1,12 +1,5 @@
 import CustomInput from "@components/atoms/CustomInput";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, Pressable, Text, TouchableOpacity, View } from "react-native";
 import styles from "./styles";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
@@ -24,6 +17,7 @@ import { login, google } from "@redux/slice/authSlice";
 import { loginSchema } from "src/validations/loginSchema";
 import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { AntDesign } from "@expo/vector-icons";
 type LoginProps = NativeStackScreenProps<RootStackParamList, "Login">;
 export default function Login({ navigation }: Readonly<LoginProps>) {
   const [isVisible, setIsVisible] = useState(false);
@@ -194,6 +188,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
         <View style={styles.line} />
       </View>
       <TouchableOpacity style={styles.google} onPress={handleGoogleSignin}>
+        <AntDesign name="google" size={20} color="black" />
         <Text style={styles.googleText}>
           {isGoogleLoading ? "Sigining you in" : "Sign in with Google"}
         </Text>

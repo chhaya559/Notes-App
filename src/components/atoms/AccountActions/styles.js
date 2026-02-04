@@ -14,17 +14,32 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 10,
+    alignItems: "center",
   },
   wrap: {
     flexDirection: "row",
     gap: 10,
+    alignItems: "center",
   },
   iconWrap: {
     backgroundColor: "#e4e4e4",
+    borderRadius: 25,
+    padding: 4,
   },
-  text: {},
-  line: {},
-  actionIcon: {},
+  text: {
+    textAlign: "center",
+    justifyContent: "center",
+    fontSize: 15,
+  },
+  line: {
+    height: 1,
+    backgroundColor: "#e4e4e4",
+  },
+  actionIcon: {
+    backgroundColor: "#e4e4e4",
+    borderRadius: 25,
+    padding: 6,
+  },
 });
 
 export default styles;

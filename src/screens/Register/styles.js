@@ -59,8 +59,11 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderWidth: 1,
     borderColor: "#707070ff",
-    backgroundColor: "#e9e9e9ff",
+    backgroundColor: "#e6e4e4",
     alignContent: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 7,
   },
   googleText: {
     fontWeight: "700",

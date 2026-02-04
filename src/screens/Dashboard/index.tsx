@@ -11,7 +11,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@redux/store";
-import { useGetQuery, useSearchNotesQuery } from "@redux/api/noteApi";
+import {
+  useGetNotificationsCountQuery,
+  useGetQuery,
+  useSearchNotesQuery,
+} from "@redux/api/noteApi";
 import Card from "@components/atoms/Card";
 import { db } from "src/db/notes";
 import { notesTable } from "src/db/schema";
@@ -25,7 +29,7 @@ import useDebounce from "src/debounce/debounce";
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
 
 export function Dashboard({ navigation }: Readonly<DashboardProps>) {
-  const [notes, setNotes] = useState<any[]>([]);
+  const [notes, setNotes] = useState([]);
   const [isFocused, setIsFocused] = useState(false);
   const [searchText, setSearchText] = useState("");
   const userId = useSelector((state: RootState) => state.auth.token);
@@ -43,15 +47,14 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       .select()
       .from(notesTable)
       .where(eq(notesTable.userId, userId));
-
-    console.log("notesfrom db", notesFromDB);
     setNotes(notesFromDB);
   }, [userId]);
 
   const syncNotes = useCallback(async () => {
-    if (!data?.items || !userId) return;
+    if (!data?.data || !userId) return;
     await db.delete(notesTable).where(eq(notesTable.userId, userId));
-    for (const note of data.items) {
+    for (const note of data.data) {
+      console.log("note", note);
       await db
         .insert(notesTable)
         .values({
@@ -61,7 +64,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
           content: note.content,
           updatedAt: note.updatedAt,
           isPasswordProtected: note.isPasswordProtected ? 1 : 0,
-          reminder: note.reminder ?? null,
+          isReminderSet: note.isReminderSet ? 1 : 0,
           syncStatus: "synced",
           backgroundColor: note.backgroundColor ?? "#f5f5f5",
         })
@@ -72,6 +75,8 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             content: note.content,
             updatedAt: note.updatedAt,
             syncStatus: "synced",
+            isPasswordProtected: note.isPasswordProtected ? 1 : 0,
+            isReminderSet: note.isReminderSet ? 1 : 0,
             backgroundColor: note.backgroundColor ?? "#f5f5f5",
           },
         });
@@ -96,11 +101,10 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const { data: SearchedNotes } = useSearchNotesQuery(debouncedSearch, {
     skip: debouncedSearch.trim().length === 0,
   });
-
   const displayNotes =
-    debouncedSearch.trim().length > 0 ? (SearchedNotes.items ?? []) : notes;
-
-  console.log("display notes", displayNotes);
+    debouncedSearch.trim().length > 0
+      ? (SearchedNotes?.data ?? [])
+      : (notes ?? []);
 
   return (
     <View style={styles.container}>
@@ -120,23 +124,25 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
           />
         </View>
         {/* Search Icon */}
-        <View style={[styles.SearchBar, isFocused && styles.focus]}>
-          <Ionicons
-            name="search"
-            color="#979090ff"
-            size={22}
-            style={styles.searchIcon}
-          />
-          <TextInput
-            placeholder="Search notes..."
-            placeholderTextColor="#979090ff"
-            style={styles.search}
-            value={searchText}
-            onChangeText={setSearchText}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-          />
-        </View>
+        {data?.data.length > 0 && (
+          <View style={[styles.SearchBar, isFocused && styles.focus]}>
+            <Ionicons
+              name="search"
+              color="#979090ff"
+              size={22}
+              style={styles.searchIcon}
+            />
+            <TextInput
+              placeholder="Search notes..."
+              placeholderTextColor="#979090ff"
+              style={styles.search}
+              value={searchText}
+              onChangeText={setSearchText}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+            />
+          </View>
+        )}
       </View>
 
       {/* Card components */}
@@ -145,7 +151,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
           data={displayNotes}
           bounces={false}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 120 }}
+          contentContainerStyle={{ paddingBottom: 120, flexGrow: 1 }}
           renderItem={({ item }) => (
             <Card
               id={item.id}

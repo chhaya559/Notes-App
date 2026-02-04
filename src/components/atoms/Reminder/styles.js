@@ -2,58 +2,84 @@ import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    margin: 15,
-    padding: 10,
-    
+    backgroundColor: "#f5f5f5",
+    borderRadius: 15,
+    padding: 15,
   },
   headingContainer: {
     flexDirection: "row",
-    gap: 5,
+    gap: 10,
+    paddingBottom: 10,
+    paddingTop: 8,
+  },
+  line: {
+    height: 1,
+    borderColor: "#e4e6e6",
+    width: "100%",
+    borderWidth: 1,
+    borderStyle: "dashed",
   },
   headingText: {
     textAlign: "center",
     color: "#5757f8",
-    fontWeight: "500",
-    fontSize: 16,
+    fontWeight: "bold",
+    fontSize: 20,
+    verticalAlign: "middle",
+    textAlignVertical: "center",
+    marginTop: 3,
+  },
+  contentView: {
+    padding: 10,
+    marginLeft: 0,
+    marginRight: 0,
   },
   close: {
     position: "absolute",
-    right: 20,
-    top: 7,
+    right: 18,
+    top: 14,
   },
   pressable: {
-    margin: 15,
+    margin: 10,
     backgroundColor: "#5757f8",
-    borderRadius : 10,
+    borderRadius: 10,
+    marginTop: 20,
+    padding: 4,
+    shadowColor: "#1029e4ff",
+    shadowOpacity: 0.4,
   },
   setText: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "400",
     padding: 10,
-    textAlign : "center"
+    textAlign: "center",
   },
   calendar: {
     position: "absolute",
-    top: 75,
-    right: 30,
+    top: 182,
+    right: 25,
   },
   input: {
     borderWidth: 1,
     borderRadius: 10,
-    borderColor: "#e4e4e4",
+    borderColor: "#bfbebeff",
+    padding: 10,
+    marginTop: 3,
+    marginBottom: 2,
   },
   focused: {
     borderWidth: 2,
     borderColor: "#000",
   },
-  date: {
-    fontWeight: "500",
-    marginTop : 5,
-    marginBottom : 10,
-    marginLeft : 5
+
+  textInput: {
+    margin: 3,
+    fontSize: 15,
+  },
+  iconBackground: {
+    backgroundColor: "#E0E7FF",
+    padding: 3,
+    borderRadius: 25,
   },
 });
 

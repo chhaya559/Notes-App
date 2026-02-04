@@ -140,6 +140,20 @@ const styles = StyleSheet.create({
   toolbar: {
     backgroundColor: "#fff",
   },
+  attachmentOptions: {
+    justifyContent: "center",
+    gap: 10,
+    marginBottom: 10,
+    marginLeft: 15,
+  },
+  attachment: {
+    flexDirection: "row",
+    backgroundColor: "#E0E7FF",
+    padding: 10,
+    borderRadius: 10,
+    width: 45,
+    alignContent: "center",
+  },
 });
 
 export default styles;
