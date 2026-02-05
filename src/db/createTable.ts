@@ -1,5 +1,4 @@
 import { sqlite } from "./notes";
-
 export async function createTable() {
   await sqlite.execAsync(`
     CREATE TABLE IF NOT EXISTS notes_table (
@@ -7,33 +6,11 @@ export async function createTable() {
       userId TEXT NOT NULL,
       title TEXT,
       content TEXT,
-      updatedAt TEXT NOT NULL,
-      isPasswordProtected INTEGER,
-      isReminderSet INTEGER
-      reminder TEXT,
-      syncStatus TEXT,
+      updatedAt TEXT,
+      isPasswordProtected INTEGER DEFAULT 0,
+      isReminderSet INTEGER DEFAULT 0,
+      syncStatus TEXT DEFAULT 'pending',
       backgroundColor TEXT
     );
   `);
 }
-
-// export async function createTable() {
-//   await sqlite.execAsync(`
-//     DROP TABLE IF EXISTS notes_table;
-//   `);
-
-//   await sqlite.execAsync(`
-//     CREATE TABLE IF NOT EXISTS notes_table (
-//       id TEXT PRIMARY KEY,
-//       userId TEXT NOT NULL,
-//       title TEXT,
-//       content TEXT,
-//       updatedAt TEXT NOT NULL,
-//       isPasswordProtected INTEGER DEFAULT 0,
-//       isReminderSet INTEGER DEFAULT 0,
-//       reminder TEXT,
-//       syncStatus TEXT DEFAULT 'pending',
-//       backgroundColor TEXT
-//     );
-//   `);
-// }

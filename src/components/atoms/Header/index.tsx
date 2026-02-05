@@ -11,7 +11,9 @@ export default function Header({
   return (
     <View style={styles.header}>
       <View style={styles.left}>
-        {back ? (
+        {options.headerLeft ? (
+          options.headerLeft({})
+        ) : back ? (
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={styles.headerButton}
@@ -23,9 +25,7 @@ export default function Header({
               style={{ padding: 5 }}
             />
           </TouchableOpacity>
-        ) : (
-          options.headerLeft?.({})
-        )}
+        ) : null}
       </View>
       <Text style={styles.title}>{options?.title}</Text>
       <View style={styles.right}>{options.headerRight?.({})}</View>

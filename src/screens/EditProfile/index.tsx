@@ -16,7 +16,9 @@ type EditProfileProps = NativeStackScreenProps<
   RootStackParamList,
   "EditProfile"
 >;
-export default function EditProfile({ navigation }: EditProfileProps) {
+export default function EditProfile({
+  navigation,
+}: Readonly<EditProfileProps>) {
   const username = useSelector((state: RootState) => state.auth.username);
   const firstName = useSelector((state: RootState) => state.auth.firstName);
   const lastName = useSelector((state: RootState) => state.auth.lastName);

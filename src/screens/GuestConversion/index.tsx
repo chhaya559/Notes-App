@@ -11,6 +11,7 @@ import { registerSchema } from "src/validations/registerSchema";
 import style from "./styles";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 type ConversionProps = NativeStackScreenProps<
   RootStackParamList,
@@ -70,107 +71,109 @@ export default function GuestConversion({
     navigation.replace("Dashboard");
   }
   return (
-    <View style={style.container}>
-      <Text style={style.heading}>Convert Guest to User</Text>
-      <Text style={style.text}>Sign up to save your notes</Text>
-      <Controller
-        control={control}
-        name="username"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <CustomInput
-            text="Username*"
-            placeholder="Username"
-            color="#707070ff"
-            value={value}
-            onChangeText={onChange}
-            onBlur={onBlur}
-          />
-        )}
-      />
+    <KeyboardAwareScrollView>
+      <View style={style.container}>
+        <Text style={style.heading}>Convert Guest to User</Text>
+        <Text style={style.text}>Sign up to save your notes</Text>
+        <Controller
+          control={control}
+          name="username"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <CustomInput
+              text="Username*"
+              placeholder="Username"
+              color="#707070ff"
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+            />
+          )}
+        />
 
-      {errors.username?.message && (
-        <Text style={style.error}>{errors.username.message}</Text>
-      )}
-      <Controller
-        control={control}
-        name="firstName"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <CustomInput
-            text="First Name*"
-            placeholder="First Name"
-            color="#707070ff"
-            value={value}
-            onChangeText={onChange}
-            onBlur={onBlur}
-          />
+        {errors.username?.message && (
+          <Text style={style.error}>{errors.username.message}</Text>
         )}
-      />
-      {errors.firstName?.message && (
-        <Text style={style.error}>{errors.firstName.message}</Text>
-      )}
-      <Controller
-        control={control}
-        name="lastName"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <CustomInput
-            text="Last Name*"
-            placeholder="Last Name"
-            color="#707070ff"
-            value={value}
-            onChangeText={onChange}
-            onBlur={onBlur}
-          />
+        <Controller
+          control={control}
+          name="firstName"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <CustomInput
+              text="First Name*"
+              placeholder="First Name"
+              color="#707070ff"
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+            />
+          )}
+        />
+        {errors.firstName?.message && (
+          <Text style={style.error}>{errors.firstName.message}</Text>
         )}
-      />
-      {errors.lastName?.message && (
-        <Text style={style.error}>{errors.lastName.message}</Text>
-      )}
-      <Controller
-        control={control}
-        name="email"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <CustomInput
-            text="Email*"
-            placeholder="Email"
-            color="#707070ff"
-            value={value}
-            onChangeText={onChange}
-            onBlur={onBlur}
-          />
+        <Controller
+          control={control}
+          name="lastName"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <CustomInput
+              text="Last Name*"
+              placeholder="Last Name"
+              color="#707070ff"
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+            />
+          )}
+        />
+        {errors.lastName?.message && (
+          <Text style={style.error}>{errors.lastName.message}</Text>
         )}
-      />
-      {errors.email?.message && (
-        <Text style={style.error}>{errors.email.message}</Text>
-      )}
-      <Controller
-        control={control}
-        name="password"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <CustomInput
-            text="Password*"
-            placeholder="Password"
-            color="#707070ff"
-            value={value}
-            onChangeText={onChange}
-            onBlur={onBlur}
-            isPassword
-            isVisible={isVisible}
-            onToggleVisibility={() => {
-              setIsVisible((prev) => !prev);
-            }}
-            secureTextEntry={!isVisible}
-          />
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <CustomInput
+              text="Email*"
+              placeholder="Email"
+              color="#707070ff"
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+            />
+          )}
+        />
+        {errors.email?.message && (
+          <Text style={style.error}>{errors.email.message}</Text>
         )}
-      />
-      {errors.password?.message && (
-        <Text style={style.error}>{errors.password.message}</Text>
-      )}
-      <Pressable
-        onPress={handleSubmit(handleConversion)}
-        style={style.pressable}
-      >
-        <Text style={style.pressableText}>Convert to User</Text>
-      </Pressable>
-    </View>
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <CustomInput
+              text="Password*"
+              placeholder="Password"
+              color="#707070ff"
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              isPassword
+              isVisible={isVisible}
+              onToggleVisibility={() => {
+                setIsVisible((prev) => !prev);
+              }}
+              secureTextEntry={!isVisible}
+            />
+          )}
+        />
+        {errors.password?.message && (
+          <Text style={style.error}>{errors.password.message}</Text>
+        )}
+        <Pressable
+          onPress={handleSubmit(handleConversion)}
+          style={style.pressable}
+        >
+          <Text style={style.pressableText}>Convert to User</Text>
+        </Pressable>
+      </View>
+    </KeyboardAwareScrollView>
   );
 }

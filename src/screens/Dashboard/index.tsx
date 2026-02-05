@@ -1,6 +1,8 @@
 import {
   FlatList,
   Image,
+  PermissionsAndroid,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -11,25 +13,30 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@redux/store";
-import {
-  useGetNotificationsCountQuery,
-  useGetQuery,
-  useSearchNotesQuery,
-} from "@redux/api/noteApi";
+import { useGetQuery, useSearchNotesQuery } from "@redux/api/noteApi";
 import Card from "@components/atoms/Card";
 import { db } from "src/db/notes";
 import { notesTable } from "src/db/schema";
 import { createTable } from "src/db/createTable";
-import { useFocusEffect } from "@react-navigation/native";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useNetInfo } from "@react-native-community/netinfo";
 import useDebounce from "src/debounce/debounce";
+import { usePushNotificationMutation } from "@redux/api/authApi";
+import messaging from "@react-native-firebase/messaging";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
-
+type Note = {
+  id: string;
+  title: string | null;
+  content: string | null;
+  updatedAt: string;
+  backgroundColor?: string | null;
+  isPasswordProtected: number;
+  isReminderSet: number;
+};
 export function Dashboard({ navigation }: Readonly<DashboardProps>) {
-  const [notes, setNotes] = useState([]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const [searchText, setSearchText] = useState("");
   const userId = useSelector((state: RootState) => state.auth.token);
@@ -47,14 +54,27 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       .select()
       .from(notesTable)
       .where(eq(notesTable.userId, userId));
-    setNotes(notesFromDB);
+    // setNotes(notesFromDB);
+
+    setNotes(
+      notesFromDB.map((n) => ({
+        ...n,
+        title: n.title ?? "",
+        content: n.content ?? "",
+        updatedAt: n.updatedAt ?? new Date().toISOString(),
+        backgroundColor: n.backgroundColor ?? "#f5f5f5",
+        isPasswordProtected: n.isPasswordProtected ?? 0,
+        isReminderSet: n.isReminderSet ?? 0,
+      })),
+    );
   }, [userId]);
 
   const syncNotes = useCallback(async () => {
     if (!data?.data || !userId) return;
+
     await db.delete(notesTable).where(eq(notesTable.userId, userId));
+
     for (const note of data.data) {
-      console.log("note", note);
       await db
         .insert(notesTable)
         .values({
@@ -83,12 +103,55 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     }
   }, [data, userId]);
 
+  const [pushApi] = usePushNotificationMutation();
+
+  async function handleTokenSend(token: string) {
+    try {
+      const response = await pushApi({
+        token: token,
+        platform: Platform.OS,
+      }).unwrap();
+
+      console.log(Platform.OS, "fhrufhir");
+      console.log("Device token send response", response);
+    } catch (err) {
+      console.log("Error sending device token", err);
+    }
+  }
+
+  async function requestUserPermission() {
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    const token = await messaging().getToken();
+    console.log(token, "FCM token");
+
+    if (enabled) {
+      handleTokenSend(token);
+      console.log("Authorization status:", authStatus);
+    }
+  }
+
   useEffect(() => {
-    if (!isConnected) return;
+    PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+    );
+  }, []);
+
+  useEffect(() => {
+    async function create() {
+      await createTable();
+      requestUserPermission();
+    }
+    create();
+  }, []);
+
+  useEffect(() => {
+    if (!isConnected || !userId) return;
 
     async function run() {
-      if (!userId) return;
-      await createTable();
       await syncNotes();
       await loadNotes();
     }
@@ -124,7 +187,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
           />
         </View>
         {/* Search Icon */}
-        {data?.data.length > 0 && (
+        {data?.data?.length > 0 && (
           <View style={[styles.SearchBar, isFocused && styles.focus]}>
             <Ionicons
               name="search"

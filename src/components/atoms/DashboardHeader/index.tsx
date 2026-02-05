@@ -1,4 +1,4 @@
-import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import styles from "./styles";
 import { AntDesign, Entypo, FontAwesome, Ionicons } from "@expo/vector-icons";
@@ -19,15 +19,20 @@ export default function DashboardHeader() {
 
   const { data: countResponse, refetch: refetchCount } =
     useGetNotificationsCountQuery(undefined, {
+      // pollingInterval: 700,
       refetchOnFocus: true,
       refetchOnMountOrArgChange: true,
     });
 
-  const { data: notificationsResponse, isFetching: isNotificationsFetching } =
-    useGetNotificationsQuery(undefined, {
-      refetchOnFocus: true,
-      refetchOnMountOrArgChange: true,
-    });
+  const {
+    data: notificationsResponse,
+    isFetching: isNotificationsFetching,
+    refetch: refetchNotifications,
+  } = useGetNotificationsQuery(undefined, {
+    // pollingInterval: 700,
+    refetchOnFocus: true,
+    refetchOnMountOrArgChange: true,
+  });
 
   const [markNotificationRead] = useMarkNoificationReadMutation();
 
@@ -38,6 +43,7 @@ export default function DashboardHeader() {
   useFocusEffect(
     useCallback(() => {
       refetchCount();
+      refetchNotifications();
     }, []),
   );
 
@@ -47,8 +53,7 @@ export default function DashboardHeader() {
   const [getSingleNotification] = useGetNotificationByIdMutation();
   async function getDetailedNotification(notificationId: string) {
     try {
-      const response = await getSingleNotification(notificationId).unwrap();
-      console.log(response, "leirughlerk");
+      await getSingleNotification(notificationId).unwrap();
     } catch (error) {
       console.log(error);
     }
@@ -83,7 +88,7 @@ export default function DashboardHeader() {
   return (
     <>
       <View style={styles.outer}>
-        <TouchableOpacity onPress={toggleNotificationsVisibility}>
+        <TouchableOpacity onPress={() => setShowNotifications(true)}>
           <Ionicons
             name="notifications-circle-outline"
             color="#5757f8"
@@ -103,8 +108,28 @@ export default function DashboardHeader() {
         </TouchableOpacity>
       </View>
 
-      <Modal isVisible={showNotifications} backdropOpacity={0.8}>
+      <Modal
+        isVisible={showNotifications}
+        backdropOpacity={0.8}
+        onBackdropPress={() => setShowNotifications(false)}
+        onBackButtonPress={() => setShowNotifications(false)}
+        useNativeDriver
+      >
         <View style={styles.modal}>
+          {/* CLOSE BUTTON – moved to top & touch-safe */}
+          <TouchableOpacity
+            onPress={() => setShowNotifications(false)}
+            activeOpacity={0.7}
+            style={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              zIndex: 1000,
+            }}
+          >
+            <AntDesign name="close" color="#5757f8" size={22} />
+          </TouchableOpacity>
+
           <Text
             style={{
               fontWeight: "700",
@@ -129,13 +154,7 @@ export default function DashboardHeader() {
                     getDetailedNotification(item.id);
                   }}
                 >
-                  <Text
-                    style={{
-                      fontWeight: "500",
-                      margin: 3,
-                      marginLeft: 0,
-                    }}
-                  >
+                  <Text style={{ fontWeight: "500", margin: 3, marginLeft: 0 }}>
                     {item.title}
                   </Text>
                   <Text style={{ fontWeight: "400" }}>{item.noteTitle}</Text>
@@ -171,11 +190,7 @@ export default function DashboardHeader() {
             <View style={styles.buttons}>
               <TouchableOpacity style={styles.pressable} onPress={readAll}>
                 <Text
-                  style={{
-                    color: "#fff",
-                    fontSize: 16,
-                    textAlign: "center",
-                  }}
+                  style={{ color: "#fff", fontSize: 16, textAlign: "center" }}
                 >
                   Read All
                 </Text>
@@ -183,26 +198,13 @@ export default function DashboardHeader() {
 
               <TouchableOpacity style={styles.pressable} onPress={clearAll}>
                 <Text
-                  style={{
-                    color: "#fff",
-                    fontSize: 16,
-                    textAlign: "center",
-                  }}
+                  style={{ color: "#fff", fontSize: 16, textAlign: "center" }}
                 >
                   Clear All
                 </Text>
               </TouchableOpacity>
             </View>
           )}
-
-          <TouchableOpacity onPress={toggleNotificationsVisibility}>
-            <AntDesign
-              name="close"
-              color="#5757f8"
-              style={styles.close}
-              size={18}
-            />
-          </TouchableOpacity>
         </View>
       </Modal>
     </>

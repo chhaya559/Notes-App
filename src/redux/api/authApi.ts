@@ -97,6 +97,13 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    pushNotification: builder.mutation({
+      query: (data) => ({
+        url: "/push/register",
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -112,5 +119,5 @@ export const {
   useDeleteUserMutation,
   useEditUserMutation,
   useGetUserQuery,
+  usePushNotificationMutation,
 } = authApi;
-

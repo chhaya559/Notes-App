@@ -16,7 +16,7 @@ export default function Onboarding({ navigation }: OnboardingProps) {
     const response = await guestApi().unwrap();
     console.log(response);
     dispatch(
-      google({
+      guest({
         token: response.data.token,
       }),
     );

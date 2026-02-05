@@ -82,10 +82,10 @@ export const noteApi = createApi({
     }),
     noteLock: builder.mutation<
       any,
-      { id: string; isPasswordProtected: boolean; password: string }
+      { isPasswordProtected: boolean; password: string }
     >({
-      query: ({ id, ...body }) => ({
-        url: `notes/${id}/lock`,
+      query: ({ ...body }) => ({
+        url: `notes/lock`,
         method: "POST",
         body,
       }),

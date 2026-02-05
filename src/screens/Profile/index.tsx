@@ -109,6 +109,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
           <Text style={styles.registerText}> Register Yourself</Text>
         </Pressable>
         <Pressable style={styles.pressable} onPress={confirmLogout}>
+          <AntDesign name="logout" size={18} color="#fff" />
           <Text style={styles.registerText}>Logout</Text>
         </Pressable>
       </View>
@@ -128,29 +129,6 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       </View>
       <Text style={styles.name}>Hi, {username}</Text>
       <Text style={styles.email}>{email}</Text>
-
-      {/* <Pressable
-        style={styles.view}
-        onPress={() => navigation.navigate("EditProfile")}
-      >
-        <Text style={styles.viewText}>Edit Profile</Text>
-        <SimpleLineIcons name="arrow-right" size={16} style={styles.viewIcon} />
-      </Pressable>
-      <View style={styles.lowerContainer}>
-        <Pressable
-          style={styles.pressable}
-          onPress={() => navigation.navigate("ResetPassword")}
-        >
-          <Text>Change Password</Text>
-        </Pressable>
-        <Pressable style={styles.pressable} onPress={confirmLogout}>
-          <AntDesign name="logout" size={16} />
-          <Text>Logout</Text>
-        </Pressable>
-        <Pressable style={styles.pressable} onPress={confirmDelete}>
-          <Text>Delete Account</Text>
-        </Pressable>
-      </View> */}
       <AccountActions />
       <TouchableOpacity
         style={[styles.pressable, styles.logout]}

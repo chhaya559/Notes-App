@@ -57,6 +57,7 @@ export default function CreateNote({
   route,
 }: Readonly<CreateNoteProps>) {
   const userId = useSelector((state: RootState) => state.auth.token);
+  const isGuest = useSelector((state: RootState) => state.auth.isGuest);
   const [noteBackground, setNoteBackground] = useState<string>("#f5f5f5");
   const { isConnected } = useNetInfo();
   const [textToolBarVisibility, setTextToolBarVisibility] = useState(false);
@@ -193,7 +194,7 @@ export default function CreateNote({
     }
   }
 
-  async function handleSave(navigate = true) {
+  async function handleSave() {
     try {
       const localId = await saveToLocalDB(isConnected ? "synced" : "pending");
 
@@ -218,9 +219,10 @@ export default function CreateNote({
             isReminderSet: isReminder,
             imagePaths: images,
           }).unwrap();
+          console.log(response);
         }
       }
-      if (navigate) navigation.goBack();
+      navigation.goBack();
       setIsNoteSaved(true);
     } catch (error) {
       if (
@@ -316,7 +318,7 @@ export default function CreateNote({
     return id;
   }
 
-  function handleAlert() {
+  function handleLock() {
     if (isNoteSaved) {
       navigation.goBack();
       return;
@@ -340,6 +342,29 @@ export default function CreateNote({
     );
   }
 
+  function handleAlert() {
+    if (isNoteSaved) {
+      navigation.goBack();
+      return;
+    }
+
+    Alert.alert(
+      "Save Note first",
+      "You will lose your note data without saving",
+      [
+        {
+          text: "Cancel",
+          onPress: () => navigation.goBack(),
+        },
+        {
+          text: "Save",
+          onPress: handleSave,
+        },
+      ],
+      { cancelable: true },
+    );
+  }
+
   useEffect(() => {
     navigation.setOptions({
       headerStyle: {
@@ -347,6 +372,16 @@ export default function CreateNote({
       },
       headerTransparent: false,
       headerShadowVisible: false,
+      headerLeft: () => (
+        <TouchableOpacity onPress={handleAlert} style={styles.headerButton}>
+          <Ionicons
+            name="arrow-back-outline"
+            size={30}
+            color="#5757f8"
+            style={{ padding: 5 }}
+          />
+        </TouchableOpacity>
+      ),
       headerRight: () => (
         <View style={styles.header}>
           <TouchableOpacity onPress={handleSave}>
@@ -363,23 +398,6 @@ export default function CreateNote({
   }, [navigation, noteBackground, handleSave]);
 
   const richText = useRef<RichEditor | null>(null);
-  const debouncedNotes = useDebounce(
-    {
-      title: notes.title,
-      content: notes.content,
-      isPasswordProtected: isLocked,
-      backgroundColor: noteBackground,
-      isReminderSet: isReminder,
-      imagePaths: images,
-    },
-    400,
-  );
-
-  // useEffect(() => {
-  //   if (!debouncedNotes.title || !debouncedNotes.content) return;
-  //   handleSave(false);
-  // }, [debouncedNotes]);
-
   return (
     <KeyboardAvoidingView
       style={[styles.all]}
@@ -481,6 +499,7 @@ export default function CreateNote({
                 <TouchableOpacity
                   style={styles.touchables}
                   onPress={toggleLock}
+                  disabled={isGuest}
                 >
                   <AntDesign name="unlock" color="#5757f8" size={24} />
                   <Text style={styles.touchableText}>Unlock</Text>
@@ -488,7 +507,11 @@ export default function CreateNote({
               ) : (
                 <TouchableOpacity
                   style={styles.touchables}
-                  onPress={toggleLock}
+                  onPress={() => {
+                    handleLock();
+                    toggleLock();
+                  }}
+                  disabled={isGuest}
                 >
                   <AntDesign name="lock" color="#5757f8" size={24} />
                   <Text style={styles.touchableText}>Lock</Text>

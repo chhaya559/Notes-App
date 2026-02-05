@@ -23,9 +23,14 @@ const config: ExpoConfig = {
     backgroundColor: "#ffffff",
   },
   ios: {
+    entitlements: {
+      "aps-environment": "production",
+    },
     supportsTablet: true,
+    googleServicesFile: "./GoogleService-Info.plist",
     bundleIdentifier: BUNDLE_IDENTIFIER,
     infoPlist: {
+      UIBackgroundModes: ["remote-notification"],
       CFBundleURLTypes: [
         {
           CFBundleURLSchemes: [
@@ -42,6 +47,8 @@ const config: ExpoConfig = {
       backgroundColor: "#ffffff",
     },
     package: BUNDLE_IDENTIFIER,
+    googleServicesFile: "./google-services.json",
+    permissions: ["RECEIVE_BOOT_COMPLETED"],
   },
   extra: {
     APP_VARIANT: process.env.APP_VARIANT,
@@ -59,9 +66,19 @@ const config: ExpoConfig = {
       },
     ],
 
-    "expo-build-properties",
     "expo-asset",
     "expo-font",
+    [
+      "expo-build-properties",
+      {
+        ios: {
+          useFrameworks: "static",
+          forceStaticLinking: ["RNFBApp"],
+        },
+      },
+    ],
+    "@react-native-firebase/app",
+    "@react-native-firebase/messaging",
   ],
 };
 

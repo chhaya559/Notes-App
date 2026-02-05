@@ -1,7 +1,6 @@
 import CustomInput from "@components/atoms/CustomInput";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEditUserMutation, useGetUserQuery } from "@redux/api/authApi";
 import style from "@screens/GuestConversion/styles";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";

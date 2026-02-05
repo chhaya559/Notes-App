@@ -4,9 +4,11 @@ import { reminderApi } from "@redux/api/reminderApi";
 import authSlice from "@redux/slice/authSlice";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistReducer, persistStore } from "redux-persist";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const persistConfig = {
   key: "root",
+  Storage: AsyncStorage,
 };
 const rootReducer = combineReducers({
   auth: authSlice,
@@ -14,7 +16,7 @@ const rootReducer = combineReducers({
   [noteApi.reducerPath]: noteApi.reducer,
   [reminderApi.reducerPath]: reminderApi.reducer,
 });
-//const persistedReducer = persistReducer(persistConfig, rootReducer);
+// const persistedReducer = persistReducer(persistConfig, rootReducer);
 export const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>

@@ -60,6 +60,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       }
 
       const response = await googleApi({ idToken }).unwrap();
+      console.log("response", response);
 
       dispatch(
         google({

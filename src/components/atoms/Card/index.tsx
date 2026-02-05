@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import styles from "./styles";
-import { AntDesign, Feather, FontAwesome6 } from "@expo/vector-icons";
+import { AntDesign, Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import CustomInput from "../CustomInput";
