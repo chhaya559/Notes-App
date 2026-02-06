@@ -1,5 +1,13 @@
 import CustomInput from "@components/atoms/CustomInput";
-import { Alert, Pressable, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  PermissionsAndroid,
+  Platform,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import styles from "./styles";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
@@ -10,7 +18,11 @@ import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
-import { useGoogleMutation, useLoginMutation } from "../../redux/api/authApi";
+import {
+  useGoogleMutation,
+  useLoginMutation,
+  usePushNotificationMutation,
+} from "../../redux/api/authApi";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@redux/store";
 import { login, google } from "@redux/slice/authSlice";
@@ -18,6 +30,8 @@ import { loginSchema } from "src/validations/loginSchema";
 import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { AntDesign } from "@expo/vector-icons";
+import messaging from "@react-native-firebase/messaging";
+
 type LoginProps = NativeStackScreenProps<RootStackParamList, "Login">;
 export default function Login({ navigation }: Readonly<LoginProps>) {
   const [isVisible, setIsVisible] = useState(false);
@@ -36,6 +50,43 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       password: "",
     },
   });
+
+  const [pushApi] = usePushNotificationMutation();
+
+  async function handleTokenSend(token: string) {
+    try {
+      const response = await pushApi({
+        token: token,
+        platform: Platform.OS,
+      }).unwrap();
+
+      console.log(Platform.OS, "fhrufhir");
+      console.log("Device token send response", response);
+    } catch (err) {
+      console.log("Error sending device token", err);
+    }
+  }
+
+  async function requestUserPermission() {
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    const token = await messaging().getToken();
+    console.log(token, "FCM token");
+
+    if (enabled) {
+      handleTokenSend(token);
+      console.log("Authorization status:", authStatus);
+    }
+  }
+
+  useEffect(() => {
+    PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+    );
+  }, []);
 
   useEffect(() => {
     GoogleSignin.configure({
@@ -74,6 +125,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
         type: "success",
         text1: "Logged in with gogle",
       });
+      requestUserPermission();
     } catch (error: any) {
       console.log("Google Sign-In Error:", error);
       Toast.show({
@@ -100,6 +152,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
             email: response.data.email,
           }),
         );
+        requestUserPermission();
       } else {
         Toast.show({
           text1: "Sign in failed",

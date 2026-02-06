@@ -49,8 +49,18 @@ import { useFocusEffect } from "@react-navigation/native";
 import Summary from "@components/atoms/Summary";
 import { launchImageLibrary, Asset } from "react-native-image-picker";
 import useDebounce from "src/debounce/debounce";
+import { DocumentPickerResponse, pick } from "@react-native-documents/picker";
 
 type CreateNoteProps = NativeStackScreenProps<RootStackParamList, "CreateNote">;
+
+type FileType = {
+  uri: string;
+  name: string | null;
+  size: number | null;
+  type: string | null;
+  hasRequestedType: boolean;
+  isVirtual: boolean | null;
+};
 
 export default function CreateNote({
   navigation,
@@ -86,13 +96,15 @@ export default function CreateNote({
   function toggleShowAttachmentOptions() {
     setShowAttachmentOptions(!showAttachmentOptions);
   }
-  const [images, setImages] = useState<Asset[]>([]);
+  // const [images, setImages] = useState<Asset[]>([]);
+  const [files, setFiles] = useState<DocumentPickerResponse[]>([]);
 
   const [saveApi] = useSetMutation();
   const [editApi] = useUpdateMutation();
   const [deleteApi] = useDeleteMutation();
 
-  const noteId = route?.params?.id;
+  // const noteId = route?.params?.id;
+  const [noteId, setNoteId] = useState<string>("");
   const { data: NotesData, refetch } = useGetNoteByIdQuery(
     { id: String(noteId) },
     { skip: !noteId, refetchOnFocus: true },
@@ -107,6 +119,15 @@ export default function CreateNote({
       console.log("Error generating AI summary: ", error);
     }
   }
+
+  useEffect(() => {
+    if (route?.params?.id) {
+      setNoteId(route?.params?.id);
+    } else {
+      setNoteId(uuidv4());
+    }
+  }, [route]);
+
   useFocusEffect(
     useCallback(() => {
       if (noteId) {
@@ -115,7 +136,7 @@ export default function CreateNote({
     }, [noteId]),
   );
 
-  const isEditMode = Boolean(noteId);
+  const isEditMode = Boolean(route?.params?.id);
   const [notes, setNotes] = useState({
     id: "",
     title: "",
@@ -123,6 +144,7 @@ export default function CreateNote({
     isPasswordProtected: false,
     isReminderSet: null,
     backgroundColor: "#ffffff",
+    files: [],
   });
 
   useEffect(() => {
@@ -134,6 +156,7 @@ export default function CreateNote({
       isPasswordProtected: NotesData.data.isPasswordProtected ?? false,
       isReminderSet: NotesData.data.isReminderSet ?? null,
       backgroundColor: NotesData.data.backgroundColor ?? "#f5f5f5",
+      files: NotesData.data.filesPath ?? [],
     });
 
     richText.current?.setContentHTML(NotesData.data.content ?? "");
@@ -177,37 +200,116 @@ export default function CreateNote({
     setIsLocked(!isLocked);
   }
 
-  async function pickImage() {
-    const result = await launchImageLibrary({
-      mediaType: "photo",
-      selectionLimit: 5,
-    });
-    if (result.assets) {
-      Toast.show({
-        text1: "Images uploaded successfully",
+  // async function pickImage() {
+  //   const result = await launchImageLibrary({
+  //     mediaType: "photo",
+  //     selectionLimit: 5,
+  //   });
+  //   console.log(result.assets, "frkhgfkjre");
+  //   if (result.assets) {
+  //     Toast.show({
+  //       text1: "Images uploaded successfully",
+  //     });
+  //     setImages((prev) => [...prev, ...result.assets]);
+  //     console.log("images", images);
+  //   } else if (result.errorMessage) {
+  //     Toast.show({
+  //       text1: "Error uploading image",
+  //     });
+  //   }
+  // }
+
+  async function pickFile() {
+    try {
+      const result = await pick({
+        allowMultiSelection: true,
+        allowVirtualFiles: true,
       });
-      setImages(result.assets);
-    } else if (result.errorMessage) {
-      Toast.show({
-        text1: "Error uploading image",
-      });
+      setFiles(result);
+    } catch (error) {
+      console.log("Error uploading file", error);
     }
   }
 
-  async function handleSave() {
+  // async function handleSave(navigate = true) {
+  //   try {
+  //     const localId = await saveToLocalDB(isConnected ? "synced" : "pending");
+  //     console.log(localId, "localidlocalidlocalidlocalid");
+  //     if (isConnected) {
+  //       const formData = new FormData();
+
+  //       if (isEditMode && route.params?.id) {
+  //         formData.append("id", route.params.id);
+  //       } else if (!isEditMode && localId) {
+  //         formData.append("id", localId);
+  //       }
+
+  //       formData.append("title", notes.title);
+  //       formData.append("content", notes.content);
+  //       formData.append("isPasswordProtected", String(!!isLocked));
+  //       formData.append("backgroundColor", noteBackground);
+  //       formData.append("isReminderSet", String(!!isReminder));
+  //       formData.append("filesPath", files);
+
+  //       if (isEditMode) {
+  //         await editApi({ id: String(route.params.id), formData }).unwrap();
+  //       } else {
+  //         const response = await saveApi(formData).unwrap();
+  //         console.log("Saved:", response);
+  //       }
+  //     }
+
+  //     if (navigate) navigation.goBack();
+  //     setIsNoteSaved(true);
+  //   } catch (error: any) {
+  //     if (
+  //       error?.data?.message?.includes(
+  //         "Guest users cannot password protect notes.",
+  //       )
+  //     ) {
+  //       Toast.show({
+  //         text1: "Password-protected notes aren’t available for guest users.",
+  //         text2: "Register yourself to use this feature",
+  //       });
+  //     } else if (
+  //       error?.data?.message?.includes(
+  //         "Password required to lock for the first time",
+  //       )
+  //     ) {
+  //       Alert.alert(
+  //         "Set Password for Notes first",
+  //         "Go to Profile section to set password for notes",
+  //         [
+  //           { text: "Cancel", style: "cancel" },
+  //           {
+  //             text: "Set Password",
+  //             style: "default",
+  //             onPress: () =>
+  //               navigation.navigate("NotesPassword", { id: String(noteId) }),
+  //           },
+  //         ],
+  //         { cancelable: true },
+  //       );
+  //     }
+
+  //     console.log("Save error:", error);
+  //   }
+  // }
+  async function handleSave(navigate = true) {
     try {
       const localId = await saveToLocalDB(isConnected ? "synced" : "pending");
-
+      console.log(localId, "localIdlocalIdlocalIdlocalId");
+      const filePaths = files.map((f) => f.uri);
       if (isConnected) {
         if (isEditMode) {
           await editApi({
-            id: localId,
+            id: route.params.id,
             title: notes.title,
             content: notes.content,
             isPasswordProtected: isLocked,
             backgroundColor: noteBackground,
             isReminderSet: isReminder,
-            imagePaths: images,
+            filePaths: filePaths,
           }).unwrap();
         } else {
           const response = await saveApi({
@@ -217,12 +319,12 @@ export default function CreateNote({
             isPasswordProtected: isLocked,
             backgroundColor: noteBackground,
             isReminderSet: isReminder,
-            imagePaths: images,
+            filePaths: filePaths,
           }).unwrap();
           console.log(response);
         }
       }
-      navigation.goBack();
+      if (navigate) navigation.goBack();
       setIsNoteSaved(true);
     } catch (error) {
       if (
@@ -257,7 +359,6 @@ export default function CreateNote({
       console.log("Save error:", error);
     }
   }
-
   async function handleDelete() {
     try {
       if (!noteId) {
@@ -290,6 +391,7 @@ export default function CreateNote({
     }
 
     const id = noteId ?? uuidv4();
+    const filePaths = files.map((f) => f.uri);
 
     await db
       .insert(notesTable)
@@ -302,6 +404,7 @@ export default function CreateNote({
         isPasswordProtected: isLocked ? 1 : 0,
         isReminderSet: isReminder ? 1 : 0,
         syncStatus: status,
+        filePaths: JSON.stringify(filePaths),
       })
       .onConflictDoUpdate({
         target: notesTable.id,
@@ -312,6 +415,7 @@ export default function CreateNote({
           isPasswordProtected: isLocked ? 1 : 0,
           isReminderSet: isReminder ? 1 : 0,
           syncStatus: status,
+          filePaths: JSON.stringify(filePaths),
         },
       });
 
@@ -342,28 +446,28 @@ export default function CreateNote({
     );
   }
 
-  function handleAlert() {
-    if (isNoteSaved) {
-      navigation.goBack();
-      return;
-    }
+  // function handleAlert() {
+  //   if (isNoteSaved) {
+  //     navigation.goBack();
+  //     return;
+  //   }
 
-    Alert.alert(
-      "Save Note first",
-      "You will lose your note data without saving",
-      [
-        {
-          text: "Cancel",
-          onPress: () => navigation.goBack(),
-        },
-        {
-          text: "Save",
-          onPress: handleSave,
-        },
-      ],
-      { cancelable: true },
-    );
-  }
+  //   Alert.alert(
+  //     "Save Note first",
+  //     "You will lose your note data without saving",
+  //     [
+  //       {
+  //         text: "Cancel",
+  //         onPress: () => navigation.goBack(),
+  //       },
+  //       {
+  //         text: "Save",
+  //         onPress: handleSave,
+  //       },
+  //     ],
+  //     { cancelable: true },
+  //   );
+  // }
 
   useEffect(() => {
     navigation.setOptions({
@@ -372,16 +476,6 @@ export default function CreateNote({
       },
       headerTransparent: false,
       headerShadowVisible: false,
-      headerLeft: () => (
-        <TouchableOpacity onPress={handleAlert} style={styles.headerButton}>
-          <Ionicons
-            name="arrow-back-outline"
-            size={30}
-            color="#5757f8"
-            style={{ padding: 5 }}
-          />
-        </TouchableOpacity>
-      ),
       headerRight: () => (
         <View style={styles.header}>
           <TouchableOpacity onPress={handleSave}>
@@ -396,6 +490,22 @@ export default function CreateNote({
       ),
     });
   }, [navigation, noteBackground, handleSave]);
+  const debouncedNotes = useDebounce(
+    {
+      title: notes.title,
+      content: notes.content,
+      isPasswordProtected: isLocked,
+      backgroundColor: noteBackground,
+      isReminderSet: isReminder,
+      filePaths: files,
+    },
+    4000,
+  );
+
+  useEffect(() => {
+    if (!debouncedNotes.title || !debouncedNotes.content) return;
+    handleSave(false);
+  }, [debouncedNotes.title, debouncedNotes.content]);
 
   const richText = useRef<RichEditor | null>(null);
   return (
@@ -442,7 +552,7 @@ export default function CreateNote({
             />
           </View>
         </ScrollView>
-        <View style={{ marginTop: 10 }}>
+        {/* <View style={{ marginTop: 10 }}>
           {images?.length > 0 && (
             <FlatList
               data={images}
@@ -458,7 +568,33 @@ export default function CreateNote({
               )}
             />
           )}
-        </View>
+        </View> */}
+        <FlatList
+          data={files}
+          keyExtractor={(item) => item.uri}
+          renderItem={({ item }) => (
+            <View
+              style={{ padding: 8, borderBottomWidth: 1, borderColor: "#ddd" }}
+            >
+              <Text>{item.name ?? "Unnamed file"}</Text>
+              <Text style={{ fontSize: 12, color: "#888" }}>
+                {item.size ? (item.size / 1024).toFixed(1) : "Unknown"} KB |{" "}
+                {item.type ?? "Unknown"}
+              </Text>
+            </View>
+          )}
+        />
+        {/* {files.map((file, index) => (
+          <View key={index} style={{ marginVertical: 6 }}>
+            {file.type?.startsWith("image/") && (
+              <Image
+                source={{ uri: file.uri }}
+                style={{ width: 60, height: 60, borderRadius: 8 }}
+              />
+            )}
+            <Text numberOfLines={1}>{file.name}</Text>
+          </View>
+        ))} */}
 
         {textToolBarVisibility && (
           <View style={styles.modal}>
@@ -599,7 +735,7 @@ export default function CreateNote({
                 style={styles.optionIcon}
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.optionButton} onPress={pickImage}>
+            <TouchableOpacity style={styles.optionButton} onPress={pickFile}>
               <Entypo name="attachment" size={24} style={styles.optionIcon} />
             </TouchableOpacity>
             <TouchableOpacity

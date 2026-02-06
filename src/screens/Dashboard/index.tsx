@@ -22,8 +22,6 @@ import { eq } from "drizzle-orm";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useNetInfo } from "@react-native-community/netinfo";
 import useDebounce from "src/debounce/debounce";
-import { usePushNotificationMutation } from "@redux/api/authApi";
-import messaging from "@react-native-firebase/messaging";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
 type Note = {
@@ -34,6 +32,7 @@ type Note = {
   backgroundColor?: string | null;
   isPasswordProtected: number;
   isReminderSet: number;
+  filePaths?: string[] | [];
 };
 export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -65,6 +64,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         backgroundColor: n.backgroundColor ?? "#f5f5f5",
         isPasswordProtected: n.isPasswordProtected ?? 0,
         isReminderSet: n.isReminderSet ?? 0,
+        filePaths: n.filePaths ? JSON.parse(n.filePaths) : [],
       })),
     );
   }, [userId]);
@@ -86,6 +86,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
           isPasswordProtected: note.isPasswordProtected ? 1 : 0,
           isReminderSet: note.isReminderSet ? 1 : 0,
           syncStatus: "synced",
+          filePaths: note.filePaths ? JSON.stringify(note.filePaths) : null,
           backgroundColor: note.backgroundColor ?? "#f5f5f5",
         })
         .onConflictDoUpdate({
@@ -95,6 +96,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             content: note.content,
             updatedAt: note.updatedAt,
             syncStatus: "synced",
+            filePaths: note.filePaths ? JSON.stringify(note.filePaths) : null,
             isPasswordProtected: note.isPasswordProtected ? 1 : 0,
             isReminderSet: note.isReminderSet ? 1 : 0,
             backgroundColor: note.backgroundColor ?? "#f5f5f5",
@@ -103,47 +105,9 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     }
   }, [data, userId]);
 
-  const [pushApi] = usePushNotificationMutation();
-
-  async function handleTokenSend(token: string) {
-    try {
-      const response = await pushApi({
-        token: token,
-        platform: Platform.OS,
-      }).unwrap();
-
-      console.log(Platform.OS, "fhrufhir");
-      console.log("Device token send response", response);
-    } catch (err) {
-      console.log("Error sending device token", err);
-    }
-  }
-
-  async function requestUserPermission() {
-    const authStatus = await messaging().requestPermission();
-    const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-    const token = await messaging().getToken();
-    console.log(token, "FCM token");
-
-    if (enabled) {
-      handleTokenSend(token);
-      console.log("Authorization status:", authStatus);
-    }
-  }
-
-  useEffect(() => {
-    PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-    );
-  }, []);
-
   useEffect(() => {
     async function create() {
       await createTable();
-      requestUserPermission();
     }
     create();
   }, []);

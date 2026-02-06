@@ -15,4 +15,5 @@ export const notesTable = sqliteTable("notes_table", {
     .$type<SyncStatus>()
     .notNull()
     .default("pending"),
+  filePaths: text("filePaths"),
 });

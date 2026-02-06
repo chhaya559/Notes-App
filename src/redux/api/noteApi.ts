@@ -17,13 +17,14 @@ export const noteApi = createApi({
   reducerPath: "noteApi",
   endpoints: (builder) => ({
     set: builder.mutation({
-      query: (data) => ({
+      query: (body) => ({
         url: "/notes",
         method: "POST",
-        body: data,
+        body: body,
       }),
       invalidatesTags: ["Notes"],
     }),
+
     get: builder.query<any, void>({
       query: () => ({
         url: "/notes",
@@ -34,14 +35,12 @@ export const noteApi = createApi({
     update: builder.mutation({
       query: ({ id, ...body }) => ({
         url: `/notes/${id}`,
-        body: body,
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${id}`,
-        },
+        body: body,
       }),
       invalidatesTags: ["Notes"],
     }),
+
     getNoteById: builder.query<any, { id: string }>({
       query: ({ id }) => ({
         url: `/notes/${id}`,

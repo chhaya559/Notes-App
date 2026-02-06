@@ -10,12 +10,13 @@ import {
   useMarkNoificationReadMutation,
   useReadAllNotificationMutation,
 } from "@redux/api/noteApi";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Modal from "react-native-modal";
 
 export default function DashboardHeader() {
   const navigation = useNavigation<any>();
   const [showNotifications, setShowNotifications] = useState(false);
+  // const [notifications, setNotifications] = useState([]);
 
   const { data: countResponse, refetch: refetchCount } =
     useGetNotificationsCountQuery(undefined, {

@@ -49,19 +49,19 @@ export default function App() {
 
   return (
     <Provider store={store}>
-      {/* <PersistGate persistor={persistor}> */}
-      <SafeAreaProvider>
-        <KeyboardProvider>
-          <SafeAreaView
-            style={{ flex: 1, backgroundColor: "#f5f5f5" }}
-            edges={["bottom"]}
-          >
-            <RootNavigator />
-            <Toast />
-          </SafeAreaView>
-        </KeyboardProvider>
-      </SafeAreaProvider>
-      {/* </PersistGate> */}
+      <PersistGate persistor={persistor}>
+        <SafeAreaProvider>
+          <KeyboardProvider>
+            <SafeAreaView
+              style={{ flex: 1, backgroundColor: "#f5f5f5" }}
+              edges={["bottom"]}
+            >
+              <RootNavigator />
+              <Toast />
+            </SafeAreaView>
+          </KeyboardProvider>
+        </SafeAreaProvider>
+      </PersistGate>
     </Provider>
   );
 }

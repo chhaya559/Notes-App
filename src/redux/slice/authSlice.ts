@@ -9,6 +9,8 @@ export type AuthState = {
   lastName: string | null;
   email: string | null;
   profileImageUrl: string | null;
+  isCommonPasswordSet: boolean;
+  isNotesUnlocked: boolean;
 };
 const initialState: AuthState = {
   identifier: null,
@@ -19,6 +21,8 @@ const initialState: AuthState = {
   lastName: null,
   email: null,
   profileImageUrl: null,
+  isCommonPasswordSet: false,
+  isNotesUnlocked: false,
 };
 
 const authSlice = createSlice({
@@ -35,6 +39,8 @@ const authSlice = createSlice({
         firstName: string;
         lastName: string;
         username: string;
+        isCommonPasswordSet: boolean;
+        isNotesUnlocked: boolean;
       }>,
     ) => {
       state.identifier = action.payload.identifier;
@@ -44,6 +50,8 @@ const authSlice = createSlice({
       state.firstName = action.payload.firstName;
       state.lastName = action.payload.lastName;
       state.username = action.payload.username;
+      state.isCommonPasswordSet = action.payload.isCommonPasswordSet;
+      state.isNotesUnlocked = action.payload.isNotesUnlocked;
     },
     logout: (state) => {
       state.identifier = null;
@@ -54,6 +62,8 @@ const authSlice = createSlice({
       state.lastName = null;
       state.email = null;
       state.profileImageUrl = null;
+      state.isCommonPasswordSet = false;
+      state.isNotesUnlocked = false;
     },
 
     register: (
@@ -65,6 +75,8 @@ const authSlice = createSlice({
         firstName: string;
         lastName: string;
         username: string;
+        isCommonPasswordSet: boolean;
+        isNotesUnlocked: boolean;
       }>,
     ) => {
       state.identifier = action.payload.email;
@@ -74,6 +86,8 @@ const authSlice = createSlice({
       state.firstName = action.payload.firstName;
       state.lastName = action.payload.lastName;
       state.username = action.payload.username;
+      state.isCommonPasswordSet = action.payload.isCommonPasswordSet;
+      state.isNotesUnlocked = action.payload.isNotesUnlocked;
     },
     google: (
       state,
@@ -82,11 +96,16 @@ const authSlice = createSlice({
         email: string;
         firstName: string | null;
         profileImageUrl: string | null;
+        isCommonPasswordSet: boolean;
+        isNotesUnlocked: boolean;
       }>,
     ) => {
       state.token = action.payload.token;
       state.email = action.payload.email;
       state.firstName = action.payload.firstName;
+      state.isCommonPasswordSet = action.payload.isCommonPasswordSet;
+      state.isNotesUnlocked = action.payload.isNotesUnlocked;
+
       state.profileImageUrl = action.payload.profileImageUrl;
     },
     guest: (state, action: PayloadAction<{ token: string }>) => {
@@ -123,6 +142,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { login, logout, register, google, guest, conversion,edit } =
+export const { login, logout, register, google, guest, conversion, edit } =
   authSlice.actions;
 export default authSlice.reducer;
