@@ -11,7 +11,7 @@ import {
 import styles from "./styles";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import { useGetQuery, useSearchNotesQuery } from "@redux/api/noteApi";
 import Card from "@components/atoms/Card";
@@ -22,6 +22,7 @@ import { eq } from "drizzle-orm";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useNetInfo } from "@react-native-community/netinfo";
 import useDebounce from "src/debounce/debounce";
+import { lockNotes } from "@redux/slice/authSlice";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
 type Note = {
@@ -40,11 +41,34 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [searchText, setSearchText] = useState("");
   const userId = useSelector((state: RootState) => state.auth.token);
   const { isConnected } = useNetInfo();
+  const isNotesUnlocked = useSelector(
+    (state: RootState) => state.auth.isNotesUnlocked,
+  );
 
   const { data } = useGetQuery<any>(undefined, {
     refetchOnFocus: true,
     refetchOnMountOrArgChange: true,
   });
+  const notesUnlockUntil = useSelector(
+    (state: RootState) => state.auth.notesUnlockUntil,
+  );
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if (!notesUnlockUntil) return;
+
+    const remaining = notesUnlockUntil - Date.now();
+
+    if (remaining <= 0) {
+      dispatch(lockNotes());
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      dispatch(lockNotes());
+    }, remaining);
+
+    return () => clearTimeout(timer);
+  }, [notesUnlockUntil]);
 
   const loadNotes = useCallback(async () => {
     if (!userId) return;
@@ -185,7 +209,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
               title={item.title}
               updatedAt={item.updatedAt}
               backgroundColor={item.backgroundColor}
-              isPasswordProtected={item.isPasswordProtected}
+              isPasswordProtected={item.isPasswordProtected && !isNotesUnlocked}
               isReminderSet={item.isReminderSet}
             />
           )}

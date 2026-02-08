@@ -1,67 +1,64 @@
 import React, { useEffect, useState } from "react";
-import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import styles from "./styles";
 import { AntDesign, Entypo, FontAwesome, Ionicons } from "@expo/vector-icons";
 import messaging from "@react-native-firebase/messaging";
+import Modal from "react-native-modal";
 
 export default function DashboardHeader() {
   const navigation = useNavigation<any>();
 
-  // Local state for notifications & unread count
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Toggle modal visibility
   function toggleNotificationsVisibility() {
     setShowNotifications((prev) => !prev);
   }
 
-  // FCM listener for foreground messages
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async (remoteMessage) => {
-      const data = remoteMessage.data;
-
+      const data = remoteMessage?.data;
       if (!data) return;
 
       const newNotification = {
         id: data.id ?? Date.now().toString(),
-        title: data.title,
-        noteTitle: data.noteTitle,
+        title: data.title ?? "",
+        noteTitle: data.noteTitle ?? "",
         isRead: false,
       };
 
-      // Add to top of notifications
       setNotifications((prev) => [newNotification, ...prev]);
-
-      // Update unread count
       setUnreadCount((prev) => prev + 1);
-
-      // Optional: show alert
-      Alert.alert("New Notification", newNotification.title);
     });
 
     return unsubscribe;
   }, []);
 
-  // Mark single notification as read
   function readNotification(notificationId: string) {
     setNotifications((prev) =>
       prev.map((item) =>
-        item.id === notificationId ? { ...item, isRead: true } : item
-      )
+        item.id === notificationId && !item.isRead
+          ? { ...item, isRead: true }
+          : item,
+      ),
     );
-    setUnreadCount((prev) => Math.max(prev - 1, 0));
+
+    const target = notifications.find(
+      (item) => item.id === notificationId && !item.isRead,
+    );
+
+    if (target) {
+      setUnreadCount((prev) => Math.max(prev - 1, 0));
+    }
   }
 
-  // Mark all notifications as read
   function readAll() {
     setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true })));
     setUnreadCount(0);
   }
 
-  // Clear all notifications
   function clearAll() {
     setNotifications([]);
     setUnreadCount(0);
@@ -69,7 +66,6 @@ export default function DashboardHeader() {
 
   return (
     <>
-      {/* Header icons */}
       <View style={styles.outer}>
         <TouchableOpacity onPress={toggleNotificationsVisibility}>
           <Ionicons
@@ -91,7 +87,6 @@ export default function DashboardHeader() {
         </TouchableOpacity>
       </View>
 
-      {/* Notifications Modal */}
       <Modal
         isVisible={showNotifications}
         backdropOpacity={0.8}
@@ -100,16 +95,10 @@ export default function DashboardHeader() {
         useNativeDriver
       >
         <View style={styles.modal}>
-          {/* Close button */}
           <TouchableOpacity
             onPress={toggleNotificationsVisibility}
             activeOpacity={0.7}
-            style={{
-              position: "absolute",
-              top: 10,
-              right: 10,
-              zIndex: 1000,
-            }}
+            style={{ position: "absolute", top: 10, right: 10, zIndex: 1000 }}
           >
             <AntDesign name="close" color="#5757f8" size={22} />
           </TouchableOpacity>
@@ -126,7 +115,6 @@ export default function DashboardHeader() {
             Notifications
           </Text>
 
-          {/* Notification list */}
           <FlatList
             data={notifications}
             keyExtractor={(item) => item.id}
@@ -151,32 +139,33 @@ export default function DashboardHeader() {
               </TouchableOpacity>
             )}
             ListEmptyComponent={
-              notifications.length === 0 ? (
-                <View style={styles.emptyList}>
-                  <Ionicons
-                    name="notifications-off-circle"
-                    size={200}
-                    color="#E0E7FF"
-                    style={styles.notification}
-                  />
-                  <Text style={styles.noNotification}>No notifications</Text>
-                  <Text style={styles.text}>You're all caught up!</Text>
-                </View>
-              ) : null
+              <View style={styles.emptyList}>
+                <Ionicons
+                  name="notifications-off-circle"
+                  size={200}
+                  color="#E0E7FF"
+                  style={styles.notification}
+                />
+                <Text style={styles.noNotification}>No notifications</Text>
+                <Text style={styles.text}>You're all caught up!</Text>
+              </View>
             }
           />
 
-          {/* Action buttons */}
           {notifications.length > 0 && (
             <View style={styles.buttons}>
               <TouchableOpacity style={styles.pressable} onPress={readAll}>
-                <Text style={{ color: "#fff", fontSize: 16, textAlign: "center" }}>
+                <Text
+                  style={{ color: "#fff", fontSize: 16, textAlign: "center" }}
+                >
                   Read All
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.pressable} onPress={clearAll}>
-                <Text style={{ color: "#fff", fontSize: 16, textAlign: "center" }}>
+                <Text
+                  style={{ color: "#fff", fontSize: 16, textAlign: "center" }}
+                >
                   Clear All
                 </Text>
               </TouchableOpacity>

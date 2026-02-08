@@ -11,6 +11,7 @@ export type AuthState = {
   profileImageUrl: string | null;
   isCommonPasswordSet: boolean;
   isNotesUnlocked: boolean;
+  notesUnlockUntil: number | null;
 };
 const initialState: AuthState = {
   identifier: null,
@@ -23,6 +24,7 @@ const initialState: AuthState = {
   profileImageUrl: null,
   isCommonPasswordSet: false,
   isNotesUnlocked: false,
+  notesUnlockUntil: null,
 };
 
 const authSlice = createSlice({
@@ -61,9 +63,10 @@ const authSlice = createSlice({
       state.firstName = null;
       state.lastName = null;
       state.email = null;
+      state.isNotesUnlocked = false;
+      state.notesUnlockUntil = null;
       state.profileImageUrl = null;
       state.isCommonPasswordSet = false;
-      state.isNotesUnlocked = false;
     },
 
     register: (
@@ -88,6 +91,9 @@ const authSlice = createSlice({
       state.username = action.payload.username;
       state.isCommonPasswordSet = action.payload.isCommonPasswordSet;
       state.isNotesUnlocked = action.payload.isNotesUnlocked;
+    },
+    setCommonPasswordSet: (state, action: PayloadAction<boolean>) => {
+      state.isCommonPasswordSet = action.payload;
     },
     google: (
       state,
@@ -124,6 +130,18 @@ const authSlice = createSlice({
       state.lastName = action.payload.lastName;
       state.username = action.payload.username;
     },
+    setNotesUnlocked: (
+      state,
+      action: PayloadAction<{ unlockUntil: number }>,
+    ) => {
+      state.isNotesUnlocked = true;
+      state.notesUnlockUntil = action.payload.unlockUntil;
+    },
+
+    lockNotes: (state) => {
+      state.isNotesUnlocked = false;
+      state.notesUnlockUntil = null;
+    },
     conversion: (
       state,
       action: PayloadAction<{
@@ -142,6 +160,16 @@ const authSlice = createSlice({
   },
 });
 
-export const { login, logout, register, google, guest, conversion, edit } =
-  authSlice.actions;
+export const {
+  setNotesUnlocked,
+  lockNotes,
+  login,
+  logout,
+  register,
+  google,
+  guest,
+  conversion,
+  edit,
+  setCommonPasswordSet
+} = authSlice.actions;
 export default authSlice.reducer;

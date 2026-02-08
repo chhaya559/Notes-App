@@ -2,35 +2,29 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "../store/index";
 
 export const noteApi = createApi({
- baseQuery: fetchBaseQuery({
-  baseUrl: "https://uninitiated-jerrold-coverable.ngrok-free.dev/api",
-  prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as RootState).auth.token;
+  baseQuery: fetchBaseQuery({
+    baseUrl: "https://uninitiated-jerrold-coverable.ngrok-free.dev/api",
+    prepareHeaders: (headers, { getState }) => {
+      const token = (getState() as RootState).auth.token;
 
-    if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
-    }
-
-    headers.delete("Content-Type");
-
-    return headers;
-  },
-}),
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+      return headers;
+    },
+  }),
 
   tagTypes: ["Notes", "Notifications", "NotificationCount"],
   reducerPath: "noteApi",
   endpoints: (builder) => ({
-  saveNote: builder.mutation({
-  query: (body) => ({
-    url: "/notes",
-    method: "POST",
-    body,
-  }),
-  invalidatesTags : ["Notes"]
-}),
-
-
-
+    saveNote: builder.mutation<any, any>({
+      query: (body) => ({
+        url: "/notes",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Notes"],
+    }),
     get: builder.query<any, void>({
       query: () => ({
         url: "/Notes",
@@ -38,15 +32,14 @@ export const noteApi = createApi({
       }),
       providesTags: ["Notes"],
     }),
-    update: builder.mutation({
-  query: ({ id, body }) => ({
-    url: `/Notes/${id}`,
-    method: "PUT",
-    body,
-  }),
-  invalidatesTags : ["Notes"]
-}),
-
+    update: builder.mutation<any, any>({
+      query: (body) => ({
+        url: `/Notes/${body.id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Notes"],
+    }),
 
     getNoteById: builder.query<any, { id: string }>({
       query: ({ id }) => ({
@@ -56,12 +49,12 @@ export const noteApi = createApi({
     }),
 
     delete: builder.mutation<any, { id: string }>({
-  query: ({ id }) => ({
-    url: `/Notes/${id}`,
-    method: "DELETE",
-  }),
-  invalidatesTags :["Notes"]
-}),
+      query: ({ id }) => ({
+        url: `/Notes/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Notes"],
+    }),
 
     searchNotes: builder.query<any, string>({
       query: (text) => `/Notes?search=${text}`,
@@ -75,22 +68,18 @@ export const noteApi = createApi({
     }),
     unlockNote: builder.mutation<
       any,
-      { id: string; password: string; unlockMinutes: number }
+      { password: string; unlockMinutes: number }
     >({
-      query: ({ id, ...body }) => ({
-        url: `Notes/${id}/unlock`,
+      query: (body) => ({
+        url: `Notes/unlock`,
         method: "POST",
         body,
       }),
     }),
-    noteLock: builder.mutation<
-      any,
-      { isPasswordProtected: boolean; password: string }
-    >({
-      query: ({ ...body }) => ({
-        url: `Notes/lock`,
+    noteLock: builder.mutation<any, {id:string}>({
+      query: ({id}) => ({
+        url: `Notes/${id}/lock`,
         method: "POST",
-        body,
       }),
     }),
     changePassword: builder.mutation({
@@ -104,7 +93,6 @@ export const noteApi = createApi({
       query: () => ({
         url: "/notifications",
         method: "GET",
-        // params: { pageNumber, pageSize },
       }),
       providesTags: ["Notifications"],
     }),
@@ -142,13 +130,13 @@ export const noteApi = createApi({
         method: "GET",
       }),
     }),
-   uploadFile : builder.mutation<any,FormData>({
-    query : (body) =>({
-      url : "/Notes/upload-file",
-      method : "POST",
-      body,
-    })
-   })
+    uploadFile: builder.mutation<any, FormData>({
+      query: (body) => ({
+        url: "/Notes/upload-file",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -170,5 +158,5 @@ export const {
   useClearAllNotificationMutation,
   useReadAllNotificationMutation,
   useGetNotificationByIdMutation,
-  useUploadFileMutation
+  useUploadFileMutation,
 } = noteApi;

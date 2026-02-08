@@ -38,13 +38,9 @@ export const reminderApi = createApi({
     }),
 
     deleteReminder: builder.mutation({
-      query: ({ id, ...body }) => ({
+      query: (id) => ({
         url: `/${id}`,
-        body: body,
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${id}`,
-        },
       }),
     }),
   }),

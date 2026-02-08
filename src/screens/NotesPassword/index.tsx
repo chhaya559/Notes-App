@@ -9,7 +9,12 @@ import Toast from "react-native-toast-message";
 import { RootStackParamList } from "src/navigation/types";
 import { NotesSchema } from "src/validations/NotesPassword";
 import styles from "./styles";
-import { useNoteLockMutation } from "@redux/api/noteApi";
+import { useNoteLockMutation, useUpdateMutation } from "@redux/api/noteApi";
+import { useDispatch } from "react-redux";
+import { setCommonPasswordSet } from "@redux/slice/authSlice";
+import { db } from "src/db/notes";
+import { notesTable } from "src/db/schema";
+import { eq } from "drizzle-orm";
 
 type NotesPasswordProps = NativeStackScreenProps<
   RootStackParamList,
@@ -19,8 +24,7 @@ export default function NotesPassword({
   navigation,
   route,
 }: Readonly<NotesPasswordProps>) {
-  const [LockNote, { isLoading }] = useNoteLockMutation();
-
+  const [updateNote, { isLoading }] = useUpdateMutation();
   const {
     control,
     handleSubmit,
@@ -33,19 +37,33 @@ export default function NotesPassword({
     },
   });
 
+  const dispatch = useDispatch();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
   const noteID = route?.params?.id;
+  const title = route?.params?.title ?? "";
+  const content = route?.params?.content ?? "";
+
   async function handle(data: any) {
     try {
-      console.log(data.password, "gfy");
-      const response = await LockNote({
+      const response = await updateNote({
         id: noteID,
+        title,
+        content,
         isPasswordProtected: true,
         password: data.password,
       }).unwrap();
 
+      console.log(response, "response from lock api");
       if (response.success) {
+        dispatch(setCommonPasswordSet(true));
+        await db
+          .update(notesTable)
+          .set({
+            isPasswordProtected: 1,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(eq(notesTable.id, noteID));
         Toast.show({ text1: "Password set successfully!" });
         navigation.goBack();
       }

@@ -32,19 +32,21 @@ export default function Reminder({
   const [setReminderApi, { isLoading }] = useSetReminderMutation();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-
   const [isEditMode, setIsEditMode] = useState(false);
+  console.log(ReminderData, "fjlirjfoes");
 
   useEffect(() => {
     if (ReminderData?.data?.remindAt) {
       setIsEditMode(true);
-      //  const getDate = new Date(ReminderData.data.remindAt.toLocaleString());
       setDate(new Date(ReminderData.data.remindAt));
+      setName(ReminderData?.data?.title ?? "");
+      setDescription(ReminderData?.data?.description ?? "");
     } else {
+      setIsEditMode(false);
       setDate(null);
+      setName("");
+      setDescription("");
     }
-    setName(ReminderData?.data?.title ?? "");
-    setDescription(ReminderData?.data?.description ?? "");
   }, [ReminderData]);
 
   const formattedDate = date ? date.toLocaleString() : "";
@@ -58,33 +60,35 @@ export default function Reminder({
 
       const utcISOString = new Date(date).toISOString();
 
-      const response = await setReminderApi({
+      await setReminderApi({
         noteId: id,
         title: name,
         description,
         remindAt: utcISOString,
       }).unwrap();
 
-      console.log("Reminder set response", response);
-
       Toast.show({ text1: "Reminder set successfully" });
       onReminderSet(id);
       onClose();
       navigation.setParams({ reminderSet: true });
     } catch (error: any) {
-      console.log("error setting reminder", error);
       Toast.show({
         text1: error?.data?.message || "Failed to set reminder",
       });
     }
   }
+
   async function handleDelete() {
     try {
-      await deleteApi(id);
+      const response = await deleteApi(id).unwrap();
+      console.log(response, "delete response");
+      Toast.show({ text1: "Reminder deleted" });
+      onClose();
     } catch (error) {
-      console.log(error);
+      Toast.show({ text1: "Failed to delete reminder" });
     }
   }
+
   return (
     <Modal isVisible={true}>
       <View style={styles.container}>
@@ -94,6 +98,7 @@ export default function Reminder({
           </View>
           <Text style={styles.headingText}>Set Reminder</Text>
         </View>
+
         <View style={styles.line} />
 
         {openDateModal && (
@@ -127,6 +132,7 @@ export default function Reminder({
             placeholder="Description for your reminder"
             onChangeText={setDescription}
           />
+
           <Text style={styles.textInput}>Date & Time</Text>
 
           <TouchableOpacity onPress={() => setOpenDateModal(true)}>
@@ -148,6 +154,7 @@ export default function Reminder({
             <EvilIcons name="calendar" size={26} />
           </TouchableOpacity>
         </View>
+
         <View style={styles.line} />
 
         <TouchableOpacity
@@ -159,13 +166,12 @@ export default function Reminder({
             {isLoading ? "Setting..." : "Set Reminder"}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.pressable]}
-          disabled={isEditMode}
-          onPress={handleDelete}
-        >
-          <Text style={styles.setText}>Delete Reminder</Text>
-        </TouchableOpacity>
+
+        {isEditMode && (
+          <TouchableOpacity style={styles.pressable} onPress={handleDelete}>
+            <Text style={styles.setText}>Delete Reminder</Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity style={styles.close} onPress={onClose}>
           <AntDesign name="close" size={22} color="#5757f8" />

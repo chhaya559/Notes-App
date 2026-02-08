@@ -23,6 +23,8 @@ export type RootStackParamList = {
   GuestConversion: undefined;
   NotesPassword: {
     id: string;
+    title?: string;
+    content?: string;
   };
   ChangeNotePassword: undefined;
 };

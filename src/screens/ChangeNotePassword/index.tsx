@@ -39,7 +39,6 @@ export default function ChangeNotePassword({
 
   async function handle(data: any) {
     try {
-      console.log(data.password, "gfy");
       const response = await changeApi({
         oldPassword: data.currentPassword,
         newPassword: data.password,
