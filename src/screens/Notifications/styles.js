@@ -1,6 +1,26 @@
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
+  heading: {
+    fontSize: 18,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+    padding: 16,
+  },
+  card: {
+    backgroundColor: "#E0E7FF",
+    padding: 15,
+    borderRadius: 20,
+    elevation: 3,
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 3, height: 3 },
+    marginBottom: 15,
+  },
   outer: {
     flexDirection: "row",
     alignItems: "center",
@@ -40,40 +60,36 @@ const styles = StyleSheet.create({
   },
   close: {
     position: "absolute",
-    top: -480,
-    right: 5,
+    top: 10,
+    right: 10,
   },
   modal: {
-    padding: 10,
+    padding: 15,
     borderRadius: 12,
-    height: 500,
+    height: 200,
     backgroundColor: "#fefeffff",
-    shadowColor: "#5757f8",
+    shadowColor: "#a0a0d9ff",
     shadowOpacity: 0.7,
   },
-  card: {
-    paddingVertical: 8,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#ddd",
-    backgroundColor: "#adbff0ff",
-    borderRadius: 10,
-    margin: 5,
-    padding: 10,
-    shadowColor: "#3973baff",
-    shadowOpacity: 0.7,
-    marginBottom: 10,
-  },
+
   pressable: {
     padding: 7,
     backgroundColor: "#5757f8",
     borderRadius: 20,
     marginTop: 10,
-    // marginLeft: 200,
-    // marginRight: 10,
   },
   buttons: {
     flexDirection: "row",
     justifyContent: "space-around",
+  },
+  title: {
+    textAlign: "center",
+    fontWeight: "700",
+    margin: 10,
+  },
+  message: {
+    textAlign: "center",
+    fontWeight: "500",
   },
 });
 

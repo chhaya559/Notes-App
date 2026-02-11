@@ -21,6 +21,7 @@ import DashboardHeader from "@components/atoms/DashboardHeader";
 import DashboardLeftHeader from "@components/atoms/DashBoardLeftHeader";
 import NotesPassword from "@screens/NotesPassword";
 import ChangeNotePassword from "@screens/ChangeNotePassword";
+import Notifications from "@screens/Notifications";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const prefix = Linking.createURL("/");
@@ -95,6 +96,10 @@ const RootNavigator = () => {
               <Stack.Screen
                 name={ROUTES.CHANGENOTEPASSWORD}
                 component={ChangeNotePassword}
+              />
+              <Stack.Screen
+                name={ROUTES.NOTIFICATIONS}
+                component={Notifications}
               />
             </Stack.Group>
           </Stack.Navigator>

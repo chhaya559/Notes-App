@@ -137,6 +137,16 @@ export const noteApi = createApi({
         body,
       }),
     }),
+    removeFile: builder.mutation({
+      query: ({ id, fileUrl }) => ({
+        url: `/Notes/${id}/files`,
+        method: "DELETE",
+        body: { fileUrl },
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+    }),
   }),
 });
 
@@ -159,4 +169,5 @@ export const {
   useReadAllNotificationMutation,
   useGetNotificationByIdMutation,
   useUploadFileMutation,
+  useRemoveFileMutation,
 } = noteApi;

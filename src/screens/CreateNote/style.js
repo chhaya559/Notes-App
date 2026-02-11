@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
     width: "auto",
     backgroundColor: "#fafafa",
-    padding: 15,
+    padding: 12,
     paddingBottom: 0,
     borderRadius: 10,
     shadowColor: "#000",
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   touchables: {
     flexDirection: "row",
     gap: 5,
-    padding: 6,
+    padding: 5,
   },
   touchableText: {
     textAlign: "center",
@@ -153,6 +153,33 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: 45,
     alignContent: "center",
+  },
+  close: {
+    position: "absolute",
+    right: 4,
+    top: 5,
+    backgroundColor: "#fefefeff",
+    padding: 3,
+    borderRadius: 10,
+  },
+  imageSize: {
+    fontSize: 10,
+    color: "#666",
+  },
+  fileContainer: {
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 10,
+    paddingBottom: 10,
+    marginRight: 10,
+    borderRadius: 10,
+    backgroundColor: "#E0E7FF",
+  },
+  existingFile: {
+    padding: 8,
+    marginRight: 10,
+    borderRadius: 8,
+    backgroundColor: "#DDE3FF",
   },
 });
 

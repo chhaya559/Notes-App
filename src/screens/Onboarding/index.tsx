@@ -3,14 +3,12 @@ import styles from "./styles";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 import { useDispatch } from "react-redux";
-import { google, guest } from "@redux/slice/authSlice";
+import { guest } from "@redux/slice/authSlice";
 import { useGuestMutation } from "@redux/api/authApi";
-import { useEffect } from "react";
-import NetInfo from "@react-native-community/netinfo";
+import { AppDispatch } from "@redux/store";
 type OnboardingProps = NativeStackScreenProps<RootStackParamList, "Onboarding">;
-export default function Onboarding({ navigation }: OnboardingProps) {
-  const BULLET = "\u25CF";
-  const dispatch = useDispatch();
+export default function Onboarding({ navigation }: Readonly<OnboardingProps>) {
+  const dispatch = useDispatch<AppDispatch>();
   const [guestApi, { isLoading }] = useGuestMutation();
   async function handleGuestLogin() {
     const response = await guestApi().unwrap();

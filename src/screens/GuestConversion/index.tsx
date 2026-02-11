@@ -1,7 +1,7 @@
 import CustomInput from "@components/atoms/CustomInput";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useGuestConversionMutation } from "@redux/api/authApi";
-import { conversion } from "@redux/slice/authSlice";
+import { conversion, isGuest } from "@redux/slice/authSlice";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, Text, View } from "react-native";
@@ -56,6 +56,12 @@ export default function GuestConversion({
             lastName: response.data.lastName,
             username: response.data.userName,
             email: response.data.email,
+            isGuest: false,
+          }),
+        );
+        dispatch(
+          isGuest({
+            isGuest: false,
           }),
         );
         Toast.show({
@@ -68,7 +74,7 @@ export default function GuestConversion({
         text1: "Error converting guest to user",
       });
     }
-    navigation.replace("Dashboard");
+    navigation.navigate("Dashboard");
   }
   return (
     <KeyboardAwareScrollView>

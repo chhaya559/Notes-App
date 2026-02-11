@@ -2,15 +2,16 @@ import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
   container: {
-    borderWidth: 1,
-    borderColor: "#c2c0c0ff",
     padding: 15,
     margin: 10,
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 14,
+    marginHorizontal: 10,
+    marginVertical: 7,
+    borderRadius: 20,
     height: "auto",
     width: "auto",
+    elevation: 3,
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 3, height: 3 },
   },
   heading: {
     fontSize: 16,
@@ -29,7 +30,10 @@ const styles = StyleSheet.create({
   iconsWrap: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    gap: 15,
+    gap: 12,
+    position: "absolute",
+    right: 20,
+    top: 15,
   },
   modal: {
     backgroundColor: "#ffffffff",
@@ -90,15 +94,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 18,
   },
-  lock: {
-    position: "absolute",
-    top: -32,
-    right: 33,
-  },
-  clock: {
-    position: "absolute",
-    top: -30,
-    right: 0,
+  icon: {
+    backgroundColor: "#adadadff",
+    borderRadius: 25,
+    padding: 6,
   },
 });
 export default styles;

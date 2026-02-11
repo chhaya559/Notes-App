@@ -27,4 +27,6 @@ export type RootStackParamList = {
     content?: string;
   };
   ChangeNotePassword: undefined;
+
+  Notifications: undefined;
 };

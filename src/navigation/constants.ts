@@ -14,4 +14,5 @@ export enum ROUTES {
   GUESTCONVERSION = "GuestConversion",
   NOTESPASSWORD = "NotesPassword",
   CHANGENOTEPASSWORD = "ChangeNotePassword",
+  NOTIFICATIONS = "Notifications",
 }

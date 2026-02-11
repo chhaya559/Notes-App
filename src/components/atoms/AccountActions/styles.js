@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   actionIcon: {
     backgroundColor: "#e4e4e4",
     borderRadius: 25,
-    padding: 6,
+    padding: 8,
   },
 });
 

@@ -9,7 +9,7 @@ import {
 import styles from "./styles";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@redux/store";
-import { AntDesign, SimpleLineIcons } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 import { logout } from "@redux/slice/authSlice";
@@ -35,6 +35,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
     try {
       await db.delete(notesTable);
       dispatch(logout());
+      navigation.navigate("Onboarding");
     } catch (error) {
       console.log("Logout failed", error);
     }
@@ -63,7 +64,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         {
           text: "Log out",
           style: "destructive",
-          onPress: handleDelete,
+          onPress: () => handleDelete,
         },
       ],
       { cancelable: true },

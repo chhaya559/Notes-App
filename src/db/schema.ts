@@ -10,6 +10,7 @@ export const notesTable = sqliteTable("notes_table", {
   isPasswordProtected: int("isPasswordProtected").default(0),
   isReminderSet: int("isReminderSet").default(0),
   //  reminder: int("reminder").default(0),
+  isLocked: int("isLocked").default(0),
   backgroundColor: text(),
   syncStatus: text("syncStatus")
     .$type<SyncStatus>()

@@ -23,6 +23,7 @@ import {
   useDeleteMutation,
   useGetNoteByIdQuery,
   useNoteLockMutation,
+  useRemoveFileMutation,
   useSaveNoteMutation,
   useUpdateMutation,
   useUploadFileMutation,
@@ -66,7 +67,6 @@ export default function CreateNote({
   );
 
   const [isGuest, setIsGuest] = useState(isGuestFromStore);
-
   useFocusEffect(
     useCallback(() => {
       setIsGuest(isGuestFromStore);
@@ -115,6 +115,7 @@ export default function CreateNote({
   const [editApi] = useUpdateMutation();
   const [deleteApi] = useDeleteMutation();
   const [uploadApi] = useUploadFileMutation();
+  const [deleteFile] = useRemoveFileMutation();
 
   const noteId = route?.params?.id;
   const { data: NotesData, refetch } = useGetNoteByIdQuery(
@@ -147,16 +148,8 @@ export default function CreateNote({
     isPasswordProtected: false,
     isReminderSet: null,
     backgroundColor: "#ffffff",
+    isLocked: false,
   });
-
-  const { isNotesUnlocked } = useSelector((state: RootState) => state.auth);
-
-  useEffect(() => {
-    if (notes.isPasswordProtected && !isNotesUnlocked) {
-      Toast.show({ text1: "Note is locked" });
-      navigation.goBack();
-    }
-  }, [isNotesUnlocked, notes.isPasswordProtected]);
 
   useEffect(() => {
     if (!NotesData?.data) return;
@@ -165,6 +158,7 @@ export default function CreateNote({
       title: NotesData.data.title ?? "",
       content: NotesData.data.content ?? "",
       isPasswordProtected: NotesData.data.isPasswordProtected ?? false,
+      isLocked: NotesData.data.isLocked ?? false,
       isReminderSet: NotesData.data.isReminderSet ?? null,
       backgroundColor: NotesData.data.backgroundColor ?? "#f5f5f5",
     });
@@ -181,7 +175,6 @@ export default function CreateNote({
     }
   }, [NotesData]);
 
-  const [isLocked, setIsLocked] = useState(false);
   const [isReminder, setIsReminder] = useState(false);
 
   useEffect(() => {
@@ -189,12 +182,6 @@ export default function CreateNote({
       setIsReminder(true);
     }
   }, [NotesData?.data?.isReminderSet]);
-
-  useEffect(() => {
-    if (NotesData?.data?.isPasswordProtected !== undefined) {
-      setIsLocked(!!NotesData.data.isPasswordProtected);
-    }
-  }, [NotesData?.data?.isPasswordProtected]);
 
   async function toggleLock() {
     if (!noteId) {
@@ -214,17 +201,23 @@ export default function CreateNote({
     try {
       const response = await lockNote({ id: String(noteId) }).unwrap();
       console.log(response);
-      setIsLocked(true);
       setNotes((prev) => ({
         ...prev,
-        isPasswordProtected: isLocked,
+        isPasswordProtected: true,
+        isLocked: true,
       }));
-
-      Toast.show({ text1: "Note locked" });
     } catch (error: any) {
       Toast.show({ text1: "Failed to lock note" });
       console.log(error);
     }
+  }
+
+  async function unlockNote() {
+    setNotes((prev) => ({
+      ...prev,
+      isLocked: false,
+      isPasswordProtected: false,
+    }));
   }
 
   const [existingFiles, setExistingFiles] = useState<string[]>([]);
@@ -238,6 +231,23 @@ export default function CreateNote({
       setFiles((prev) => [...prev, ...result]);
     } catch (error) {
       console.log("Error uploading file", error);
+    }
+  }
+  async function removeFile(filePath: any) {
+    setFiles((prev) => prev.filter((item) => item !== filePath));
+  }
+  async function DeleteFilefromNote(filePath: string) {
+    console.log(filePath, "filepathfilepath");
+    try {
+      await deleteFile({
+        id: noteId,
+        fileUrl: filePath,
+      }).unwrap();
+
+      Toast.show({ text1: "File removed" });
+    } catch (error) {
+      console.log("Error removing file", error);
+      Toast.show({ text1: "Failed to remove file" });
     }
   }
 
@@ -280,12 +290,13 @@ export default function CreateNote({
           id: localId,
           title: notes?.title ?? "",
           content: notes?.content ?? "",
-          isPasswordProtected: isLocked,
+          isPasswordProtected: notes?.isPasswordProtected,
+          isLocked: notes?.isLocked,
           backgroundColor: noteBackground ?? "#ffffff",
           isReminderSet: isReminder,
           filePaths: filePaths ?? [],
         };
-        console.log(payload, "fjilufhilrughirghlotighoj;ltohjg;lrsthgj;lo");
+
         if (isEditMode) {
           await editApi(payload).unwrap();
         } else {
@@ -321,7 +332,26 @@ export default function CreateNote({
       if (navigate) navigation.goBack();
     } catch (error) {
       console.log("Delete error:", error);
+      Toast.show({
+        text1: "Not able to delete this",
+      });
     }
+  }
+
+  async function alertDelete() {
+    Alert.alert(
+      "Delete Note",
+      "Are you sure you want to delete this note?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => handleDelete(),
+        },
+      ],
+      { cancelable: true },
+    );
   }
 
   async function saveToLocalDB(status: SyncStatus, filePaths: string[] = []) {
@@ -340,7 +370,8 @@ export default function CreateNote({
         title: notes.title,
         content: notes.content,
         updatedAt: new Date().toISOString(),
-        isPasswordProtected: isLocked ? 1 : 0,
+        isPasswordProtected: notes.isPasswordProtected ? 1 : 0,
+        isLocked: notes.isLocked ? 1 : 0,
         isReminderSet: isReminder ? 1 : 0,
         syncStatus: status,
         filePaths: JSON.stringify(filePaths),
@@ -351,38 +382,16 @@ export default function CreateNote({
           title: notes.title,
           content: notes.content,
           updatedAt: new Date().toISOString(),
-          isPasswordProtected: isLocked ? 1 : 0,
+          isPasswordProtected: notes.isPasswordProtected ? 1 : 0,
           isReminderSet: isReminder ? 1 : 0,
           syncStatus: status,
+          isLocked: notes.isLocked ? 1 : 0,
           filePaths: JSON.stringify(filePaths),
         },
       });
 
     return id;
   }
-
-  // function handleLock() {
-  //   Alert.alert(
-  //     "Set Password First",
-  //     "You will have to set password for notes first",
-  //     [
-  //       {
-  //         text: "Cancel",
-  //         style: "cancel",
-  //       },
-  //       {
-  //         text: "Set Password",
-  //         onPress: () =>
-  //           navigation.navigate("NotesPassword", {
-  //             id: String(noteId),
-  //             title: notes.title ?? " ",
-  //             content: notes.content ?? " ",
-  //           }),
-  //       },
-  //     ],
-  //     { cancelable: true },
-  //   );
-  // }
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -427,7 +436,7 @@ export default function CreateNote({
     {
       title: notes.title,
       content: notes.content,
-      isPasswordProtected: isLocked,
+      isPasswordProtected: notes.isPasswordProtected,
       backgroundColor: noteBackground,
       isReminderSet: isReminder,
       filePaths: files,
@@ -491,23 +500,23 @@ export default function CreateNote({
               data={files}
               keyExtractor={(item, index) => index.toString()}
               horizontal
+              bounces={false}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => openFile(item)}
                   activeOpacity={0.7}
-                  style={{
-                    padding: 8,
-                    marginRight: 10,
-                    borderRadius: 8,
-                    backgroundColor: "#EDEDED",
-                  }}
+                  style={styles.fileContainer}
                 >
-                  <Text numberOfLines={1} style={{ maxWidth: 100 }}>
-                    {item.name}
-                  </Text>
-                  <Text style={{ fontSize: 10, color: "#666" }}>
+                  <Text>{item.name}</Text>
+                  <Text style={styles.imageSize}>
                     {((item.size ?? 0) / 1024).toFixed(1)} KB
                   </Text>
+                  <TouchableOpacity
+                    style={styles.close}
+                    onPress={() => removeFile(item)}
+                  >
+                    <AntDesign name="close" size={12} />
+                  </TouchableOpacity>
                 </TouchableOpacity>
               )}
             />
@@ -540,7 +549,6 @@ export default function CreateNote({
             />
           </View>
         )}
-
         {existingFiles.length > 0 && (
           <FlatList
             data={existingFiles}
@@ -555,22 +563,20 @@ export default function CreateNote({
                     Linking.openURL(item);
                   }
                 }}
-                style={{
-                  padding: 8,
-                  marginRight: 10,
-                  borderRadius: 8,
-                  backgroundColor: "#DDE3FF",
-                }}
+                style={styles.existingFile}
               >
-                <Text numberOfLines={1} style={{ maxWidth: 120 }}>
-                  {item.split("/").pop()}
-                </Text>
+                <Text>{item.split("/").pop()}</Text>
                 <Text style={{ fontSize: 10, color: "#555" }}>Saved file</Text>
+                <TouchableOpacity
+                  style={styles.close}
+                  onPress={() => DeleteFilefromNote(item)}
+                >
+                  <AntDesign name="close" size={16} />
+                </TouchableOpacity>
               </TouchableOpacity>
             )}
           />
         )}
-
         {textToolBarVisibility && (
           <View style={styles.modal}>
             <RichToolbar
@@ -602,14 +608,13 @@ export default function CreateNote({
             </TouchableOpacity>
           </View>
         )}
-
         {headerModalVisibility && (
           <View style={{ position: "absolute", bottom: 80, right: 20 }}>
             <View style={styles.headerMenu}>
-              {isLocked ? (
+              {notes.isLocked ? (
                 <TouchableOpacity
                   style={styles.touchables}
-                  onPress={toggleLock}
+                  onPress={unlockNote}
                   disabled={isGuest}
                 >
                   <AntDesign name="unlock" color="#5757f8" size={24} />
@@ -617,49 +622,47 @@ export default function CreateNote({
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity
-                  style={styles.touchables}
+                  style={[styles.touchables]}
                   onPress={() => {
                     toggleLock();
                   }}
-                  disabled={isGuest}
+                  // disabled={isGuest || !isEditMode}
                 >
                   <AntDesign name="lock" color="#5757f8" size={24} />
                   <Text style={styles.touchableText}>Lock</Text>
                 </TouchableOpacity>
               )}
-              {isEditMode && (
-                <TouchableOpacity
-                  style={styles.touchables}
-                  onPress={toggleReminderVisibility}
-                  disabled={isGuest}
-                >
-                  <Ionicons
-                    color="#5757f8"
-                    size={24}
-                    name="notifications-outline"
-                  />
-                  <Text style={styles.touchableText}>Reminder</Text>
-                </TouchableOpacity>
-              )}
+              {/* {isEditMode && ( */}
+              <TouchableOpacity
+                style={[styles.touchables]}
+                onPress={toggleReminderVisibility}
+                // disabled={isGuest || !isEditMode}
+              >
+                <Ionicons
+                  color="#5757f8"
+                  size={24}
+                  name="notifications-outline"
+                />
+                <Text style={styles.touchableText}>Reminder</Text>
+              </TouchableOpacity>
+              {/* )} */}
 
-              {isEditMode && (
-                <TouchableOpacity
-                  style={styles.touchables}
-                  onPress={() => handleDelete()}
-                >
-                  <MaterialIcons
-                    name="delete-outline"
-                    size={24}
-                    color="#5757f8"
-                  />
-                  <Text style={styles.touchableText}>Delete</Text>
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                style={[styles.touchables, { opacity: isEditMode ? 1 : 0.5 }]}
+                onPress={() => alertDelete()}
+              >
+                <MaterialIcons
+                  name="delete-outline"
+                  size={24}
+                  color="#5757f8"
+                />
+                <Text style={styles.touchableText}>Delete</Text>
+              </TouchableOpacity>
+
               <View />
             </View>
           </View>
         )}
-
         {isColorPaletteVisible && (
           <BackgroundColor
             selectedColor={noteBackground}
@@ -670,7 +673,6 @@ export default function CreateNote({
           />
         )}
         <View style={styles.line} />
-
         {showReminder ? (
           <Reminder
             id={String(noteId)}
@@ -682,7 +684,7 @@ export default function CreateNote({
                   id,
                   title: notes.title,
                   content: notes.content,
-                  isPasswordProtected: isLocked ? 1 : 0,
+                  isPasswordProtected: notes.isPasswordProtected ? 1 : 0,
                   backgroundColor: noteBackground,
                   isReminderSet: true,
                 }).unwrap();
@@ -690,7 +692,6 @@ export default function CreateNote({
             }}
           />
         ) : null}
-
         {showSummary ? (
           <Summary
             id={notes.id}
@@ -698,9 +699,8 @@ export default function CreateNote({
             data={aiSummary}
           />
         ) : null}
-
         {/* Options bottom  */}
-        {!textToolBarVisibility ? (
+        {textToolBarVisibility ? null : (
           <View style={styles.options}>
             <TouchableOpacity
               onPress={toggleTextToolBarVisibility}
@@ -716,16 +716,17 @@ export default function CreateNote({
               <Entypo name="attachment" size={24} style={styles.optionIcon} />
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.optionButton}
+              style={[styles.optionButton]}
               onPress={() => {
                 toggleShowSummary();
                 generateSummary();
               }}
+              disabled={!isEditMode}
             >
               <Ionicons
                 name="sparkles-outline"
                 size={24}
-                style={styles.optionIcon}
+                style={[styles.optionIcon]}
               />
             </TouchableOpacity>
             <TouchableOpacity
@@ -753,7 +754,7 @@ export default function CreateNote({
               )}
             </TouchableOpacity>
           </View>
-        ) : null}
+        )}
       </View>
     </KeyboardAvoidingView>
   );

@@ -59,7 +59,7 @@ export default function AccountActions() {
           style={styles.actionIcon}
           onPress={() => navigation.navigate("EditProfile")}
         >
-          <SimpleLineIcons name="arrow-right" />
+          <SimpleLineIcons name="arrow-right" size={18} />
         </TouchableOpacity>
       </View>
       <View style={styles.line} />
@@ -74,7 +74,7 @@ export default function AccountActions() {
           style={styles.actionIcon}
           onPress={() => navigation.navigate("ResetPassword")}
         >
-          <SimpleLineIcons name="arrow-right" />
+          <SimpleLineIcons name="arrow-right" size={18} />
         </TouchableOpacity>
       </View>
       <View style={styles.line} />
@@ -89,7 +89,7 @@ export default function AccountActions() {
           style={styles.actionIcon}
           onPress={() => navigation.navigate("ChangeNotePassword")}
         >
-          <SimpleLineIcons name="arrow-right" />
+          <SimpleLineIcons name="arrow-right" size={18} />
         </TouchableOpacity>
       </View>
       <View style={styles.line} />
@@ -101,7 +101,7 @@ export default function AccountActions() {
           <Text style={styles.text}>Delete Account</Text>
         </View>
         <TouchableOpacity style={styles.actionIcon} onPress={confirmDelete}>
-          <SimpleLineIcons name="arrow-right" />
+          <SimpleLineIcons name="arrow-right" size={18} />
         </TouchableOpacity>
       </View>
     </View>

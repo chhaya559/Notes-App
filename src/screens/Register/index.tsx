@@ -1,5 +1,12 @@
 import CustomInput from "@components/atoms/CustomInput";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  PermissionsAndroid,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import styles from "./styles";
 import {
   GoogleSignin,
@@ -8,7 +15,11 @@ import {
 import { useEffect, useState } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
-import { useGoogleMutation, useRegisterMutation } from "@redux/api/authApi";
+import {
+  useGoogleMutation,
+  usePushNotificationMutation,
+  useRegisterMutation,
+} from "@redux/api/authApi";
 import { useDispatch } from "react-redux";
 import { register, google } from "@redux/slice/authSlice";
 import { Controller, useForm } from "react-hook-form";
@@ -17,7 +28,7 @@ import { registerSchema } from "src/validations/registerSchema";
 import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { AntDesign } from "@expo/vector-icons";
-
+import messaging from "@react-native-firebase/messaging";
 type RegisterProps = NativeStackScreenProps<RootStackParamList, "Register">;
 export default function Register({ navigation }: Readonly<RegisterProps>) {
   const dispatch = useDispatch();
@@ -40,6 +51,42 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
       password: "",
     },
   });
+  const [pushApi] = usePushNotificationMutation();
+
+  async function handleTokenSend(token: string) {
+    try {
+      const response = await pushApi({
+        token: token,
+        platform: Platform.OS,
+      }).unwrap();
+
+      console.log(Platform.OS, "fhrufhir");
+      console.log("Device token send response", response);
+    } catch (err) {
+      console.log("Error sending device token", err);
+    }
+  }
+
+  async function requestUserPermission() {
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    const token = await messaging().getToken();
+    console.log(token, "FCM token");
+
+    if (enabled) {
+      handleTokenSend(token);
+      console.log("Authorization status:", authStatus);
+    }
+  }
+
+  useEffect(() => {
+    PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+    );
+  }, []);
   useEffect(() => {
     GoogleSignin.configure({
       webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
@@ -71,12 +118,15 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           email: userInfo.data.user.email,
           firstName: userInfo.data.user.name,
           profileImageUrl: userInfo.data.user.photo,
+          isCommonPasswordSet: response.data.isCommonPasswordSet,
+          isNotesUnlocked: response.data.isNotesUnlocked,
         }),
       );
       Toast.show({
         type: "success",
         text1: "Logged in with gogle",
       });
+      requestUserPermission();
     } catch (error: any) {
       console.log("Google Sign-In Error:", error);
       Toast.show({
@@ -97,8 +147,11 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
             username: response.data.userName,
             firstName: response.data.firstName,
             lastName: response.data.lastName,
+            isCommonPasswordSet: response.data.isCommonPasswordSet,
+            isNotesUnlocked: response.data.isNotesUnlocked,
           }),
         );
+        requestUserPermission();
       } else {
         Alert.alert("Signup failed", response.message);
       }

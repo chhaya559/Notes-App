@@ -141,6 +141,9 @@ const authSlice = createSlice({
       state.isNotesUnlocked = false;
       state.notesUnlockUntil = null;
     },
+    isGuest: (state, action: PayloadAction<{ isGuest: boolean }>) => {
+      state.isGuest = action.payload.isGuest;
+    },
     conversion: (
       state,
       action: PayloadAction<{
@@ -148,6 +151,7 @@ const authSlice = createSlice({
         firstName: string;
         lastName: string;
         username: string;
+        isGuest: boolean;
       }>,
     ) => {
       state.identifier = action.payload.email;
@@ -155,6 +159,8 @@ const authSlice = createSlice({
       state.firstName = action.payload.firstName;
       state.lastName = action.payload.lastName;
       state.username = action.payload.username;
+      state.isCommonPasswordSet = false;
+      state.isGuest = false;
     },
   },
 });
@@ -170,5 +176,6 @@ export const {
   conversion,
   edit,
   setCommonPasswordSet,
+  isGuest,
 } = authSlice.actions;
 export default authSlice.reducer;

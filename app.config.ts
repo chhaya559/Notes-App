@@ -16,7 +16,7 @@ const config: ExpoConfig = {
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
   splash: {
-    image: "./assets/splash-icon.png",
+    image: "./assets/notes.png",
     resizeMode: "contain",
     backgroundColor: "#ffffff",
   },

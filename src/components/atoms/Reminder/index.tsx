@@ -33,7 +33,6 @@ export default function Reminder({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
-  console.log(ReminderData, "fjlirjfoes");
 
   useEffect(() => {
     if (ReminderData?.data?.remindAt) {
@@ -66,12 +65,12 @@ export default function Reminder({
         description,
         remindAt: utcISOString,
       }).unwrap();
-
       Toast.show({ text1: "Reminder set successfully" });
       onReminderSet(id);
       onClose();
       navigation.setParams({ reminderSet: true });
     } catch (error: any) {
+      console.log(error);
       Toast.show({
         text1: error?.data?.message || "Failed to set reminder",
       });
@@ -86,6 +85,7 @@ export default function Reminder({
       onClose();
     } catch (error) {
       Toast.show({ text1: "Failed to delete reminder" });
+      console.log("error deleting reminder", error);
     }
   }
 

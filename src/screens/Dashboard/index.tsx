@@ -31,6 +31,7 @@ type Note = {
   updatedAt: string;
   backgroundColor?: string | null;
   isPasswordProtected: number;
+  isLocked: number;
   isReminderSet: number;
   filePaths?: string[] | [];
 };
@@ -44,7 +45,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     (state: RootState) => state.auth.isNotesUnlocked,
   );
 
-  const { data } = useGetQuery<any>(undefined, {
+  const { data, refetch } = useGetQuery<any>(undefined, {
     refetchOnFocus: true,
     refetchOnMountOrArgChange: true,
   });
@@ -86,6 +87,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         backgroundColor: n.backgroundColor ?? "#f5f5f5",
         isPasswordProtected: n.isPasswordProtected ? 1 : 0,
         isReminderSet: n.isReminderSet ? 1 : 0,
+        isLocked: n.isLocked ? 1 : 0,
         filePaths: n.filePaths ? JSON.parse(n.filePaths) : [],
       })),
     );
@@ -97,7 +99,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     await db.delete(notesTable).where(eq(notesTable.userId, userId));
 
     for (const note of data.data) {
-      console.log(note, "notenotenotenote");
       await db
         .insert(notesTable)
         .values({
@@ -107,6 +108,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
           content: note.content,
           updatedAt: note.updatedAt,
           isPasswordProtected: note.isPasswordProtected ? 1 : 0,
+          isLocked: note.isLocked ? 1 : 0,
           isReminderSet: note.isReminderSet ? 1 : 0,
           syncStatus: "synced",
           filePaths: note.filePaths ? JSON.stringify(note.filePaths) : null,
@@ -121,6 +123,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             syncStatus: "synced",
             filePaths: note.filePaths ? JSON.stringify(note.filePaths) : null,
             isPasswordProtected: note.isPasswordProtected ? 1 : 0,
+            isLocked: note.isLocked ? 1 : 0,
             isReminderSet: note.isReminderSet ? 1 : 0,
             backgroundColor: note.backgroundColor ?? "#f5f5f5",
           },
@@ -135,30 +138,37 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     create();
   }, []);
 
-  // useEffect(() => {
-  //   if (!isConnected || !userId) return;
+  useEffect(() => {
+    if (!isConnected || !userId) return;
 
-  //   async function run() {
-  //     await syncNotes();
-  //     await loadNotes();
-  //   }
+    async function run() {
+      await syncNotes();
+      await loadNotes();
+    }
 
-  //   run();
-  // }, [data, isConnected, userId]);
+    run();
+  }, [data, isConnected, userId]);
+
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     if (!isConnected || !userId) return;
+
+  //     async function run() {
+  //       await syncNotes();
+  //       await loadNotes();
+  //     }
+
+  //     run();
+  //   }, [data, isConnected, userId]),
+  // );
 
   useFocusEffect(
     useCallback(() => {
-      if (!isConnected || !userId) return;
-
-      async function run() {
-        await syncNotes();
-        await loadNotes();
+      if (userId) {
+        refetch();
       }
-
-      run();
-    }, [data, isConnected, userId]),
+    }, [userId]),
   );
-
   //search
   const debouncedSearch = useDebounce(searchText, 200);
   const { data: SearchedNotes } = useSearchNotesQuery(debouncedSearch, {
@@ -223,6 +233,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
               backgroundColor={item.backgroundColor}
               isPasswordProtected={item.isPasswordProtected && !isNotesUnlocked}
               isReminderSet={item.isReminderSet}
+              isLocked={item.isLocked}
             />
           )}
           ListEmptyComponent={() => (

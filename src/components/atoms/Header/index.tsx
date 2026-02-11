@@ -11,21 +11,21 @@ export default function Header({
   return (
     <View style={styles.header}>
       <View style={styles.left}>
-        {options.headerLeft ? (
-          options.headerLeft({})
-        ) : back ? (
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.headerButton}
-          >
-            <Ionicons
-              name="arrow-back-outline"
-              size={30}
-              color="#5757f8"
-              style={{ padding: 5 }}
-            />
-          </TouchableOpacity>
-        ) : null}
+        {options.headerLeft
+          ? options.headerLeft({})
+          : back && (
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.headerButton}
+              >
+                <Ionicons
+                  name="arrow-back-outline"
+                  size={30}
+                  color="#5757f8"
+                  style={{ padding: 5 }}
+                />
+              </TouchableOpacity>
+            )}
       </View>
       <Text style={styles.title}>{options?.title}</Text>
       <View style={styles.right}>{options.headerRight?.({})}</View>
