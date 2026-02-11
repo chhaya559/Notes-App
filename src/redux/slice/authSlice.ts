@@ -66,7 +66,6 @@ const authSlice = createSlice({
       state.isNotesUnlocked = false;
       state.notesUnlockUntil = null;
       state.profileImageUrl = null;
-      state.isCommonPasswordSet = false;
     },
 
     register: (
@@ -170,6 +169,6 @@ export const {
   guest,
   conversion,
   edit,
-  setCommonPasswordSet
+  setCommonPasswordSet,
 } = authSlice.actions;
 export default authSlice.reducer;

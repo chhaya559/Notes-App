@@ -1,26 +1,51 @@
 {
   "project_info": {
-    "project_number": "340098277009",
-    "project_id": "notesapp-40028",
-    "storage_bucket": "notesapp-40028.firebasestorage.app"
+    "project_number": "1077409027529",
+    "project_id": "chhaya-notes-app",
+    "storage_bucket": "chhaya-notes-app.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:340098277009:android:a3e08645cd37fb01bc6930",
+        "mobilesdk_app_id": "1:1077409027529:android:477a3551a97afc954ec418",
         "android_client_info": {
-          "package_name": "com.anonymous.notes"
+          "package_name": "com.chhaya.notes"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1077409027529-h9q0eipq5n6m6sq2s3rvbg4f8m6tc4hh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.chhaya.notes",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "1077409027529-rs0kubdunikj5thgqh3vu1soigc4355o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyACPuHZ4jsWBrX8c-XdZiTYYhtIQ3jQl68"
+          "current_key": "AIzaSyDpVHVPhB8h1XBJ1wFSvvobTbGJLiNqOkA"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1077409027529-rs0kubdunikj5thgqh3vu1soigc4355o.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1077409027529-h0aodpcthacmfsu2gqv4apsu9fnt16cd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.chhaya.notes"
+              }
+            }
+          ]
         }
       }
     }

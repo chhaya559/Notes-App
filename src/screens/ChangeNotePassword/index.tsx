@@ -1,14 +1,12 @@
 import CustomInput from "@components/atoms/CustomInput";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEditUserMutation, useGetUserQuery } from "@redux/api/authApi";
 import style from "@screens/GuestConversion/styles";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Text, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
 import { RootStackParamList } from "src/navigation/types";
-import { NotesSchema } from "src/validations/NotesPassword";
 import styles from "../NotesPassword/styles";
 import { changeNotePasswordSchema } from "src/validations/ChangeNotePassword";
 import { useChangePasswordMutation } from "@redux/api/noteApi";
@@ -60,7 +58,7 @@ export default function ChangeNotePassword({
   return (
     <View style={styles.container}>
       <Text style={{ fontSize: 20, fontWeight: "500", textAlign: "center" }}>
-        Change Password
+        Change Notes Password
       </Text>
       <Controller
         control={control}

@@ -4,9 +4,7 @@ import type { ExpoConfig } from "expo/config";
 
 const IS_DEV = process.env.APP_VARIANT === "development";
 
-const BUNDLE_IDENTIFIER = IS_DEV
-  ? "com.anonymous.notes.dev"
-  : "com.anonymous.notes";
+const BUNDLE_IDENTIFIER = "com.chhaya.notes";
 
 const config: ExpoConfig = {
   name: IS_DEV ? "expo-notes-dev" : "expo-notes",
@@ -81,6 +79,7 @@ const config: ExpoConfig = {
     "@react-native-firebase/messaging",
     "@react-native-firebase/auth",
     "@react-native-firebase/crashlytics",
+    "@react-native-google-signin/google-signin",
   ],
 };
 

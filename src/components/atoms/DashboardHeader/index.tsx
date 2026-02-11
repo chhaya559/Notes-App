@@ -1,25 +1,153 @@
-import React, { useEffect, useState } from "react";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import React, { useCallback, useEffect, useState } from "react";
+import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import styles from "./styles";
 import { AntDesign, Entypo, FontAwesome, Ionicons } from "@expo/vector-icons";
 import messaging from "@react-native-firebase/messaging";
 import Modal from "react-native-modal";
+import {
+  useClearAllNotificationMutation,
+  useGetNotificationsCountQuery,
+  useGetNotificationsQuery,
+  useMarkNoificationReadMutation,
+  useReadAllNotificationMutation,
+} from "@redux/api/noteApi";
 
 export default function DashboardHeader() {
+  // const navigation = useNavigation<any>();
+
+  // const [notifications, setNotifications] = useState<any[]>([]);
+  // const [unreadCount, setUnreadCount] = useState(0);
+  // const [showNotifications, setShowNotifications] = useState(false);
+
+  // function toggleNotificationsVisibility() {
+  //   setShowNotifications((prev) => !prev);
+  // }
+  // const { data: countResponse, refetch: refetchCount } =
+  //   useGetNotificationsCountQuery(undefined, {
+  //     refetchOnFocus: true,
+  //     refetchOnMountOrArgChange: true,
+  //   });
+  // const { data: notificationsResponse, refetch: refetchNotifications } =
+  //   useGetNotificationsQuery(undefined, {
+  //     refetchOnFocus: true,
+  //     refetchOnMountOrArgChange: true,
+  //   });
+
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     refetchCount();
+  //     refetchNotifications();
+  //   }, []),
+  // );
+
+  // useEffect(() => {
+  //   const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+  //     const data = remoteMessage?.data;
+  //     if (!data) return;
+
+  //     const newNotification = {
+  //       id: data.id ?? Date.now().toString(),
+  //       title: data.title ?? "",
+  //       noteTitle: data.noteTitle ?? "",
+  //       isRead: false,
+  //     };
+
+  //     setNotifications((prev) => [newNotification, ...prev]);
+  //     setUnreadCount((prev) => prev + 1);
+  //   });
+
+  //   return unsubscribe;
+  // }, []);
+
+  // function readNotification(notificationId: string) {
+  //   setNotifications((prev) =>
+  //     prev.map((item) =>
+  //       item.id === notificationId && !item.isRead
+  //         ? { ...item, isRead: true }
+  //         : item,
+  //     ),
+  //   );
+
+  //   const target = notifications.find(
+  //     (item) => item.id === notificationId && !item.isRead,
+  //   );
+
+  //   if (target) {
+  //     setUnreadCount((prev) => Math.max(prev - 1, 0));
+  //   }
+  // }
+
+  // function readAll() {
+  //   setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true })));
+  //   setUnreadCount(0);
+  // }
+
+  // function clearAll() {
+  //   setNotifications([]);
+  //   setUnreadCount(0);
+  // }
+
   const navigation = useNavigation<any>();
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
 
+  const { data: countResponse, refetch: refetchCount } =
+    useGetNotificationsCountQuery(undefined, {
+      refetchOnFocus: true,
+      refetchOnMountOrArgChange: true,
+    });
+
+  const { data: notificationsResponse, refetch: refetchNotifications } =
+    useGetNotificationsQuery(undefined, {
+      refetchOnFocus: true,
+      refetchOnMountOrArgChange: true,
+    });
+
+  const [markNotificationRead] = useMarkNoificationReadMutation();
+  const [readApi] = useReadAllNotificationMutation();
+  const [deleteApi] = useClearAllNotificationMutation();
+
   function toggleNotificationsVisibility() {
     setShowNotifications((prev) => !prev);
   }
 
+  useFocusEffect(
+    useCallback(() => {
+      refetchCount();
+      refetchNotifications();
+    }, []),
+  );
+
+  useEffect(() => {
+    if (notificationsResponse?.data?.notifications) {
+      const serverNotifications = notificationsResponse.data.notifications.map(
+        (n: any) => ({
+          ...n,
+          isRead: n.isRead ?? false,
+        }),
+      );
+      setNotifications((prev) => {
+        const ids = new Set(prev.map((n) => n.id));
+        const merged = [
+          ...prev,
+          ...serverNotifications.filter((n) => !ids.has(n.id)),
+        ];
+        return merged.sort(
+          (a, b) => (b.createdAt || Date.now()) - (a.createdAt || Date.now()),
+        );
+      });
+    }
+
+    setUnreadCount(countResponse?.data?.unreadCount ?? 0);
+  }, [notificationsResponse, countResponse]);
+
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async (remoteMessage) => {
       const data = remoteMessage?.data;
+      Alert.alert("new notficaition");
       if (!data) return;
 
       const newNotification = {
@@ -27,6 +155,7 @@ export default function DashboardHeader() {
         title: data.title ?? "",
         noteTitle: data.noteTitle ?? "",
         isRead: false,
+        createdAt: Date.now(),
       };
 
       setNotifications((prev) => [newNotification, ...prev]);
@@ -36,7 +165,7 @@ export default function DashboardHeader() {
     return unsubscribe;
   }, []);
 
-  function readNotification(notificationId: string) {
+  async function readNotification(notificationId: string) {
     setNotifications((prev) =>
       prev.map((item) =>
         item.id === notificationId && !item.isRead
@@ -48,20 +177,32 @@ export default function DashboardHeader() {
     const target = notifications.find(
       (item) => item.id === notificationId && !item.isRead,
     );
+    if (target) setUnreadCount((prev) => Math.max(prev - 1, 0));
 
-    if (target) {
-      setUnreadCount((prev) => Math.max(prev - 1, 0));
+    try {
+      await markNotificationRead({ id: notificationId }).unwrap();
+    } catch (err) {
+      console.error("Failed to mark notification read:", err);
     }
   }
 
-  function readAll() {
+  async function readAll() {
     setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true })));
     setUnreadCount(0);
+
+    try {
+      await readApi().unwrap();
+    } catch (err) {
+      console.error("Failed to mark all read:", err);
+    }
   }
 
-  function clearAll() {
-    setNotifications([]);
-    setUnreadCount(0);
+  async function clearAll() {
+    try {
+      await deleteApi().unwrap();
+    } catch (err) {
+      console.error("Failed to clear notifications:", err);
+    }
   }
 
   return (

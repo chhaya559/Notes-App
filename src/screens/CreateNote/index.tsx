@@ -10,6 +10,7 @@ import {
   Alert,
   Image,
   FlatList,
+  Linking,
 } from "react-native";
 import styles from "./style";
 import {
@@ -24,6 +25,7 @@ import {
   useNoteLockMutation,
   useSaveNoteMutation,
   useUpdateMutation,
+  useUploadFileMutation,
 } from "@redux/api/noteApi";
 import { DocumentPickerResponse, pick } from "@react-native-documents/picker";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -38,7 +40,6 @@ import { db } from "src/db/notes";
 import { useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import { and, eq } from "drizzle-orm";
-import { useUploadFileMutation } from "@redux/api/noteApi";
 import BackgroundColor from "@components/Molecules/BackgroundColor";
 import {
   AntDesign,
@@ -50,10 +51,8 @@ import {
 import Reminder from "@components/atoms/Reminder";
 import { useFocusEffect } from "@react-navigation/native";
 import Summary from "@components/atoms/Summary";
-import { launchImageLibrary, Asset } from "react-native-image-picker";
 import useDebounce from "src/debounce/debounce";
 import FileViewer from "react-native-file-viewer";
-import { Linking } from "react-native";
 
 type CreateNoteProps = NativeStackScreenProps<RootStackParamList, "CreateNote">;
 
@@ -76,7 +75,6 @@ export default function CreateNote({
   const hasNotePasswordStore = useSelector(
     (state: RootState) => state.auth.isCommonPasswordSet,
   );
-
   const [hasNotePassword, setHasNotePassword] = useState(hasNotePasswordStore);
 
   useFocusEffect(
@@ -88,7 +86,6 @@ export default function CreateNote({
   const [noteBackground, setNoteBackground] = useState<string>("#f5f5f5");
   const { isConnected } = useNetInfo();
   const [textToolBarVisibility, setTextToolBarVisibility] = useState(false);
-  const [isNoteSaved, setIsNoteSaved] = useState(false);
   function toggleTextToolBarVisibility() {
     setTextToolBarVisibility(!textToolBarVisibility);
   }
@@ -113,7 +110,6 @@ export default function CreateNote({
   function toggleShowAttachmentOptions() {
     setShowAttachmentOptions(!showAttachmentOptions);
   }
-  const [images, setImages] = useState<Asset[]>([]);
 
   const [saveApi] = useSaveNoteMutation();
   const [editApi] = useUpdateMutation();
@@ -153,14 +149,12 @@ export default function CreateNote({
     backgroundColor: "#ffffff",
   });
 
-  const { isNotesUnlocked, notesUnlockUntil } = useSelector(
-    (state: RootState) => state.auth,
-  );
+  const { isNotesUnlocked } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     if (notes.isPasswordProtected && !isNotesUnlocked) {
       Toast.show({ text1: "Note is locked" });
-      navigation.replace("Dashboard");
+      navigation.goBack();
     }
   }, [isNotesUnlocked, notes.isPasswordProtected]);
 
@@ -186,20 +180,6 @@ export default function CreateNote({
       setNoteBackground(NotesData.data.backgroundColor);
     }
   }, [NotesData]);
-  // useEffect(() => {
-  //   if (!route.params?.unlockUntil) return;
-
-  //   const remaining = route.params.unlockUntil - Date.now();
-  //   if (remaining <= 0) return lock();
-
-  //   const timer = setTimeout(lock, remaining);
-  //   return () => clearTimeout(timer);
-  // }, [route.params?.unlockUntil]);
-
-  function lock() {
-    Toast.show({ text1: "Note locked" });
-    navigation.navigate("Dashboard");
-  }
 
   const [isLocked, setIsLocked] = useState(false);
   const [isReminder, setIsReminder] = useState(false);
@@ -232,17 +212,18 @@ export default function CreateNote({
     }
 
     try {
-      await lockNote({ id: String(noteId) }).unwrap();
-
+      const response = await lockNote({ id: String(noteId) }).unwrap();
+      console.log(response);
       setIsLocked(true);
       setNotes((prev) => ({
         ...prev,
-        isPasswordProtected: true,
+        isPasswordProtected: isLocked,
       }));
 
       Toast.show({ text1: "Note locked" });
     } catch (error: any) {
       Toast.show({ text1: "Failed to lock note" });
+      console.log(error);
     }
   }
 
@@ -259,59 +240,6 @@ export default function CreateNote({
       console.log("Error uploading file", error);
     }
   }
-
-  //    async function uploadFilesToBackend(files: DocumentPickerResponse[]){
-
-  //     const uploadedPaths : string[] = [];
-  //     for (const file of files) {
-  //     const formData = new FormData();
-
-  //     formData.append("file", {
-  //       uri: file.uri,
-  //       type: file.type ?? "application/octet-stream",
-  //       name: file.name ?? "file",
-  //     } as any);
-
-  //     const data = await uploadApi(formData).unwrap();
-  //     uploadedPaths.push(data.path);
-  //   }
-  //   return uploadedPaths;
-  //    }
-
-  // async function handleSave(navigate=true) {
-  //   try {
-  //     let filePaths: string[] = [];
-
-  //     if (isConnected && files.length > 0) {
-  //       filePaths = await uploadFilesToBackend(files);
-  //     }
-
-  //     const localId = await saveToLocalDB(
-  //       isConnected ? "synced" : "pending"
-  //     );
-
-  //     if (isConnected) {
-  //       const payload = {
-  //         id: localId,
-  //         title: notes.title,
-  //         content: notes.content,
-  //         isPasswordProtected: isLocked,
-  //         backgroundColor: noteBackground,
-  //         isReminderSet: isReminder,
-  //         filePaths,
-  //       };
-
-  //       isEditMode
-  //         ? await editApi(payload).unwrap()
-  //         : await saveApi(payload).unwrap();
-  //     }
-
-  //     navigation.goBack();
-  //     setIsNoteSaved(true);
-  //   } catch (error) {
-  //     console.log("Save error:", error);
-  //   }
-  // }
 
   async function uploadFilesToBackend(files: DocumentPickerResponse[]) {
     const uploadedPaths: string[] = [];
@@ -357,7 +285,7 @@ export default function CreateNote({
           isReminderSet: isReminder,
           filePaths: filePaths ?? [],
         };
-
+        console.log(payload, "fjilufhilrughirghlotighoj;ltohjg;lrsthgj;lo");
         if (isEditMode) {
           await editApi(payload).unwrap();
         } else {
@@ -366,7 +294,6 @@ export default function CreateNote({
       }
       console.log("saved");
       if (navigate) navigation.goBack();
-      setIsNoteSaved(true);
     } catch (error: any) {
       console.log("Save error:", error?.data ?? error);
     }
@@ -434,24 +361,28 @@ export default function CreateNote({
     return id;
   }
 
-  function handleLock() {
-    Alert.alert(
-      "Save Note first",
-      "You will lose your note data without saving",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Set Password",
-          onPress: () =>
-            navigation.navigate("NotesPassword", { id: String(noteId) }),
-        },
-      ],
-      { cancelable: true },
-    );
-  }
+  // function handleLock() {
+  //   Alert.alert(
+  //     "Set Password First",
+  //     "You will have to set password for notes first",
+  //     [
+  //       {
+  //         text: "Cancel",
+  //         style: "cancel",
+  //       },
+  //       {
+  //         text: "Set Password",
+  //         onPress: () =>
+  //           navigation.navigate("NotesPassword", {
+  //             id: String(noteId),
+  //             title: notes.title ?? " ",
+  //             content: notes.content ?? " ",
+  //           }),
+  //       },
+  //     ],
+  //     { cancelable: true },
+  //   );
+  // }
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -480,7 +411,7 @@ export default function CreateNote({
       headerShadowVisible: false,
       headerRight: () => (
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleSave}>
+          <TouchableOpacity onPress={() => handleSave()}>
             <Entypo
               name="check"
               size={30}
@@ -675,7 +606,7 @@ export default function CreateNote({
         {headerModalVisibility && (
           <View style={{ position: "absolute", bottom: 80, right: 20 }}>
             <View style={styles.headerMenu}>
-              {notes.isPasswordProtected ? (
+              {isLocked ? (
                 <TouchableOpacity
                   style={styles.touchables}
                   onPress={toggleLock}
@@ -714,7 +645,7 @@ export default function CreateNote({
               {isEditMode && (
                 <TouchableOpacity
                   style={styles.touchables}
-                  onPress={handleDelete}
+                  onPress={() => handleDelete()}
                 >
                   <MaterialIcons
                     name="delete-outline"
@@ -742,7 +673,7 @@ export default function CreateNote({
 
         {showReminder ? (
           <Reminder
-            id={noteId}
+            id={String(noteId)}
             onClose={() => setShowReminder(false)}
             onReminderSet={async (id) => {
               setIsReminder(true);
@@ -751,7 +682,7 @@ export default function CreateNote({
                   id,
                   title: notes.title,
                   content: notes.content,
-                  isPasswordProtected: isLocked,
+                  isPasswordProtected: isLocked ? 1 : 0,
                   backgroundColor: noteBackground,
                   isReminderSet: true,
                 }).unwrap();

@@ -9,7 +9,7 @@ import Toast from "react-native-toast-message";
 import { RootStackParamList } from "src/navigation/types";
 import { NotesSchema } from "src/validations/NotesPassword";
 import styles from "./styles";
-import { useNoteLockMutation, useUpdateMutation } from "@redux/api/noteApi";
+import { useUpdateMutation } from "@redux/api/noteApi";
 import { useDispatch } from "react-redux";
 import { setCommonPasswordSet } from "@redux/slice/authSlice";
 import { db } from "src/db/notes";

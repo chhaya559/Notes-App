@@ -76,8 +76,8 @@ export const noteApi = createApi({
         body,
       }),
     }),
-    noteLock: builder.mutation<any, {id:string}>({
-      query: ({id}) => ({
+    noteLock: builder.mutation<any, { id: string }>({
+      query: ({ id }) => ({
         url: `Notes/${id}/lock`,
         method: "POST",
       }),

@@ -91,7 +91,6 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
   useEffect(() => {
     GoogleSignin.configure({
       webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-      iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     });
   }, []);
   async function handleGoogleSignin() {
@@ -119,6 +118,8 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
           email: userInfo.data.user.email,
           firstName: userInfo.data.user.name,
           profileImageUrl: userInfo.data.user.photo,
+          isCommonPasswordSet: response.data.isCommonPasswordSet,
+          isNotesUnlocked: response.data.isNotesUnlocked,
         }),
       );
       Toast.show({
@@ -150,6 +151,8 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
             firstName: response.data.firstName,
             lastName: response.data.lastName,
             email: response.data.email,
+            isCommonPasswordSet: response.data.isCommonPasswordSet,
+            isNotesUnlocked: response.data.isNotesUnlocked,
           }),
         );
         requestUserPermission();
@@ -160,9 +163,9 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       }
     } catch (error: any) {
       console.log(error);
-      if (error.data.message.includes("Invalid email or password")) {
+      if (error?.data?.message) {
         Toast.show({
-          text1: "Invalid Credentials",
+          text1: error?.data?.message,
         });
       } else {
         Toast.show({

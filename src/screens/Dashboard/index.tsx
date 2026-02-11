@@ -1,8 +1,6 @@
 import {
   FlatList,
   Image,
-  PermissionsAndroid,
-  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -23,6 +21,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useNetInfo } from "@react-native-community/netinfo";
 import useDebounce from "src/debounce/debounce";
 import { lockNotes } from "@redux/slice/authSlice";
+import { useFocusEffect } from "@react-navigation/native";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
 type Note = {
@@ -77,7 +76,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       .select()
       .from(notesTable)
       .where(eq(notesTable.userId, userId));
-    // setNotes(notesFromDB);
 
     setNotes(
       notesFromDB.map((n) => ({
@@ -86,8 +84,8 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         content: n.content ?? "",
         updatedAt: n.updatedAt ?? new Date().toISOString(),
         backgroundColor: n.backgroundColor ?? "#f5f5f5",
-        isPasswordProtected: n.isPasswordProtected ?? 0,
-        isReminderSet: n.isReminderSet ?? 0,
+        isPasswordProtected: n.isPasswordProtected ? 1 : 0,
+        isReminderSet: n.isReminderSet ? 1 : 0,
         filePaths: n.filePaths ? JSON.parse(n.filePaths) : [],
       })),
     );
@@ -99,6 +97,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     await db.delete(notesTable).where(eq(notesTable.userId, userId));
 
     for (const note of data.data) {
+      console.log(note, "notenotenotenote");
       await db
         .insert(notesTable)
         .values({
@@ -136,16 +135,29 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     create();
   }, []);
 
-  useEffect(() => {
-    if (!isConnected || !userId) return;
+  // useEffect(() => {
+  //   if (!isConnected || !userId) return;
 
-    async function run() {
-      await syncNotes();
-      await loadNotes();
-    }
+  //   async function run() {
+  //     await syncNotes();
+  //     await loadNotes();
+  //   }
 
-    run();
-  }, [data, isConnected, userId]);
+  //   run();
+  // }, [data, isConnected, userId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!isConnected || !userId) return;
+
+      async function run() {
+        await syncNotes();
+        await loadNotes();
+      }
+
+      run();
+    }, [data, isConnected, userId]),
+  );
 
   //search
   const debouncedSearch = useDebounce(searchText, 200);
