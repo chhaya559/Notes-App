@@ -49,7 +49,7 @@ export default function CustomInput({
         {isPassword && (
           <Pressable onPress={onToggleVisibility} style={styles.icon}>
             <Ionicons
-              name={isVisible ? "eye-off" : "eye"}
+              name={isVisible ? "eye" : "eye-off"}
               size={22}
               color="#666"
             />

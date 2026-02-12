@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import styles from "./styles";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@redux/store";
@@ -44,6 +44,10 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const isNotesUnlocked = useSelector(
     (state: RootState) => state.auth.isNotesUnlocked,
   );
+
+  function clearSearchText() {
+    setSearchText("");
+  }
 
   const { data, refetch } = useGetQuery<any>(undefined, {
     refetchOnFocus: true,
@@ -171,13 +175,16 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   );
   //search
   const debouncedSearch = useDebounce(searchText, 200);
+
   const { data: SearchedNotes } = useSearchNotesQuery(debouncedSearch, {
     skip: debouncedSearch.trim().length === 0,
   });
-  const displayNotes =
-    debouncedSearch.trim().length > 0
-      ? (SearchedNotes?.data ?? [])
-      : (notes ?? []);
+
+  const isSearching = debouncedSearch.trim().length > 0;
+
+  const displayNotes = isSearching
+    ? (SearchedNotes?.data ?? [])
+    : (notes ?? []);
 
   return (
     <View style={styles.container}>
@@ -214,6 +221,9 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
             />
+            <TouchableOpacity onPress={clearSearchText}>
+              <MaterialIcons name="clear" size={22} color="#979090ff" />
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -224,7 +234,8 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
           data={displayNotes}
           bounces={false}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 120, flexGrow: 1 }}
+          scrollEnabled={displayNotes.length > 0}
+          contentContainerStyle={{ paddingBottom: 120 }}
           renderItem={({ item }) => (
             <Card
               id={item.id}
@@ -236,18 +247,30 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
               isLocked={item.isLocked}
             />
           )}
-          ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-              <Image
-                source={require("../../../assets/dash.png")}
-                style={{ height: 250, width: 250 }}
-              />
-              <Text style={styles.emptyText}>No notes yet</Text>
-              <Text style={styles.text}>
-                Tap the + button to write your first thought or idea
-              </Text>
-            </View>
-          )}
+          ListEmptyComponent={() => {
+            if (isSearching) {
+              return (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>
+                    No results for “{debouncedSearch}”
+                  </Text>
+                  <Text style={styles.text}>Try a different keyword</Text>
+                </View>
+              );
+            }
+            return (
+              <View style={styles.emptyContainer}>
+                <Image
+                  source={require("../../../assets/dash.png")}
+                  style={{ height: 250, width: 250 }}
+                />
+                <Text style={styles.emptyText}>No notes yet</Text>
+                <Text style={styles.text}>
+                  Tap the + button to write your first thought or idea
+                </Text>
+              </View>
+            );
+          }}
         />
       </View>
 

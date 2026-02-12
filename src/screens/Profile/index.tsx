@@ -35,7 +35,6 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
     try {
       await db.delete(notesTable);
       dispatch(logout());
-      navigation.navigate("Onboarding");
     } catch (error) {
       console.log("Logout failed", error);
     }

@@ -11,6 +11,7 @@ import {
   Image,
   FlatList,
   Linking,
+  AppState,
 } from "react-native";
 import styles from "./style";
 import {
@@ -76,6 +77,22 @@ export default function CreateNote({
     (state: RootState) => state.auth.isCommonPasswordSet,
   );
   const [hasNotePassword, setHasNotePassword] = useState(hasNotePasswordStore);
+  const appState = useRef(AppState.currentState);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState.match(/inactive|background/)) {
+        console.log("listener");
+        handleSave(false);
+      }
+      appState.current = nextState;
+    });
+
+    return () => {
+      subscription.remove();
+      // handleSave(false);
+    };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -150,7 +167,10 @@ export default function CreateNote({
     backgroundColor: "#ffffff",
     isLocked: false,
   });
-
+  const notesRef = useRef<any>(null);
+  useEffect(() => {
+    notesRef.current = notes;
+  }, [notes]);
   useEffect(() => {
     if (!NotesData?.data) return;
     setNotes({
@@ -182,6 +202,14 @@ export default function CreateNote({
       setIsReminder(true);
     }
   }, [NotesData?.data?.isReminderSet]);
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+      console.log("back press");
+      handleSave(false);
+    });
+
+    return unsubscribe;
+  }, [navigation, notes]);
 
   async function toggleLock() {
     if (!noteId) {
@@ -219,7 +247,7 @@ export default function CreateNote({
       isPasswordProtected: false,
     }));
   }
-
+  const [optionsVisible, setOptionsVisible] = useState(true);
   const [existingFiles, setExistingFiles] = useState<string[]>([]);
   const [files, setFiles] = useState<DocumentPickerResponse[]>([]);
   async function pickFile() {
@@ -288,24 +316,30 @@ export default function CreateNote({
       if (isConnected) {
         const payload = {
           id: localId,
-          title: notes?.title ?? "",
-          content: notes?.content ?? "",
-          isPasswordProtected: notes?.isPasswordProtected,
-          isLocked: notes?.isLocked,
+          title: notesRef.current?.title ?? "",
+          content: notesRef.current?.content ?? "",
+          isPasswordProtected: notesRef.current?.isPasswordProtected,
+          isLocked: notesRef.current?.isLocked,
           backgroundColor: noteBackground ?? "#ffffff",
           isReminderSet: isReminder,
           filePaths: filePaths ?? [],
         };
 
+        console.log("saved", payload);
         if (isEditMode) {
           await editApi(payload).unwrap();
         } else {
           await saveApi(payload).unwrap();
         }
       }
-      console.log("saved");
       if (navigate) navigation.goBack();
     } catch (error: any) {
+      if (error?.data?.errors?.length) {
+        Toast.show({
+          type: "error",
+          text1: error.data.errors[0],
+        });
+      }
       console.log("Save error:", error?.data ?? error);
     }
   }
@@ -432,6 +466,7 @@ export default function CreateNote({
       ),
     });
   }, [navigation, noteBackground, handleSave]);
+
   const debouncedNotes = useDebounce(
     {
       title: notes.title,
@@ -445,10 +480,15 @@ export default function CreateNote({
   );
 
   useEffect(() => {
-    if (!debouncedNotes.title || !debouncedNotes.content) return;
+    if (!debouncedNotes.title && !debouncedNotes.content) return;
     handleSave(false);
   }, [debouncedNotes.title, debouncedNotes.content]);
-
+  const scrollRef = useRef<ScrollView | null>(null);
+  useEffect(() => {
+    setTimeout(() => {
+      scrollRef.current?.scrollTo({ y: 0, animated: false });
+    }, 100);
+  }, []);
   const richText = useRef<RichEditor | null>(null);
   return (
     <KeyboardAvoidingView
@@ -458,15 +498,18 @@ export default function CreateNote({
       <View style={[styles.container, { backgroundColor: noteBackground }]}>
         <TextInput
           placeholder="Title"
-          placeholderTextColor="#5c5c5c"
+          placeholderTextColor="#8e8e8eff"
           style={styles.title}
           value={notes.title}
           onChangeText={(value) =>
             setNotes((prev) => ({ ...prev, title: value }))
           }
+          onFocus={() => setOptionsVisible(false)}
+          onBlur={() => setOptionsVisible(true)}
         />
         <ScrollView
           bounces={false}
+          ref={scrollRef}
           contentContainerStyle={{
             flexGrow: 1,
             backgroundColor: noteBackground,
@@ -487,9 +530,11 @@ export default function CreateNote({
               }
               editorStyle={{
                 backgroundColor: noteBackground,
+
                 color: "#000",
               }}
-              initialHeight={600}
+              initialFocus={true}
+              // initialHeight={570}
               placeholder="Type Here..."
             />
           </View>
@@ -700,61 +745,74 @@ export default function CreateNote({
           />
         ) : null}
         {/* Options bottom  */}
-        {textToolBarVisibility ? null : (
-          <View style={styles.options}>
-            <TouchableOpacity
-              onPress={toggleTextToolBarVisibility}
-              style={styles.optionButton}
-            >
-              <MaterialCommunityIcons
-                name="format-text"
-                size={24}
-                style={styles.optionIcon}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.optionButton} onPress={pickFile}>
-              <Entypo name="attachment" size={24} style={styles.optionIcon} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.optionButton]}
-              onPress={() => {
-                toggleShowSummary();
-                generateSummary();
-              }}
-              disabled={!isEditMode}
-            >
-              <Ionicons
-                name="sparkles-outline"
-                size={24}
-                style={[styles.optionIcon]}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.optionButton}
-              onPress={toggleColorPaletteVisibility}
-            >
-              <Ionicons
-                name="color-palette-outline"
-                size={24}
-                style={styles.optionIcon}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={toggleHeaderModalVisibility}
-              style={styles.optionButton}
-            >
-              {headerModalVisibility ? (
-                <AntDesign name="close" size={24} style={styles.optionIcon} />
-              ) : (
-                <MaterialIcons
-                  name="more-vert"
-                  size={24}
-                  style={styles.optionIcon}
-                />
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
+        {textToolBarVisibility
+          ? null
+          : optionsVisible && (
+              <View style={styles.options}>
+                <TouchableOpacity
+                  onPress={toggleTextToolBarVisibility}
+                  style={styles.optionButton}
+                >
+                  <MaterialCommunityIcons
+                    name="format-text"
+                    size={24}
+                    style={styles.optionIcon}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.optionButton}
+                  onPress={pickFile}
+                >
+                  <Entypo
+                    name="attachment"
+                    size={24}
+                    style={styles.optionIcon}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.optionButton]}
+                  onPress={() => {
+                    toggleShowSummary();
+                    generateSummary();
+                  }}
+                  disabled={!isEditMode}
+                >
+                  <Ionicons
+                    name="sparkles-outline"
+                    size={24}
+                    style={[styles.optionIcon]}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.optionButton}
+                  onPress={toggleColorPaletteVisibility}
+                >
+                  <Ionicons
+                    name="color-palette-outline"
+                    size={24}
+                    style={styles.optionIcon}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={toggleHeaderModalVisibility}
+                  style={styles.optionButton}
+                >
+                  {headerModalVisibility ? (
+                    <AntDesign
+                      name="close"
+                      size={24}
+                      style={styles.optionIcon}
+                    />
+                  ) : (
+                    <MaterialIcons
+                      name="more-vert"
+                      size={24}
+                      style={styles.optionIcon}
+                    />
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
       </View>
     </KeyboardAvoidingView>
   );

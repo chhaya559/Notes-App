@@ -10,8 +10,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   editorContainer: {
-    borderTopWidth: 1,
-    borderColor: "#ddd",
     paddingBottom: 8,
     flex: 1,
     backgroundColor: "transparent",
@@ -29,9 +27,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   title: {
-    fontSize: 25,
-    fontWeight: "700",
+    fontSize: 20,
     margin: 10,
+    borderColor: "#6e6e6eff",
+    borderBottomWidth: 1,
   },
   body: {},
   pressablesText: {
