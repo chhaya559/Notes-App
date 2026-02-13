@@ -29,6 +29,13 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    profileImage: builder.mutation<any, FormData>({
+      query: (body) => ({
+        url: "/users/me/profile-image",
+        method: "POST",
+        body,
+      }),
+    }),
     google: builder.mutation({
       query: (data) => ({
         url: "/auth/google",
@@ -120,4 +127,5 @@ export const {
   useEditUserMutation,
   useGetUserQuery,
   usePushNotificationMutation,
+  useProfileImageMutation,
 } = authApi;

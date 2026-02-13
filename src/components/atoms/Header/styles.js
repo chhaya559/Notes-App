@@ -14,10 +14,16 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   right: {},
-  title: {},
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginLeft: -35,
+  },
   headerButton: {
     backgroundColor: "#e6e4e4",
     borderRadius: 50,
+    justifyContent: "center",
+    verticalAlign: "middle",
   },
 });
 

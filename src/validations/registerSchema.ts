@@ -6,25 +6,30 @@ const usernameRegex = /^[a-zA-z0-9_.]+$/;
 export const registerSchema = yup.object({
   username: yup
     .string()
-    .required("Username is a required field")
+    .required("Username is required")
+    .min(4, "Minimum length is 4 characters")
     .matches(usernameRegex, "No special characters allowed except .,_"),
   firstName: yup
     .string()
     .required("First name is required")
-    .matches(/^[a-zA-Z]*$/, "No symbols/Number allowed"),
+    .matches(/^[a-zA-Z]*$/, "Only alphabets are allowed")
+    .min(2, "Minimum length is 2 characters"),
   lastName: yup
     .string()
-    .required()
-    .matches(/^[a-zA-Z]*$/, "Only alphabets are allowed"),
+    .required("Last name is required")
+    .matches(/^[a-zA-Z]*$/, "Only alphabets are allowed")
+    .min(2, "Minimum length is 2 characters"),
   password: yup
     .string()
     .required("Password is required")
     .min(8, "Password must be atleast 8 characters")
-    .matches(/[a-z]/, "Password must contain atleast one lowercase character")
-    .matches(/[A-Z]/, "Password must contain atleast one uppercase character")
+    .matches(/^\S*$/, "Password must not contain spaces")
+    .matches(/[0-9]/, "Password must contain at least one number")
+    .matches(/[a-z]/, "Password must contain at least one lowercase character")
+    .matches(/[A-Z]/, "Password must contain at least one uppercase character")
     .matches(/[!@#$%^&*.]+/, "Password must contain atleast one symbol"),
   email: yup
     .string()
-    .required("Email is a required field")
+    .required("Email is a required")
     .email("Enter a valid email"),
 });

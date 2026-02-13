@@ -11,6 +11,7 @@ import Toast from "react-native-toast-message";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 import { edit } from "@redux/slice/authSlice";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 type EditProfileProps = NativeStackScreenProps<
   RootStackParamList,
@@ -60,9 +61,9 @@ export default function EditProfile({
       }
     } catch (error) {
       console.log(error);
-      if (error?.data?.message.includes("Username is already taken")) {
+      if (error?.data?.message) {
         Toast.show({
-          text1: "Username is already taken",
+          text1: error?.data?.message,
         });
       } else {
         Toast.show({
@@ -72,8 +73,7 @@ export default function EditProfile({
     }
   }
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Edit Profile</Text>
+    <KeyboardAwareScrollView style={styles.container}>
       <Text style={styles.text}>Update your profile details</Text>
       <Controller
         control={control}
@@ -130,6 +130,6 @@ export default function EditProfile({
       <TouchableOpacity style={styles.pressable} onPress={handleSubmit(handle)}>
         <Text style={styles.pressableText}>Update Profile</Text>
       </TouchableOpacity>
-    </View>
+    </KeyboardAwareScrollView>
   );
 }

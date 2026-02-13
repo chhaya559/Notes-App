@@ -2,20 +2,22 @@ import * as yup from "yup";
 export const changePasswordSchema = yup.object({
   currentPassword: yup
     .string()
-    .required("This is a required field")
+    .required("Currentd Password is required")
     .min(8, "Password must be atleast 8 characters")
     .matches(/[a-z]/, "Password must contain atleast one lowercase character")
     .matches(/[A-Z]/, "Password must contain atleast one uppercase character")
     .matches(/[!@#$%^&*.]+/, "Password must contain atleast one symbol"),
   password: yup
     .string()
-    .required("This is a required field")
+    .required("Password is required")
     .min(8, "Password must be atleast 8 characters")
-    .matches(/[a-z]/, "Password must contain atleast one lowercase character")
-    .matches(/[A-Z]/, "Password must contain atleast one uppercase character")
+    .matches(/^\S*$/, "Password must not contain spaces")
+    .matches(/[0-9]/, "Password must contain at least one number")
+    .matches(/[a-z]/, "Password must contain at least one lowercase character")
+    .matches(/[A-Z]/, "Password must contain at least one uppercase character")
     .matches(/[!@#$%^&*.]+/, "Password must contain atleast one symbol"),
   confirmPassword: yup
     .string()
-    .required("This is a required password")
-    .oneOf([yup.ref("password")], "Passwords don't match"),
+    .required("Confirm password is required")
+    .oneOf([yup.ref("password")], "Passwords do not match"),
 });

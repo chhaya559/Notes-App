@@ -4,6 +4,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
+    marginTop: 20,
   },
   heading: {
     fontSize: 25,
@@ -23,7 +24,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   error: {
-    margin: 15,
+    textAlign: "left",
+    flexDirection: "row",
+    gap: 6,
+    marginLeft: 20,
+    fontSize: 12,
+    padding: 5,
+    width: "a",
+    alignSelf: "flex-start",
+    borderRadius: 10,
+    color: "#ff0000ff",
   },
 });
 

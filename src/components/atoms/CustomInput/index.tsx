@@ -11,9 +11,6 @@ type props = {
   onChangeText?: (value: string) => void;
   onBlur?: () => void;
   isPassword?: boolean;
-  isVisible?: boolean;
-  onToggleVisibility?: () => void;
-  secureTextEntry?: boolean;
 };
 export default function CustomInput({
   text,
@@ -23,11 +20,12 @@ export default function CustomInput({
   onChangeText,
   onBlur,
   isPassword,
-  isVisible,
-  onToggleVisibility,
-  secureTextEntry,
 }: Readonly<props>) {
   const [focused, setFocused] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  function onToggleVisibility() {
+    setIsVisible((p) => !p);
+  }
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{text}</Text>
@@ -41,10 +39,10 @@ export default function CustomInput({
             setFocused(false);
             onBlur?.();
           }}
-          secureTextEntry={secureTextEntry}
           style={[styles.input, focused && styles.focused]}
           autoCapitalize="none"
           onFocus={() => setFocused(true)}
+          secureTextEntry={isPassword ? !isVisible : false}
         />
         {isPassword && (
           <Pressable onPress={onToggleVisibility} style={styles.icon}>

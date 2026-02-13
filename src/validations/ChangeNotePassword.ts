@@ -7,6 +7,6 @@ export const changeNotePasswordSchema = yup.object({
     .min(8, "Password must be atleast 8 characters"),
   confirmPassword: yup
     .string()
-    .required("This is a required password")
-    .oneOf([yup.ref("password")], "Passwords don't match"),
+    .required("Confirm Password is required")
+    .oneOf([yup.ref("password")], "Passwords do not match"),
 });

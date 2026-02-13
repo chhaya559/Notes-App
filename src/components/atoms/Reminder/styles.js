@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
   calendar: {
     position: "absolute",
-    top: 182,
+    top: 184,
     right: 25,
   },
   input: {

@@ -16,6 +16,7 @@ import { changePasswordSchema } from "src/validations/changePasswordSchema";
 import { useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import * as Linking from "expo-linking";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 type ResetPasswordProps = NativeStackScreenProps<
   RootStackParamList,
@@ -32,7 +33,7 @@ export default function ChangePassword({
   navigation,
 }: Readonly<ResetPasswordProps>) {
   const authToken = useSelector((state: RootState) => state.auth.token);
-  const [isVisible, setIsVisible] = useState(false);
+  // const [isVisible, setIsVisible] = useState(false);
 
   const schema = authToken ? changePasswordSchema : resetPasswordSchema;
 
@@ -100,21 +101,24 @@ export default function ChangePassword({
         Toast.show({ text1: "Password changed successfully" });
         navigation.replace("Login");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
-      Toast.show({ text1: "Something went wrong" });
+      if (error.data.message) {
+        Toast.show({ text1: error.data.message });
+      } else {
+        Toast.show({ text1: "Something went wrong" });
+      }
     }
   };
+  navigation.setOptions({
+    title: authToken ? "Change Password" : "Create New Password",
+  });
 
   const onSubmit = authToken ? onChangePassword : onResetPassword;
   const isLoading = isResetLoading || isChangeLoading;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>
-        {authToken ? "Change Password" : "Create New Password"}
-      </Text>
-
+    <KeyboardAwareScrollView style={styles.container}>
       {authToken && (
         <>
           <Controller
@@ -124,13 +128,14 @@ export default function ChangePassword({
               <CustomInput
                 text="Current Password*"
                 placeholder="Current Password"
+                color="#707070ff"
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 isPassword
-                isVisible={isVisible}
-                onToggleVisibility={() => setIsVisible((p) => !p)}
-                secureTextEntry={!isVisible}
+                // isVisible={isVisible}
+                // onToggleVisibility={() => setIsVisible((p) => !p)}
+                // secureTextEntry={!isVisible}
               />
             )}
           />
@@ -148,12 +153,13 @@ export default function ChangePassword({
             text="Password*"
             placeholder="Password"
             value={value}
+            color="#707070ff"
             onChangeText={onChange}
             onBlur={onBlur}
             isPassword
-            isVisible={isVisible}
-            onToggleVisibility={() => setIsVisible((p) => !p)}
-            secureTextEntry={!isVisible}
+            // isVisible={isVisible}
+            // onToggleVisibility={() => setIsVisible((p) => !p)}
+            // secureTextEntry={!isVisible}
           />
         )}
       />
@@ -170,11 +176,12 @@ export default function ChangePassword({
             placeholder="Confirm Password"
             value={value}
             onChangeText={onChange}
+            color="#707070ff"
             onBlur={onBlur}
             isPassword
-            isVisible={isVisible}
-            onToggleVisibility={() => setIsVisible((p) => !p)}
-            secureTextEntry={!isVisible}
+            // isVisible={isVisible}
+            // onToggleVisibility={() => setIsVisible((p) => !p)}
+            // secureTextEntry={!isVisible}
           />
         )}
       />
@@ -191,6 +198,6 @@ export default function ChangePassword({
           {isLoading ? "Please wait..." : "Update Password"}
         </Text>
       </TouchableOpacity>
-    </View>
+    </KeyboardAwareScrollView>
   );
 }

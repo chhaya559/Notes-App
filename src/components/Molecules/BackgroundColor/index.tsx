@@ -15,11 +15,11 @@ export default function BackgroundColor({
     "#F0FFF0",
     "#f9f8e0",
     "#F0F8FF",
-    "#e6e6e6",
+    "#f0dcdcff",
     "#d2eefa",
     "#ffe3f1",
     "#fffbdb",
-    "#FFEFE6",
+    "#F5f5f5",
   ];
 
   return (

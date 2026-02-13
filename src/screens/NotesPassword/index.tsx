@@ -15,6 +15,7 @@ import { setCommonPasswordSet } from "@redux/slice/authSlice";
 import { db } from "src/db/notes";
 import { notesTable } from "src/db/schema";
 import { eq } from "drizzle-orm";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 type NotesPasswordProps = NativeStackScreenProps<
   RootStackParamList,
@@ -38,8 +39,8 @@ export default function NotesPassword({
   });
 
   const dispatch = useDispatch();
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isConfirmVisible, setIsConfirmVisible] = useState(false);
+  // const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  // const [isConfirmVisible, setIsConfirmVisible] = useState(false);
   const noteID = route?.params?.id;
   const title = route?.params?.title ?? "";
   const content = route?.params?.content ?? "";
@@ -68,16 +69,21 @@ export default function NotesPassword({
         navigation.goBack();
       }
     } catch (error: any) {
-      Toast.show({
-        type: "error",
-        text1: "Failed to set password",
-      });
+      if (error?.data?.message) {
+        Toast.show({
+          text1: error?.data?.message,
+        });
+      } else
+        Toast.show({
+          type: "error",
+          text1: "Failed to set password",
+        });
       console.log(error);
     }
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAwareScrollView style={styles.container}>
       <Text style={{ fontSize: 20, fontWeight: "500", textAlign: "center" }}>
         Set Password
       </Text>
@@ -93,16 +99,12 @@ export default function NotesPassword({
             onChangeText={onChange}
             onBlur={onBlur}
             isPassword
-            isVisible={isPasswordVisible}
-            onToggleVisibility={() => setIsPasswordVisible((p) => !p)}
-            secureTextEntry={!isPasswordVisible}
+            color="#707070ff"
           />
         )}
       />
       {errors.password && (
-        <Text style={{ color: "red", marginLeft: 15 }}>
-          {errors.password.message}
-        </Text>
+        <Text style={styles.error}>{errors.password.message}</Text>
       )}
 
       <Controller
@@ -116,16 +118,12 @@ export default function NotesPassword({
             onChangeText={onChange}
             onBlur={onBlur}
             isPassword
-            isVisible={isConfirmVisible}
-            onToggleVisibility={() => setIsConfirmVisible((p) => !p)}
-            secureTextEntry={!isConfirmVisible}
+            color="#707070ff"
           />
         )}
       />
       {errors.confirmPassword && (
-        <Text style={{ color: "red", marginLeft: 15 }}>
-          {errors.confirmPassword.message}
-        </Text>
+        <Text style={styles.error}>{errors.confirmPassword.message}</Text>
       )}
 
       <TouchableOpacity
@@ -137,6 +135,6 @@ export default function NotesPassword({
           {isLoading ? "Saving..." : "Set password"}
         </Text>
       </TouchableOpacity>
-    </View>
+    </KeyboardAwareScrollView>
   );
 }

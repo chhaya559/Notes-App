@@ -10,6 +10,7 @@ import { RootStackParamList } from "src/navigation/types";
 import styles from "../NotesPassword/styles";
 import { changeNotePasswordSchema } from "src/validations/ChangeNotePassword";
 import { useChangePasswordMutation } from "@redux/api/noteApi";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 type ChangeNotesPasswordProps = NativeStackScreenProps<
   RootStackParamList,
@@ -47,19 +48,22 @@ export default function ChangeNotePassword({
         navigation.goBack();
       }
     } catch (error: any) {
-      Toast.show({
-        type: "error",
-        text1: "Failed to change password",
-      });
-      console.log(error);
+      if (error?.data?.message) {
+        Toast.show({
+          text1: error?.data?.message,
+        });
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Failed to change password",
+        });
+      }
+      console.log(error.data.message);
     }
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={{ fontSize: 20, fontWeight: "500", textAlign: "center" }}>
-        Change Notes Password
-      </Text>
+    <KeyboardAwareScrollView style={styles.container}>
       <Controller
         control={control}
         name="currentPassword"
@@ -71,16 +75,12 @@ export default function ChangeNotePassword({
             onChangeText={onChange}
             onBlur={onBlur}
             isPassword
-            isVisible={isPasswordVisible}
-            onToggleVisibility={() => setIsPasswordVisible((p) => !p)}
-            secureTextEntry={!isPasswordVisible}
+            color="#707070ff"
           />
         )}
       />
       {errors.currentPassword && (
-        <Text style={{ color: "red", marginLeft: 15 }}>
-          {errors.currentPassword.message}
-        </Text>
+        <Text style={styles.error}>{errors.currentPassword.message}</Text>
       )}
       <Controller
         control={control}
@@ -93,16 +93,12 @@ export default function ChangeNotePassword({
             onChangeText={onChange}
             onBlur={onBlur}
             isPassword
-            isVisible={isPasswordVisible}
-            onToggleVisibility={() => setIsPasswordVisible((p) => !p)}
-            secureTextEntry={!isPasswordVisible}
+            color="#707070ff"
           />
         )}
       />
       {errors.password && (
-        <Text style={{ color: "red", marginLeft: 15 }}>
-          {errors.password.message}
-        </Text>
+        <Text style={styles.error}>{errors.password.message}</Text>
       )}
 
       <Controller
@@ -116,16 +112,12 @@ export default function ChangeNotePassword({
             onChangeText={onChange}
             onBlur={onBlur}
             isPassword
-            isVisible={isConfirmVisible}
-            onToggleVisibility={() => setIsConfirmVisible((p) => !p)}
-            secureTextEntry={!isConfirmVisible}
+            color="#707070ff"
           />
         )}
       />
       {errors.confirmPassword && (
-        <Text style={{ color: "red", marginLeft: 15 }}>
-          {errors.confirmPassword.message}
-        </Text>
+        <Text style={styles.error}>{errors.confirmPassword.message}</Text>
       )}
 
       <TouchableOpacity
@@ -137,6 +129,6 @@ export default function ChangeNotePassword({
           {isLoading ? "Changing password..." : "Change password"}
         </Text>
       </TouchableOpacity>
-    </View>
+    </KeyboardAwareScrollView>
   );
 }

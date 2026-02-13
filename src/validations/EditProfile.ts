@@ -7,7 +7,7 @@ export const EditSchema = yup.object({
   username: yup
     .string()
     .matches(usernameRegex, "No special characters allowed except .,_"),
-  firstName: yup.string().matches(/^[a-zA-Z]*$/, "No symbols/Number allowed"),
+  firstName: yup.string().matches(/^[a-zA-Z]*$/, "Only alphabets are allowed"),
   lastName: yup.string().matches(/^[a-zA-Z]*$/, "Only alphabets are allowed"),
   email: yup.string().email("Enter a valid email"),
 });

@@ -68,11 +68,17 @@ export default function GuestConversion({
           text1: "Guest converted to User",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
-      Toast.show({
-        text1: "Error converting guest to user",
-      });
+      if (error?.data?.message) {
+        Toast.show({
+          text1: error?.data?.message,
+        });
+      } else {
+        Toast.show({
+          text1: "Error converting guest to user",
+        });
+      }
     }
     navigation.navigate("Dashboard");
   }

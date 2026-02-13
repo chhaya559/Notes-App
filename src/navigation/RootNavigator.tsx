@@ -78,13 +78,26 @@ const RootNavigator = () => {
                 })}
               />
 
-              <Stack.Screen name={ROUTES.PROFILE} component={Profile} />
+              <Stack.Screen
+                name={ROUTES.PROFILE}
+                component={Profile}
+                options={() => ({
+                  title: "Profile",
+                })}
+              />
+
               <Stack.Screen
                 name={ROUTES.RESETPASSWORD}
                 component={ResetPassword}
               />
               <Stack.Screen name={ROUTES.CREATENOTE} component={CreateNote} />
-              <Stack.Screen name={ROUTES.EDITPROFILE} component={EditProfile} />
+              <Stack.Screen
+                name={ROUTES.EDITPROFILE}
+                component={EditProfile}
+                options={() => ({
+                  title: "Edit Profile",
+                })}
+              />
               <Stack.Screen
                 name={ROUTES.GUESTCONVERSION}
                 component={GuestConversion}
@@ -92,14 +105,23 @@ const RootNavigator = () => {
               <Stack.Screen
                 name={ROUTES.NOTESPASSWORD}
                 component={NotesPassword}
+                options={() => ({
+                  title: "Set Password",
+                })}
               />
               <Stack.Screen
                 name={ROUTES.CHANGENOTEPASSWORD}
                 component={ChangeNotePassword}
+                options={() => ({
+                  title: "Change Notes Password",
+                })}
               />
               <Stack.Screen
                 name={ROUTES.NOTIFICATIONS}
                 component={Notifications}
+                options={() => ({
+                  title: "Notifications",
+                })}
               />
             </Stack.Group>
           </Stack.Navigator>

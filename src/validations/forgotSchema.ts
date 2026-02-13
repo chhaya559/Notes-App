@@ -3,6 +3,6 @@ import * as yup from "yup";
 export const forgotSchema = yup.object({
   email: yup
     .string()
-    .required("This is a required field")
+    .required("Email is required")
     .email("Enter a valid email address"),
 });

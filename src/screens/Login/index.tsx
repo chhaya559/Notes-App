@@ -163,7 +163,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       }
     } catch (error: any) {
       console.log(error);
-      if (error?.data?.message) {
+      if (error?.data?.m) {
         Toast.show({
           text1: error?.data?.message,
         });
@@ -190,7 +190,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
               text="Email / Username*"
               placeholder="Email or Username"
               color="#707070ff"
-              value={value}
+              value={value.trim()}
               onChangeText={onChange}
               onBlur={onBlur}
             />

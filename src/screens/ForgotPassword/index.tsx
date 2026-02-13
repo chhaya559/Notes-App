@@ -4,13 +4,14 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import CustomInput from "@components/atoms/CustomInput";
 import { forgotSchema } from "src/validations/forgotSchema";
-import { Entypo, Feather } from "@expo/vector-icons";
+import { Entypo, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 import { useForgotpasswordMutation } from "@redux/api/authApi";
 import Toast from "react-native-toast-message";
 import Modal from "react-native-modal";
 import { useState } from "react";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 type ForgotScreenProps = NativeStackScreenProps<
   RootStackParamList,
   "ForgotPassword"
@@ -49,6 +50,7 @@ export default function ForgotPassword({
         });
       }
     } catch (error: any) {
+      console.log(error);
       Toast.show({
         text1: error?.data?.message || "Something went wrong",
       });
@@ -58,14 +60,24 @@ export default function ForgotPassword({
     <>
       <Modal isVisible={isModalVisible} backdropOpacity={0.8}>
         <View style={styles.modal}>
+          <View style={styles.iconWrap}>
+            <MaterialCommunityIcons
+              name="email-open"
+              size={42}
+              color="#5757f8"
+            />
+          </View>
           <Text style={styles.modalHeading}>Reset your Password</Text>
           <Text style={styles.modalText}>
             Check your email for a link to reset your password. If it doesn't
             appear within a few minutes,check your spam folder.
           </Text>
-          <Pressable onPress={() => navigation.replace("Login")}>
+          <TouchableOpacity
+            onPress={() => navigation.replace("Login")}
+            style={styles.backButtom}
+          >
             <Text style={styles.modalLogin}>Back to login</Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
         <TouchableOpacity
           style={styles.cross}
@@ -74,7 +86,7 @@ export default function ForgotPassword({
           <Entypo name="cross" size={26} color="#5757f8" />
         </TouchableOpacity>
       </Modal>
-      <View style={styles.container}>
+      <KeyboardAwareScrollView style={styles.container}>
         <Text style={styles.heading}>Forgot your password?</Text>
         <Text style={styles.text}>
           A code will be sent to your email to help reset password
@@ -109,7 +121,7 @@ export default function ForgotPassword({
           <Feather name="arrow-left" size={18} />
           <Text style={styles.backText}>Back to login</Text>
         </Pressable>
-      </View>
+      </KeyboardAwareScrollView>
     </>
   );
 }

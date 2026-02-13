@@ -12,10 +12,11 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   text: {
-    fontSize: 17,
+    fontSize: 20,
     textAlign: "center",
     marginBottom: 10,
     color: "#272727ff",
+    marginTop: 20,
   },
   pressable: {
     backgroundColor: "#5757f8",

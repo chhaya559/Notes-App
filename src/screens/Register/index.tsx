@@ -161,9 +161,9 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           text1: "Email already exists",
         });
       }
-      if (error.data.Errors.includes("Username already exists")) {
+      if (error.data.message) {
         Toast.show({
-          text1: "Username already exists",
+          text1: error.data.message,
         });
       } else {
         Toast.show({
@@ -189,7 +189,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
               text="Username*"
               placeholder="Username"
               color="#707070ff"
-              value={value}
+              value={value.trim()}
               onChangeText={onChange}
               onBlur={onBlur}
             />
@@ -206,7 +206,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
               text="First Name*"
               placeholder="First Name"
               color="#707070ff"
-              value={value}
+              value={value.trim()}
               onChangeText={onChange}
               onBlur={onBlur}
             />
@@ -223,7 +223,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
               text="Last Name*"
               placeholder="Last Name"
               color="#707070ff"
-              value={value}
+              value={value.trim()}
               onChangeText={onChange}
               onBlur={onBlur}
             />

@@ -48,8 +48,6 @@ export default function Notifications({ route }: any) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Notifications</Text>
-
       <FlatList
         data={Notifications}
         bounces={false}

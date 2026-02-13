@@ -123,11 +123,13 @@ const authSlice = createSlice({
         firstName: string;
         lastName: string;
         username: string;
+        profileImageUrl: any;
       }>,
     ) => {
       state.firstName = action.payload.firstName;
       state.lastName = action.payload.lastName;
       state.username = action.payload.username;
+      state.profileImageUrl = action.payload.profileImageUrl;
     },
     setNotesUnlocked: (
       state,

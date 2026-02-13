@@ -19,14 +19,20 @@ const styles = StyleSheet.create({
   image: {
     height: 100,
     width: 100,
-    tintColor: "#ffffff",
     resizeMode: "contain",
   },
   upperContainer: {
     margin: 5,
   },
+  editImage: {
+    backgroundColor: "#E0E7FF",
+    padding: 7,
+    borderRadius: 25,
+    position: "absolute",
+    right: 0,
+    bottom: 0,
+  },
   profile: {
-    backgroundColor: "#5757f8",
     height: 100,
     width: 100,
     borderRadius: 50,
@@ -34,6 +40,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: 15,
+    backgroundColor: "black",
   },
   name: {
     textAlign: "center",

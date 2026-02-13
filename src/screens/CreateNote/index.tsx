@@ -78,9 +78,11 @@ export default function CreateNote({
   );
   const [hasNotePassword, setHasNotePassword] = useState(hasNotePasswordStore);
   const appState = useRef(AppState.currentState);
-
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextState) => {
+      if (isSavedRef.current) {
+        return;
+      }
       if (nextState.match(/inactive|background/)) {
         console.log("listener");
         handleSave(false);
@@ -205,6 +207,12 @@ export default function CreateNote({
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
       console.log("back press");
+      if (isSavedRef.current) {
+        return;
+      }
+      if (isDeletingRef.current) {
+        return;
+      }
       handleSave(false);
     });
 
@@ -298,9 +306,17 @@ export default function CreateNote({
 
     return uploadedPaths;
   }
+  const isSavedRef = useRef(false);
 
   async function handleSave(navigate = true) {
     try {
+      if (navigate) {
+        if (!notes.title && !notes.content) {
+          Toast.show({
+            text1: "Your note needs at least a title or content",
+          });
+        }
+      }
       let filePaths: string[] = [];
 
       if (isConnected && files?.length > 0) {
@@ -332,6 +348,7 @@ export default function CreateNote({
           await saveApi(payload).unwrap();
         }
       }
+      isSavedRef.current = true;
       if (navigate) navigation.goBack();
     } catch (error: any) {
       if (error?.data?.errors?.length) {
@@ -343,6 +360,7 @@ export default function CreateNote({
       console.log("Save error:", error?.data ?? error);
     }
   }
+  const isDeletingRef = useRef(false);
 
   async function handleDelete(navigate = true) {
     try {
@@ -356,7 +374,7 @@ export default function CreateNote({
       await db
         .delete(notesTable)
         .where(and(eq(notesTable.id, noteId), eq(notesTable.userId, userId)));
-
+      isDeletingRef.current = true;
       if (isConnected) {
         await deleteApi({ id: noteId }).unwrap();
       }
@@ -450,8 +468,6 @@ export default function CreateNote({
       headerStyle: {
         backgroundColor: noteBackground,
       },
-      headerTransparent: false,
-      headerShadowVisible: false,
       headerRight: () => (
         <View style={styles.header}>
           <TouchableOpacity onPress={() => handleSave()}>
@@ -510,6 +526,9 @@ export default function CreateNote({
         <ScrollView
           bounces={false}
           ref={scrollRef}
+          onContentSizeChange={() =>
+            scrollRef.current?.scrollToEnd({ animated: true })
+          }
           contentContainerStyle={{
             flexGrow: 1,
             backgroundColor: noteBackground,
@@ -656,45 +675,47 @@ export default function CreateNote({
         {headerModalVisibility && (
           <View style={{ position: "absolute", bottom: 80, right: 20 }}>
             <View style={styles.headerMenu}>
-              {notes.isLocked ? (
+              {isEditMode &&
+                (notes.isLocked ? (
+                  <TouchableOpacity
+                    style={styles.touchables}
+                    onPress={unlockNote}
+                    disabled={isGuest}
+                  >
+                    <AntDesign name="unlock" color="#5757f8" size={24} />
+                    <Text style={styles.touchableText}>Unlock</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.touchables, { opacity: isGuest ? 0.5 : 1 }]}
+                    onPress={() => {
+                      toggleLock();
+                    }}
+                    disabled={isGuest}
+                  >
+                    <AntDesign name="lock" color="#5757f8" size={24} />
+                    <Text style={styles.touchableText}>Lock</Text>
+                  </TouchableOpacity>
+                ))}
+              {isEditMode && (
                 <TouchableOpacity
-                  style={styles.touchables}
-                  onPress={unlockNote}
+                  style={[styles.touchables, { opacity: isGuest ? 0.5 : 1 }]}
+                  onPress={toggleReminderVisibility}
                   disabled={isGuest}
                 >
-                  <AntDesign name="unlock" color="#5757f8" size={24} />
-                  <Text style={styles.touchableText}>Unlock</Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={[styles.touchables]}
-                  onPress={() => {
-                    toggleLock();
-                  }}
-                  // disabled={isGuest || !isEditMode}
-                >
-                  <AntDesign name="lock" color="#5757f8" size={24} />
-                  <Text style={styles.touchableText}>Lock</Text>
+                  <Ionicons
+                    color="#5757f8"
+                    size={24}
+                    name="notifications-outline"
+                  />
+                  <Text style={styles.touchableText}>Reminder</Text>
                 </TouchableOpacity>
               )}
-              {/* {isEditMode && ( */}
-              <TouchableOpacity
-                style={[styles.touchables]}
-                onPress={toggleReminderVisibility}
-                // disabled={isGuest || !isEditMode}
-              >
-                <Ionicons
-                  color="#5757f8"
-                  size={24}
-                  name="notifications-outline"
-                />
-                <Text style={styles.touchableText}>Reminder</Text>
-              </TouchableOpacity>
-              {/* )} */}
 
               <TouchableOpacity
                 style={[styles.touchables, { opacity: isEditMode ? 1 : 0.5 }]}
                 onPress={() => alertDelete()}
+                disabled={!isEditMode}
               >
                 <MaterialIcons
                   name="delete-outline"

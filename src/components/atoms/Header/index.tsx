@@ -20,7 +20,7 @@ export default function Header({
               >
                 <Ionicons
                   name="arrow-back-outline"
-                  size={30}
+                  size={26}
                   color="#5757f8"
                   style={{ padding: 5 }}
                 />

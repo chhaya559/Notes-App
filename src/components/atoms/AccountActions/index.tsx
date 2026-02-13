@@ -8,7 +8,10 @@ import { AppDispatch } from "@redux/store";
 import { logout } from "@redux/slice/authSlice";
 import Toast from "react-native-toast-message";
 
-export default function AccountActions() {
+type props = {
+  hasCommonPassword: boolean;
+};
+export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
   const [deleteApi] = useDeleteUserMutation();
   const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<any>();
@@ -78,20 +81,22 @@ export default function AccountActions() {
         </TouchableOpacity>
       </View>
       <View style={styles.line} />
-      <View style={styles.wrapper}>
-        <View style={styles.wrap}>
-          <Pressable style={styles.iconWrap}>
-            <MaterialIcons name="password" size={20} style={{ padding: 3 }} />
-          </Pressable>
-          <Text style={styles.text}>Notes Password</Text>
+      {hasCommonPassword && (
+        <View style={styles.wrapper}>
+          <View style={styles.wrap}>
+            <Pressable style={styles.iconWrap}>
+              <MaterialIcons name="password" size={20} style={{ padding: 3 }} />
+            </Pressable>
+            <Text style={styles.text}>Notes Password</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.actionIcon}
+            onPress={() => navigation.navigate("ChangeNotePassword")}
+          >
+            <SimpleLineIcons name="arrow-right" size={18} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={styles.actionIcon}
-          onPress={() => navigation.navigate("ChangeNotePassword")}
-        >
-          <SimpleLineIcons name="arrow-right" size={18} />
-        </TouchableOpacity>
-      </View>
+      )}
       <View style={styles.line} />
       <View style={styles.wrapper}>
         <View style={styles.wrap}>
