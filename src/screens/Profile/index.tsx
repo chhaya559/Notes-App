@@ -15,6 +15,7 @@ import { RootStackParamList } from "src/navigation/types";
 import { edit, logout, profileImageUrl } from "@redux/slice/authSlice";
 import Toast from "react-native-toast-message";
 import {
+  useDeleteImageMutation,
   useDeleteUserMutation,
   useProfileImageMutation,
 } from "@redux/api/authApi";
@@ -31,6 +32,8 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
 
   const username = useSelector((state: RootState) => state.auth.firstName);
   const email = useSelector((state: RootState) => state.auth.email);
+  const isGoogle = useSelector((state: RootState) => state.auth.isGoogle);
+  console.log(isGoogle, "googlegoole");
   const profileImage = useSelector(
     (state: RootState) => state.auth.profileImageUrl,
   );
@@ -43,7 +46,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   );
   const [deleteApi] = useDeleteUserMutation();
   const [uploadProfile] = useProfileImageMutation();
-
+  const [deleteProfileImage] = useDeleteImageMutation();
   async function handleLogout() {
     try {
       await db.delete(notesTable);
@@ -95,6 +98,24 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       });
     }
   }
+  async function deleteProfile() {
+    try {
+      const response = await deleteProfileImage().unwrap();
+
+      dispatch(
+        profileImageUrl({
+          profileImageUrl: "",
+        }),
+      );
+      console.log(response, "remove profile");
+    } catch (error) {
+      console.log("Error deleting profile image", error);
+    }
+  }
+
+  useEffect(() => {
+    setImage(profileImage);
+  }, [profileImage]);
 
   async function pickFile() {
     try {
@@ -120,23 +141,16 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       const newUrl = response?.data?.profileImageUrl;
 
       if (newUrl) {
-        const cacheBustedUrl = `${newUrl}?v=${Date.now()}`;
+        const Url = `${newUrl}?v=${Date.now()}`;
 
         dispatch(
           profileImageUrl({
-            profileImageUrl: cacheBustedUrl,
+            profileImageUrl: Url,
           }),
         );
 
-        setImage(cacheBustedUrl);
+        setImage(Url);
       }
-      // dispatch(
-      //   profileImageUrl({
-      //     profileImageUrl: response?.data?.profileImageUrl,
-      //   }),
-      // );
-      // const newUrl = response?.data?.profileImageUrl;
-      // setImage(newUrl);
       console.log(response);
     } catch (error) {
       console.log("Error uploading file", error);
@@ -174,7 +188,6 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       </View>
     );
   }
-
   return (
     <View style={styles.container}>
       <View style={styles.upperContainer}>
@@ -184,14 +197,34 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       <View style={styles.profile}>
         <Image
           key={profileImage}
-          source={{ uri: profileImage }}
+          source={
+            profileImage
+              ? { uri: profileImage }
+              : require("../../../assets/default.png")
+          }
           style={styles.image}
         />
         {/* onPress={pickFile} */}
-        <TouchableOpacity style={styles.editImage} onPress={pickFile}>
-          <MaterialIcons name="edit" size={24} color="black" />
-          {/* <Feather name="camera" size={24} color="black" /> */}
-        </TouchableOpacity>
+        {!isGoogle && (
+          <>
+            <TouchableOpacity style={styles.deleteImage}>
+              <MaterialIcons
+                name="delete"
+                size={24}
+                color="black"
+                onPress={deleteProfile}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.editImage}>
+              <MaterialIcons
+                name="edit"
+                size={24}
+                color="black"
+                onPress={pickFile}
+              />
+            </TouchableOpacity>
+          </>
+        )}
       </View>
 
       <Text style={styles.name}>Hi, {username}</Text>

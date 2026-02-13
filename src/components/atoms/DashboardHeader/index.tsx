@@ -64,7 +64,11 @@ export default function DashboardHeader() {
         <View style={styles.profileCover}>
           <Image
             key={profileImage}
-            source={{ uri: profileImage }}
+            source={
+              profileImage
+                ? { uri: profileImage }
+                : require("../../../../assets/default.png")
+            }
             style={styles.profile}
           />
         </View>

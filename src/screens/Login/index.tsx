@@ -124,7 +124,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       );
       Toast.show({
         type: "success",
-        text1: "Logged in with gogle",
+        text1: "Logged in with google",
       });
       requestUserPermission();
     } catch (error: any) {

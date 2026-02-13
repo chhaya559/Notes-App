@@ -12,6 +12,7 @@ export type AuthState = {
   isCommonPasswordSet: boolean;
   isNotesUnlocked: boolean;
   notesUnlockUntil: number | null;
+  isGoogle: boolean;
 };
 const initialState: AuthState = {
   identifier: null,
@@ -25,6 +26,7 @@ const initialState: AuthState = {
   isCommonPasswordSet: false,
   isNotesUnlocked: false,
   notesUnlockUntil: null,
+  isGoogle: false,
 };
 
 const authSlice = createSlice({
@@ -66,6 +68,7 @@ const authSlice = createSlice({
       state.isNotesUnlocked = false;
       state.notesUnlockUntil = null;
       state.profileImageUrl = null;
+      state.isGoogle = false;
     },
 
     register: (
@@ -110,8 +113,8 @@ const authSlice = createSlice({
       state.firstName = action.payload.firstName;
       state.isCommonPasswordSet = action.payload.isCommonPasswordSet;
       state.isNotesUnlocked = action.payload.isNotesUnlocked;
-
       state.profileImageUrl = action.payload.profileImageUrl;
+      state.isGoogle = true;
     },
     guest: (
       state,
@@ -127,13 +130,11 @@ const authSlice = createSlice({
         firstName: string;
         lastName: string;
         username: string;
-        profileImageUrl: any;
       }>,
     ) => {
       state.firstName = action.payload.firstName;
       state.lastName = action.payload.lastName;
       state.username = action.payload.username;
-      state.profileImageUrl = action.payload.profileImageUrl;
     },
     setNotesUnlocked: (
       state,

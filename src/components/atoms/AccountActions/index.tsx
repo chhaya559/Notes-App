@@ -3,8 +3,8 @@ import styles from "./styles";
 import { MaterialIcons, SimpleLineIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useDeleteUserMutation } from "@redux/api/authApi";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@redux/store";
 import { logout } from "@redux/slice/authSlice";
 import Toast from "react-native-toast-message";
 
@@ -14,6 +14,8 @@ type props = {
 export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
   const [deleteApi] = useDeleteUserMutation();
   const dispatch = useDispatch<AppDispatch>();
+  const isGoogle = useSelector((state: RootState) => state.auth.isGoogle);
+
   const navigation = useNavigation<any>();
 
   function confirmDelete() {
@@ -66,20 +68,22 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
         </TouchableOpacity>
       </View>
       <View style={styles.line} />
-      <View style={styles.wrapper}>
-        <View style={styles.wrap}>
-          <Pressable style={styles.iconWrap}>
-            <MaterialIcons name="password" size={20} style={{ padding: 3 }} />
-          </Pressable>
-          <Text style={styles.text}>Change Password</Text>
+      {!isGoogle && (
+        <View style={styles.wrapper}>
+          <View style={styles.wrap}>
+            <Pressable style={styles.iconWrap}>
+              <MaterialIcons name="password" size={20} style={{ padding: 3 }} />
+            </Pressable>
+            <Text style={styles.text}>Change Password</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.actionIcon}
+            onPress={() => navigation.navigate("ResetPassword")}
+          >
+            <SimpleLineIcons name="arrow-right" size={18} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={styles.actionIcon}
-          onPress={() => navigation.navigate("ResetPassword")}
-        >
-          <SimpleLineIcons name="arrow-right" size={18} />
-        </TouchableOpacity>
-      </View>
+      )}
       <View style={styles.line} />
       {hasCommonPassword && (
         <View style={styles.wrapper}>

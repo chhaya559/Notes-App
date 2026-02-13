@@ -33,6 +33,14 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
+  deleteImage: {
+    backgroundColor: "#E0E7FF",
+    padding: 7,
+    borderRadius: 25,
+    position: "absolute",
+    right: 50,
+    bottom: 2,
+  },
   profile: {
     height: 100,
     width: 100,

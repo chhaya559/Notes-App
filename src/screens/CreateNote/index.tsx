@@ -222,6 +222,7 @@ export default function CreateNote({
 
     return unsubscribe;
   }, [navigation, notes]);
+  console.log(navigation, "navigationnavigation");
 
   async function toggleLock() {
     if (!noteId) {
