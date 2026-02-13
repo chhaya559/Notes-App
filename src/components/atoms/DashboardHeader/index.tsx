@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import styles from "./styles";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
@@ -8,11 +8,16 @@ import {
   useGetNotificationsCountQuery,
   useGetNotificationsQuery,
 } from "@redux/api/noteApi";
+import { RootState } from "@redux/store";
+import { useSelector } from "react-redux";
+import style from "@screens/GuestConversion/styles";
 
 export default function DashboardHeader() {
   const navigation = useNavigation<any>();
 
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const profileImage = useSelector(
+    (state: RootState) => state.auth.profileImageUrl,
+  );
   const [unreadCount, setUnreadCount] = useState(0);
 
   const { data: countResponse, refetch: refetchCount } =
@@ -21,63 +26,17 @@ export default function DashboardHeader() {
       refetchOnMountOrArgChange: true,
     });
 
-  const { data: notificationsResponse, refetch: refetchNotifications } =
-    useGetNotificationsQuery(undefined, {
-      refetchOnFocus: true,
-      refetchOnMountOrArgChange: true,
-    });
-
   useFocusEffect(
     useCallback(() => {
       refetchCount();
-      refetchNotifications();
-    }, [refetchCount, refetchNotifications]),
+    }, [refetchCount]),
   );
-
-  useEffect(() => {
-    if (notificationsResponse?.data?.notifications) {
-      const serverNotifications = notificationsResponse.data.notifications.map(
-        (n: any) => ({
-          ...n,
-          message: n.message ?? "",
-          isRead: n.isRead ?? false,
-        }),
-      );
-
-      setNotifications((prev) => {
-        const ids = new Set(prev.map((n) => n.id));
-        const merged = [
-          ...prev,
-          ...serverNotifications.filter((n: any) => !ids.has(n.id)),
-        ];
-
-        return merged.sort(
-          (a, b) =>
-            new Date(b.createdAt || Date.now()).getTime() -
-            new Date(a.createdAt || Date.now()).getTime(),
-        );
-      });
-    }
-
-    setUnreadCount(countResponse?.data?.unreadCount ?? 0);
-  }, [notificationsResponse, countResponse]);
 
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async (remoteMessage) => {
       const data = remoteMessage?.data || remoteMessage?.notification;
 
       if (!data) return;
-
-      const newNotification = {
-        id: data?.id ?? Date.now().toString(),
-        title: data.title ?? "",
-        noteTitle: data?.noteTitle ?? "",
-        message: data?.message ?? "",
-        isRead: false,
-        createdAt: Date.now(),
-      };
-
-      setNotifications((prev) => [newNotification, ...prev]);
       setUnreadCount((prev) => prev + 1);
     });
 
@@ -86,13 +45,7 @@ export default function DashboardHeader() {
 
   return (
     <View style={styles.outer}>
-      <TouchableOpacity
-        onPress={() =>
-          navigation.navigate("Notifications", {
-            notifications,
-          })
-        }
-      >
+      <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
         <Ionicons
           name="notifications-circle-outline"
           color="#5757f8"
@@ -108,7 +61,13 @@ export default function DashboardHeader() {
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
-        <FontAwesome name="user-circle" color="#5757f8" size={34} />
+        <View style={styles.profileCover}>
+          <Image
+            key={profileImage}
+            source={{ uri: profileImage }}
+            style={styles.profile}
+          />
+        </View>
       </TouchableOpacity>
     </View>
   );

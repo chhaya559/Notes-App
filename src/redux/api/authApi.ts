@@ -36,6 +36,12 @@ export const authApi = createApi({
         body,
       }),
     }),
+    deleteImage: builder.mutation({
+      query: () => ({
+        url: "/users/me/profile-image",
+        method: "DELETE",
+      }),
+    }),
     google: builder.mutation({
       query: (data) => ({
         url: "/auth/google",
@@ -128,4 +134,5 @@ export const {
   useGetUserQuery,
   usePushNotificationMutation,
   useProfileImageMutation,
+  useDeleteImageMutation,
 } = authApi;

@@ -13,11 +13,23 @@ const styles = StyleSheet.create({
     right: 60,
     top: 4,
   },
+  profileCover: {
+    height: 35,
+    width: 35,
+    borderRadius: 50,
+    backgroundColor: "#ffffffff",
+  },
 
   image: {
     position: "absolute",
     right: 15,
     top: 7,
+  },
+  profile: {
+    height: 35,
+    width: 35,
+    borderRadius: 50,
+    resizeMode: "cover",
   },
 
   badge: {

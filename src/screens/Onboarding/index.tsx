@@ -16,6 +16,7 @@ export default function Onboarding({ navigation }: Readonly<OnboardingProps>) {
     dispatch(
       guest({
         token: response.data.token,
+        profileImageUrl: response.data.profileImageUrl,
       }),
     );
   }

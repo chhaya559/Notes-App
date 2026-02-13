@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
   headerButton: {
     backgroundColor: "#e6e4e4",
     borderRadius: 50,
+    marginTop: 0,
     justifyContent: "center",
     verticalAlign: "middle",
   },

@@ -19,7 +19,8 @@ const styles = StyleSheet.create({
   image: {
     height: 100,
     width: 100,
-    resizeMode: "contain",
+    resizeMode: "cover",
+    borderRadius: 50,
   },
   upperContainer: {
     margin: 5,
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: 15,
-    backgroundColor: "black",
+    backgroundColor: "white",
   },
   name: {
     textAlign: "center",

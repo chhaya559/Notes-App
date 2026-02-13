@@ -162,7 +162,7 @@ export default function CreateNote({
   const isEditMode = Boolean(noteId);
   const [notes, setNotes] = useState({
     id: "",
-    title: "",
+    title: "New Note",
     content: "",
     isPasswordProtected: false,
     isReminderSet: null,
@@ -177,7 +177,7 @@ export default function CreateNote({
     if (!NotesData?.data) return;
     setNotes({
       id: NotesData.data.id ?? "",
-      title: NotesData.data.title ?? "",
+      title: NotesData.data.title ?? "New Note",
       content: NotesData.data.content ?? "",
       isPasswordProtected: NotesData.data.isPasswordProtected ?? false,
       isLocked: NotesData.data.isLocked ?? false,
@@ -204,6 +204,9 @@ export default function CreateNote({
       setIsReminder(true);
     }
   }, [NotesData?.data?.isReminderSet]);
+  const isDeletingRef = useRef(false);
+  const isSavedRef = useRef(false);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
       console.log("back press");
@@ -214,6 +217,7 @@ export default function CreateNote({
         return;
       }
       handleSave(false);
+      console.log("after save");
     });
 
     return unsubscribe;
@@ -306,7 +310,6 @@ export default function CreateNote({
 
     return uploadedPaths;
   }
-  const isSavedRef = useRef(false);
 
   async function handleSave(navigate = true) {
     try {
@@ -360,7 +363,6 @@ export default function CreateNote({
       console.log("Save error:", error?.data ?? error);
     }
   }
-  const isDeletingRef = useRef(false);
 
   async function handleDelete(navigate = true) {
     try {

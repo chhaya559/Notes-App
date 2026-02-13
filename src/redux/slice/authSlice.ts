@@ -8,7 +8,7 @@ export type AuthState = {
   firstName: string | null;
   lastName: string | null;
   email: string | null;
-  profileImageUrl: string | null;
+  profileImageUrl: any;
   isCommonPasswordSet: boolean;
   isNotesUnlocked: boolean;
   notesUnlockUntil: number | null;
@@ -113,9 +113,13 @@ const authSlice = createSlice({
 
       state.profileImageUrl = action.payload.profileImageUrl;
     },
-    guest: (state, action: PayloadAction<{ token: string }>) => {
+    guest: (
+      state,
+      action: PayloadAction<{ token: string; profileImageUrl: any }>,
+    ) => {
       state.token = action.payload.token;
       state.isGuest = true;
+      state.profileImageUrl = action.payload.profileImageUrl;
     },
     edit: (
       state,
@@ -137,6 +141,12 @@ const authSlice = createSlice({
     ) => {
       state.isNotesUnlocked = true;
       state.notesUnlockUntil = action.payload.unlockUntil;
+    },
+    profileImageUrl: (
+      state,
+      action: PayloadAction<{ profileImageUrl: any }>,
+    ) => {
+      state.profileImageUrl = action.payload.profileImageUrl;
     },
 
     lockNotes: (state) => {
@@ -179,5 +189,6 @@ export const {
   edit,
   setCommonPasswordSet,
   isGuest,
+  profileImageUrl,
 } = authSlice.actions;
 export default authSlice.reducer;
