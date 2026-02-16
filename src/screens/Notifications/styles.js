@@ -1,16 +1,11 @@
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
-  heading: {
-    fontSize: 18,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 20,
-  },
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
     padding: 16,
+    marginTop: 10,
   },
   card: {
     backgroundColor: "#E0E7FF",
@@ -18,46 +13,15 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     elevation: 3,
     shadowOpacity: 0.2,
-    shadowOffset: { width: 3, height: 3 },
+    shadowOffset: { width: 2, height: 2 },
     marginBottom: 15,
+    marginLeft: 5,
+    marginRight: 5,
   },
-  outer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    height: 56,
-  },
-
   icon: {
-    position: "absolute",
-    right: 60,
-    top: 4,
+    alignSelf: "center",
   },
 
-  image: {
-    position: "absolute",
-    right: 15,
-    top: 7,
-  },
-
-  badge: {
-    position: "absolute",
-    top: -3,
-    right: -3,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: "#0c6de5ff",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 4,
-  },
-
-  badgeText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "700",
-  },
   close: {
     position: "absolute",
     top: 10,
@@ -90,6 +54,24 @@ const styles = StyleSheet.create({
   message: {
     textAlign: "center",
     fontWeight: "500",
+    marginBottom: 8,
+  },
+  messageDescription: {
+    textAlign: "center",
+    fontWeight: "500",
+    paddingTop: 10,
+  },
+  emptyComponent: {
+    alignItems: "center",
+  },
+  noText: {
+    fontWeight: "bold",
+    fontSize: 18,
+    margin: 10,
+  },
+  emptyMessage: {
+    fontWeight: "500",
+    fontSize: 16,
   },
 });
 

@@ -30,6 +30,6 @@ export const registerSchema = yup.object({
     .matches(/[!@#$%^&*.]+/, "Password must contain atleast one symbol"),
   email: yup
     .string()
-    .required("Email is a required")
+    .required("Email is required")
     .email("Enter a valid email"),
 });

@@ -29,4 +29,5 @@ export type RootStackParamList = {
   ChangeNotePassword: undefined;
 
   Notifications: undefined;
+  Slider: undefined;
 };

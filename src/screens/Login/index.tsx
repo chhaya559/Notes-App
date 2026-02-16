@@ -163,7 +163,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       }
     } catch (error: any) {
       console.log(error);
-      if (error?.data?.m) {
+      if (error?.data?.message) {
         Toast.show({
           text1: error?.data?.message,
         });
@@ -211,11 +211,11 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
               onChangeText={onChange}
               onBlur={onBlur}
               isPassword
-              isVisible={isVisible}
-              onToggleVisibility={() => {
-                setIsVisible((prev) => !prev);
-              }}
-              secureTextEntry={!isVisible}
+              // isVisible={isVisible}
+              // onToggleVisibility={() => {
+              //   setIsVisible((prev) => !prev);
+              // }}
+              // secureTextEntry={!isVisible}
             />
           )}
         />

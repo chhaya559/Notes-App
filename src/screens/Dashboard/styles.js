@@ -6,6 +6,7 @@ const styles = StyleSheet.create({
     position: "relative",
     backgroundColor: "#F5F5F5",
     margin: 10,
+    marginTop: 0,
     marginBottom: 0,
   },
   heading: {
@@ -20,12 +21,13 @@ const styles = StyleSheet.create({
   },
   upperContainer: {
     paddingTop: 10,
+    backgroundColor: "#F5F5F5",
   },
   scrollContainer: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#F5F5F5",
     marginTop: 15,
-    borderRadius: 20,
+    borderRadius: 25,
     elevation: 5,
     shadowColor: "#c9c7c7ff",
     shadowOpacity: 0.2,
@@ -100,6 +102,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginLeft: 15,
     marginRight: 15,
+    backgroundColor: "#F5F5F5",
   },
   emptyText: {
     fontWeight: "500",

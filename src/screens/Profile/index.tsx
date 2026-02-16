@@ -9,11 +9,20 @@ import {
 import styles from "./styles";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@redux/store";
-import { AntDesign, Feather, MaterialIcons } from "@expo/vector-icons";
+import {
+  AntDesign,
+  Entypo,
+  EvilIcons,
+  Feather,
+  FontAwesome6,
+  Ionicons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
-import { edit, logout, profileImageUrl } from "@redux/slice/authSlice";
+import { logout, profileImageUrl } from "@redux/slice/authSlice";
 import Toast from "react-native-toast-message";
+import RBSheet from "react-native-raw-bottom-sheet";
 import {
   useDeleteImageMutation,
   useDeleteUserMutation,
@@ -22,8 +31,8 @@ import {
 import { db } from "src/db/notes";
 import { notesTable } from "src/db/schema";
 import AccountActions from "@components/atoms/AccountActions";
-import { launchImageLibrary } from "react-native-image-picker";
-import { useEffect, useState } from "react";
+import { launchCamera, launchImageLibrary } from "react-native-image-picker";
+import { useEffect, useRef, useState } from "react";
 
 type ProfileProps = NativeStackScreenProps<RootStackParamList, "Profile">;
 
@@ -33,7 +42,6 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   const username = useSelector((state: RootState) => state.auth.firstName);
   const email = useSelector((state: RootState) => state.auth.email);
   const isGoogle = useSelector((state: RootState) => state.auth.isGoogle);
-  console.log(isGoogle, "googlegoole");
   const profileImage = useSelector(
     (state: RootState) => state.auth.profileImageUrl,
   );
@@ -47,6 +55,9 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   const [deleteApi] = useDeleteUserMutation();
   const [uploadProfile] = useProfileImageMutation();
   const [deleteProfileImage] = useDeleteImageMutation();
+
+  const bottomSheetRef = useRef<any>(null);
+
   async function handleLogout() {
     try {
       await db.delete(notesTable);
@@ -108,7 +119,11 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         }),
       );
       console.log(response, "remove profile");
+      bottomSheetRef.current.close();
     } catch (error) {
+      Toast.show({
+        text1: "Error removing current photo",
+      });
       console.log("Error deleting profile image", error);
     }
   }
@@ -117,7 +132,50 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
     setImage(profileImage);
   }, [profileImage]);
 
-  async function pickFile() {
+  async function openCamera() {
+    try {
+      const result = await launchCamera({
+        mediaType: "photo",
+      });
+
+      if (result.didCancel) return;
+
+      const asset = result.assets?.[0];
+      if (!asset?.uri) return;
+
+      const formData = new FormData();
+      formData.append("image", {
+        uri: asset.uri,
+        type: asset.type || "image/jpeg",
+        name: asset.fileName || "profile.jpg",
+      } as any);
+
+      const response = await uploadProfile(formData).unwrap();
+
+      const newUrl = response?.data?.profileImageUrl;
+
+      if (newUrl) {
+        const Url = `${newUrl}?v=${Date.now()}`;
+
+        dispatch(
+          profileImageUrl({
+            profileImageUrl: Url,
+          }),
+        );
+
+        setImage(Url);
+      }
+      console.log(response);
+      bottomSheetRef?.current?.close();
+    } catch (error) {
+      console.log("Error uploading file", error);
+      Toast.show({
+        text1: "Error uploading image",
+      });
+    }
+  }
+
+  async function pickImage() {
     try {
       const result = await launchImageLibrary({
         mediaType: "photo",
@@ -152,8 +210,12 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         setImage(Url);
       }
       console.log(response);
+      bottomSheetRef?.current?.close();
     } catch (error) {
       console.log("Error uploading file", error);
+      Toast.show({
+        text1: "Error uploading image",
+      });
     }
   }
 
@@ -206,24 +268,14 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         />
         {/* onPress={pickFile} */}
         {!isGoogle && (
-          <>
-            <TouchableOpacity style={styles.deleteImage}>
-              <MaterialIcons
-                name="delete"
-                size={24}
-                color="black"
-                onPress={deleteProfile}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.editImage}>
-              <MaterialIcons
-                name="edit"
-                size={24}
-                color="black"
-                onPress={pickFile}
-              />
-            </TouchableOpacity>
-          </>
+          <TouchableOpacity style={styles.editImage}>
+            <MaterialIcons
+              name="edit"
+              size={24}
+              color="black"
+              onPress={() => bottomSheetRef?.current?.open()}
+            />
+          </TouchableOpacity>
         )}
       </View>
 
@@ -239,6 +291,52 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         <AntDesign name="logout" size={18} color="#fff" />
         <Text style={styles.registerText}>Logout</Text>
       </TouchableOpacity>
+      <RBSheet
+        ref={bottomSheetRef}
+        closeOnPressBack={true}
+        height={280}
+        customStyles={{
+          wrapper: {
+            // backgroundColor: "transparent",
+          },
+          container: {
+            borderRadius: 20,
+            backgroundColor: "#f5f5f5",
+            height: 280,
+          },
+        }}
+      >
+        <View style={styles.bottomsheetContainer}>
+          <Text style={styles.profileText}>Profile Picture</Text>
+          <View style={styles.optionsContainer}>
+            <TouchableOpacity style={styles.optionsStyle} onPress={pickImage}>
+              <Ionicons name="images" size={24} color="#5757f8" />
+              <Text style={styles.optionText}>Choose from Gallery</Text>
+            </TouchableOpacity>
+            <View style={styles.line} />
+            <TouchableOpacity style={styles.optionsStyle} onPress={openCamera}>
+              <Entypo name="camera" size={24} color="#5757f8" />
+              <Text style={styles.optionText}>Take Photo</Text>
+            </TouchableOpacity>
+            <View style={styles.line} />
+
+            <TouchableOpacity
+              style={styles.optionsStyle}
+              onPress={deleteProfile}
+            >
+              <AntDesign name="delete" size={24} color="#5757f8" />
+              <Text style={styles.optionText}>Remove Current Photo</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.close}
+            onPress={() => bottomSheetRef?.current?.close()}
+          >
+            <EvilIcons name="close-o" size={28} color="#5757f8" />
+          </TouchableOpacity>
+        </View>
+      </RBSheet>
     </View>
   );
 }

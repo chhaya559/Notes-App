@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   close: {
     position: "absolute",
     right: 18,
-    top: 14,
+    top: 13,
   },
   pressable: {
     margin: 10,
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
   calendar: {
     position: "absolute",
-    top: 184,
+    top: 193,
     right: 25,
   },
   input: {

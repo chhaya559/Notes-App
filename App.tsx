@@ -14,11 +14,12 @@ import Toast from "react-native-toast-message";
 import * as SplashScreen from "expo-splash-screen";
 import { Provider } from "react-redux";
 import { KeyboardProvider } from "react-native-keyboard-controller";
-// import { PersistGate } from "redux-persist/integration/react";
+import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { PersistGate } from "redux-persist/integration/react";
 import messaging from "@react-native-firebase/messaging";
 import { usePushNotificationMutation } from "@redux/api/authApi";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 SplashScreen.preventAutoHideAsync();
 interface ExtendedText extends Text {
@@ -56,7 +57,10 @@ export default function App() {
               style={{ flex: 1, backgroundColor: "#f5f5f5" }}
               edges={["bottom"]}
             >
-              <RootNavigator />
+              <GestureHandlerRootView>
+                <RootNavigator />
+              </GestureHandlerRootView>
+              <StatusBar style="dark" />
               <Toast />
             </SafeAreaView>
           </KeyboardProvider>

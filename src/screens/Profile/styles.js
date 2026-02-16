@@ -30,8 +30,8 @@ const styles = StyleSheet.create({
     padding: 7,
     borderRadius: 25,
     position: "absolute",
-    right: 0,
-    bottom: 0,
+    right: -2,
+    bottom: -2,
   },
   deleteImage: {
     backgroundColor: "#E0E7FF",
@@ -56,10 +56,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     margin: 10,
   },
-  line: {
-    height: 1,
-    backgroundColor: "#817f7fff",
-  },
+
   view: {
     flexDirection: "row",
     gap: 5,
@@ -103,6 +100,48 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
+  },
+  bottomsheetContainer: {
+    marginLeft: 15,
+    margin: 15,
+  },
+  close: {
+    position: "absolute",
+    right: -2,
+    top: -2,
+  },
+  line: {
+    height: 1,
+    backgroundColor: "#c9c8c8ff",
+    marginLeft: 15,
+    marginRight: 15,
+  },
+  optionsStyle: {
+    padding: 10,
+    paddingLeft: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    textAlignVertical: "center",
+    gap: 20,
+  },
+  profileText: {
+    textAlign: "center",
+    color: "#5757f8",
+    fontWeight: "bold",
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  optionText: {
+    fontWeight: "600",
+    fontSize: 16,
+    color: "#5757f8",
+  },
+  optionsContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    elevation: 3,
+    shadowColor: "#bfbfbfff",
+    shadowOpacity: "0.2",
   },
 });
 export default styles;

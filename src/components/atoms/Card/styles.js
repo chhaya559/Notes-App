@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     marginVertical: 7,
     borderRadius: 20,
-    height: "auto",
+    height: 80,
     width: "auto",
     elevation: 3,
     shadowOpacity: 0.3,
@@ -98,6 +98,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#adadadff",
     borderRadius: 25,
     padding: 6,
+  },
+
+  delete: {
+    position: "absolute",
+    right: 20,
+    top: 7,
+    bottom: 0,
+    width: 300,
+    height: 80,
+    backgroundColor: "red",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 20,
   },
 });
 export default styles;

@@ -1,10 +1,19 @@
 import CustomInput from "@components/atoms/CustomInput";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useGuestConversionMutation } from "@redux/api/authApi";
+import {
+  useGuestConversionMutation,
+  usePushNotificationMutation,
+} from "@redux/api/authApi";
 import { conversion, isGuest } from "@redux/slice/authSlice";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Pressable, Text, View } from "react-native";
+import {
+  PermissionsAndroid,
+  Platform,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import Toast from "react-native-toast-message";
 import { useDispatch } from "react-redux";
 import { registerSchema } from "src/validations/registerSchema";
@@ -12,6 +21,7 @@ import style from "./styles";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import messaging from "@react-native-firebase/messaging";
 
 type ConversionProps = NativeStackScreenProps<
   RootStackParamList,
@@ -34,9 +44,46 @@ export default function GuestConversion({
       password: "",
     },
   });
+
+  const [pushApi] = usePushNotificationMutation();
+
+  async function handleTokenSend(token: string) {
+    try {
+      const response = await pushApi({
+        token: token,
+        platform: Platform.OS,
+      }).unwrap();
+
+      console.log(Platform.OS, "fhrufhir");
+      console.log("Device token send response", response);
+    } catch (err) {
+      console.log("Error sending device token", err);
+    }
+  }
+
+  async function requestUserPermission() {
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    const token = await messaging().getToken();
+    console.log(token, "FCM token");
+
+    if (enabled) {
+      handleTokenSend(token);
+      console.log("Authorization status:", authStatus);
+    }
+  }
+
+  useEffect(() => {
+    PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+    );
+  }, []);
   const dispatch = useDispatch();
   const [conversionApi] = useGuestConversionMutation();
-  const [isVisible, setIsVisible] = useState(false);
+  // const [isVisible, setIsVisible] = useState(false);
 
   async function handleConversion(data: any) {
     try {
@@ -67,6 +114,7 @@ export default function GuestConversion({
         Toast.show({
           text1: "Guest converted to User",
         });
+        requestUserPermission();
       }
     } catch (error: any) {
       console.log(error);
@@ -168,11 +216,11 @@ export default function GuestConversion({
               onChangeText={onChange}
               onBlur={onBlur}
               isPassword
-              isVisible={isVisible}
-              onToggleVisibility={() => {
-                setIsVisible((prev) => !prev);
-              }}
-              secureTextEntry={!isVisible}
+              // isVisible={isVisible}
+              // onToggleVisibility={() => {
+              //   setIsVisible((prev) => !prev);
+              // }}
+              // secureTextEntry={!isVisible}
             />
           )}
         />

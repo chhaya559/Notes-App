@@ -15,4 +15,5 @@ export enum ROUTES {
   NOTESPASSWORD = "NotesPassword",
   CHANGENOTEPASSWORD = "ChangeNotePassword",
   NOTIFICATIONS = "Notifications",
+  SLIDER = "Slider",
 }

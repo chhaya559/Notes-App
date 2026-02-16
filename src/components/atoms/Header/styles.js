@@ -4,7 +4,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: "#f5f5f5",
     flexDirection: "row",
-    paddingTop: 60,
+    paddingTop: 50,
     justifyContent: "space-between",
     padding: 15,
     paddingBottom: 0,
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     marginLeft: -35,
   },
   headerButton: {
-    backgroundColor: "#e6e4e4",
+    backgroundColor: "#E0E7FF",
     borderRadius: 50,
     marginTop: 0,
     justifyContent: "center",

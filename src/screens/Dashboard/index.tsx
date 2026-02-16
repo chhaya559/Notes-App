@@ -22,6 +22,7 @@ import { useNetInfo } from "@react-native-community/netinfo";
 import useDebounce from "src/debounce/debounce";
 import { lockNotes } from "@redux/slice/authSlice";
 import { useFocusEffect } from "@react-navigation/native";
+import Slider from "@screens/Slider";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
 type Note = {
@@ -37,10 +38,12 @@ type Note = {
 };
 export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [notes, setNotes] = useState<Note[]>([]);
+  const [allNotes, setAllNotes] = useState<Note[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const [searchText, setSearchText] = useState("");
   const userId = useSelector((state: RootState) => state.auth.token);
   const { isConnected } = useNetInfo();
+  const [page, setPage] = useState(1);
   const isNotesUnlocked = useSelector(
     (state: RootState) => state.auth.isNotesUnlocked,
   );
@@ -49,13 +52,26 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     setSearchText("");
   }
 
-  const { data, refetch } = useGetQuery<any>(undefined, {
-    refetchOnFocus: true,
-    refetchOnMountOrArgChange: true,
-  });
+  const { data, refetch, isFetching } = useGetQuery<any>(
+    {
+      pageSize: 10,
+      pageNumber: page,
+    },
+    {
+      refetchOnFocus: true,
+      refetchOnMountOrArgChange: true,
+    },
+  );
   const notesUnlockUntil = useSelector(
     (state: RootState) => state.auth.notesUnlockUntil,
   );
+
+  const loadMore = () => {
+    if (!isFetching && data?.data?.length === 10) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
   const dispatch = useDispatch();
   useEffect(() => {
     if (!notesUnlockUntil) return;
@@ -73,6 +89,17 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
 
     return () => clearTimeout(timer);
   }, [notesUnlockUntil]);
+
+  useEffect(() => {
+    if (!data?.data) return;
+
+    if (page === 1) {
+      setAllNotes(data.data);
+    } else {
+      setAllNotes((prev) => [...prev, ...data.data]);
+    }
+  }, [data]);
+  console.log(allNotes);
 
   const loadNotes = useCallback(async () => {
     if (!userId) return;
@@ -100,8 +127,9 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const syncNotes = useCallback(async () => {
     if (!data?.data || !userId) return;
 
-    await db.delete(notesTable).where(eq(notesTable.userId, userId));
-
+    if (page === 1) {
+      await db.delete(notesTable).where(eq(notesTable.userId, userId));
+    }
     for (const note of data.data) {
       await db
         .insert(notesTable)
@@ -153,26 +181,15 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     run();
   }, [data, isConnected, userId]);
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     if (!isConnected || !userId) return;
-
-  //     async function run() {
-  //       await syncNotes();
-  //       await loadNotes();
-  //     }
-
-  //     run();
-  //   }, [data, isConnected, userId]),
-  // );
-
   useFocusEffect(
     useCallback(() => {
       if (userId) {
+        setPage(1);
         refetch();
       }
     }, [userId]),
   );
+
   //search
   const debouncedSearch = useDebounce(searchText, 200);
 
@@ -184,7 +201,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
 
   const displayNotes = isSearching
     ? (SearchedNotes?.data ?? [])
-    : (notes ?? []);
+    : (allNotes ?? []);
 
   return (
     <View style={styles.container}>
@@ -247,6 +264,8 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
               isLocked={item.isLocked}
             />
           )}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.3}
           ListEmptyComponent={() => {
             if (isSearching) {
               return (
@@ -258,6 +277,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
                 </View>
               );
             }
+
             return (
               <View style={styles.emptyContainer}>
                 <Image

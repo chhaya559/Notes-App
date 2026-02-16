@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     gap: 10,
     backgroundColor: "#f5f5f5",
-    marginTop: 20,
+    paddingTop: 20,
   },
   error: {
     textAlign: "left",

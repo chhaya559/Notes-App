@@ -25,10 +25,14 @@ export const noteApi = createApi({
       }),
       invalidatesTags: ["Notes"],
     }),
-    get: builder.query<any, void>({
-      query: () => ({
+    get: builder.query<any, { pageNumber?: number; pageSize: number }>({
+      query: ({ pageNumber, pageSize }) => ({
         url: "/Notes",
         method: "GET",
+        params: {
+          pageNumber,
+          pageSize,
+        },
       }),
       providesTags: ["Notes"],
     }),
@@ -89,10 +93,14 @@ export const noteApi = createApi({
         body: data,
       }),
     }),
-    getNotifications: builder.query({
-      query: () => ({
+    getNotifications: builder.query<
+      any,
+      { pageNumber: number; pageSize: number }
+    >({
+      query: ({ pageNumber = 1, pageSize = 10 }) => ({
         url: "/notifications",
         method: "GET",
+        params: { pageNumber, pageSize },
       }),
       providesTags: ["Notifications"],
     }),

@@ -1,16 +1,12 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect } from "react";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import styles from "./styles";
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import messaging from "@react-native-firebase/messaging";
-import {
-  useGetNotificationsCountQuery,
-  useGetNotificationsQuery,
-} from "@redux/api/noteApi";
+import { useGetNotificationsCountQuery } from "@redux/api/noteApi";
 import { RootState } from "@redux/store";
 import { useSelector } from "react-redux";
-import style from "@screens/GuestConversion/styles";
 
 export default function DashboardHeader() {
   const navigation = useNavigation<any>();
@@ -18,30 +14,30 @@ export default function DashboardHeader() {
   const profileImage = useSelector(
     (state: RootState) => state.auth.profileImageUrl,
   );
-  const [unreadCount, setUnreadCount] = useState(0);
 
-  const { data: countResponse, refetch: refetchCount } =
-    useGetNotificationsCountQuery(undefined, {
+  const { data: countResponse, refetch } = useGetNotificationsCountQuery(
+    undefined,
+    {
       refetchOnFocus: true,
       refetchOnMountOrArgChange: true,
-    });
+    },
+  );
+
+  const unreadCount = countResponse?.data.unreadCount ?? countResponse ?? 0;
 
   useFocusEffect(
     useCallback(() => {
-      refetchCount();
-    }, [refetchCount]),
+      refetch();
+    }, [refetch]),
   );
 
   useEffect(() => {
-    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
-      const data = remoteMessage?.data || remoteMessage?.notification;
-
-      if (!data) return;
-      setUnreadCount((prev) => prev + 1);
+    const unsubscribe = messaging().onMessage(async () => {
+      refetch();
     });
 
     return unsubscribe;
-  }, []);
+  }, [refetch]);
 
   return (
     <View style={styles.outer}>
@@ -51,6 +47,7 @@ export default function DashboardHeader() {
           color="#5757f8"
           size={40}
         />
+
         {unreadCount > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>

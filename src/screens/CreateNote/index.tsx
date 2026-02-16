@@ -207,23 +207,6 @@ export default function CreateNote({
   const isDeletingRef = useRef(false);
   const isSavedRef = useRef(false);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
-      console.log("back press");
-      if (isSavedRef.current) {
-        return;
-      }
-      if (isDeletingRef.current) {
-        return;
-      }
-      handleSave(false);
-      console.log("after save");
-    });
-
-    return unsubscribe;
-  }, [navigation, notes]);
-  console.log(navigation, "navigationnavigation");
-
   async function toggleLock() {
     if (!noteId) {
       Toast.show({ text1: "Save note before locking" });
@@ -465,12 +448,27 @@ export default function CreateNote({
       console.log("Open file error:", error);
     }
   }
-
+  function handleBackSave() {
+    handleSave(true);
+  }
   useEffect(() => {
     navigation.setOptions({
       headerStyle: {
         backgroundColor: noteBackground,
       },
+      headerLeft: () => (
+        <TouchableOpacity
+          onPress={() => handleBackSave()}
+          style={styles.headerButton}
+        >
+          <Ionicons
+            name="arrow-back-outline"
+            size={26}
+            color="#5757f8"
+            style={{ padding: 5 }}
+          />
+        </TouchableOpacity>
+      ),
       headerRight: () => (
         <View style={styles.header}>
           <TouchableOpacity onPress={() => handleSave()}>
@@ -589,6 +587,7 @@ export default function CreateNote({
             />
           )}
         </View>
+
         {previewImage && (
           <View
             style={{
@@ -809,7 +808,12 @@ export default function CreateNote({
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.optionButton}
-                  onPress={toggleColorPaletteVisibility}
+                  onPress={() => {
+                    toggleColorPaletteVisibility();
+                    headerModalVisibility
+                      ? toggleHeaderModalVisibility()
+                      : null;
+                  }}
                 >
                   <Ionicons
                     name="color-palette-outline"
@@ -818,7 +822,12 @@ export default function CreateNote({
                   />
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={toggleHeaderModalVisibility}
+                  onPress={() => {
+                    toggleHeaderModalVisibility();
+                    isColorPaletteVisible
+                      ? toggleColorPaletteVisibility()
+                      : null;
+                  }}
                   style={styles.optionButton}
                 >
                   {headerModalVisibility ? (
