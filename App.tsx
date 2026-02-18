@@ -53,16 +53,16 @@ export default function App() {
       <PersistGate persistor={persistor}>
         <SafeAreaProvider>
           <KeyboardProvider>
-            <SafeAreaView
+            {/* <SafeAreaView
               style={{ flex: 1, backgroundColor: "#f5f5f5" }}
               edges={["bottom"]}
-            >
-              <GestureHandlerRootView>
-                <RootNavigator />
-              </GestureHandlerRootView>
-              <StatusBar style="dark" />
-              <Toast />
-            </SafeAreaView>
+            > */}
+            <GestureHandlerRootView>
+              <RootNavigator />
+            </GestureHandlerRootView>
+            <StatusBar style="dark" />
+            <Toast />
+            {/* </SafeAreaView> */}
           </KeyboardProvider>
         </SafeAreaProvider>
       </PersistGate>

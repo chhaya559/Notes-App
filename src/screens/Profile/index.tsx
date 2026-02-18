@@ -5,6 +5,9 @@ import {
   Pressable,
   TouchableOpacity,
   Alert,
+  Platform,
+  PermissionsAndroid,
+  ScrollView,
 } from "react-native";
 import styles from "./styles";
 import { useDispatch, useSelector } from "react-redux";
@@ -33,6 +36,7 @@ import { notesTable } from "src/db/schema";
 import AccountActions from "@components/atoms/AccountActions";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import { useEffect, useRef, useState } from "react";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 type ProfileProps = NativeStackScreenProps<RootStackParamList, "Profile">;
 
@@ -61,6 +65,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   async function handleLogout() {
     try {
       await db.delete(notesTable);
+      GoogleSignin.signOut();
       dispatch(logout());
     } catch (error) {
       console.log("Logout failed", error);
@@ -137,6 +142,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       const result = await launchCamera({
         mediaType: "photo",
       });
+      bottomSheetRef?.current?.close();
 
       if (result.didCancel) return;
 
@@ -166,7 +172,6 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         setImage(Url);
       }
       console.log(response);
-      bottomSheetRef?.current?.close();
     } catch (error) {
       console.log("Error uploading file", error);
       Toast.show({
@@ -177,10 +182,35 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
 
   async function pickImage() {
     try {
+      if (Platform.OS === "android") {
+        const apiLevel = parseInt(Platform.Version.toString(), 10);
+
+        if (apiLevel < 33) {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+            {
+              title: "Gallery Permission",
+              message:
+                "Your app needs access to your gallery to select photos.",
+              buttonNeutral: "Ask Me Later",
+              buttonNegative: "Cancel",
+              buttonPositive: "OK",
+            },
+          );
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log("Gallery permission granted");
+          } else {
+            console.log("Gallery permission denied");
+            return;
+          }
+        }
+      }
+
       const result = await launchImageLibrary({
         mediaType: "photo",
         selectionLimit: 1,
       });
+      bottomSheetRef?.current?.close();
 
       if (result.didCancel) return;
 
@@ -210,12 +240,17 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         setImage(Url);
       }
       console.log(response);
-      bottomSheetRef?.current?.close();
     } catch (error) {
       console.log("Error uploading file", error);
-      Toast.show({
-        text1: "Error uploading image",
-      });
+      if (error?.data?.errors[0]) {
+        Toast.show({
+          text1: error?.data?.errors[0],
+        });
+      } else {
+        Toast.show({
+          text1: "Error uploading image",
+        });
+      }
     }
   }
 
@@ -251,7 +286,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
     );
   }
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} bounces={false}>
       <View style={styles.upperContainer}>
         <Text style={styles.text}>Manage your account settings</Text>
       </View>
@@ -337,6 +372,6 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
           </TouchableOpacity>
         </View>
       </RBSheet>
-    </View>
+    </ScrollView>
   );
 }

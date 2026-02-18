@@ -110,6 +110,20 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    forgotNotesPassword: builder.mutation({
+      query: (data) => ({
+        url: "/auth/forgot-notes-password",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    resetNotesPassword: builder.mutation({
+      query: (data) => ({
+        url: "/auth/reset-notes-password",
+        method: "POST",
+        body: data,
+      }),
+    }),
     pushNotification: builder.mutation({
       query: (data) => ({
         url: "/push/register",
@@ -135,4 +149,6 @@ export const {
   usePushNotificationMutation,
   useProfileImageMutation,
   useDeleteImageMutation,
+  useResetNotesPasswordMutation,
+  useForgotNotesPasswordMutation,
 } = authApi;

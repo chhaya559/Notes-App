@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@redux/store";
 import { logout } from "@redux/slice/authSlice";
 import Toast from "react-native-toast-message";
+import ForgotPassword from "@screens/ForgotPassword";
 
 type props = {
   hasCommonPassword: boolean;
@@ -63,7 +64,10 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
           </Pressable>
           <Text style={styles.text}>Edit Profile Info</Text>
         </View>
-        <TouchableOpacity style={styles.actionIcon}>
+        <TouchableOpacity
+          style={styles.actionIcon}
+          onPress={() => navigation.navigate("EditProfile")}
+        >
           <SimpleLineIcons name="arrow-right" size={18} />
         </TouchableOpacity>
       </TouchableOpacity>
@@ -79,7 +83,10 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
             </Pressable>
             <Text style={styles.text}>Change Password</Text>
           </View>
-          <TouchableOpacity style={styles.actionIcon}>
+          <TouchableOpacity
+            style={styles.actionIcon}
+            onPress={() => navigation.navigate("EditProfile")}
+          >
             <SimpleLineIcons name="arrow-right" size={18} />
           </TouchableOpacity>
         </TouchableOpacity>
@@ -96,7 +103,32 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
             </Pressable>
             <Text style={styles.text}>Notes Password</Text>
           </View>
-          <TouchableOpacity style={styles.actionIcon}>
+          <TouchableOpacity
+            style={styles.actionIcon}
+            onPress={() => navigation.navigate("EditProfile")}
+          >
+            <SimpleLineIcons name="arrow-right" size={18} />
+          </TouchableOpacity>
+        </TouchableOpacity>
+      )}
+      <View style={styles.line} />
+      {hasCommonPassword && (
+        <TouchableOpacity
+          style={styles.wrapper}
+          onPress={() =>
+            navigation.navigate("ForgotPassword", { name: "notes" })
+          }
+        >
+          <View style={styles.wrap}>
+            <Pressable style={styles.iconWrap}>
+              <MaterialIcons name="password" size={20} style={{ padding: 3 }} />
+            </Pressable>
+            <Text style={styles.text}>Reset Notes Password</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.actionIcon}
+            onPress={() => navigation.navigate("EditProfile")}
+          >
             <SimpleLineIcons name="arrow-right" size={18} />
           </TouchableOpacity>
         </TouchableOpacity>
@@ -109,7 +141,7 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
           </Pressable>
           <Text style={styles.text}>Delete Account</Text>
         </View>
-        <TouchableOpacity style={styles.actionIcon}>
+        <TouchableOpacity style={styles.actionIcon} onPress={confirmDelete}>
           <SimpleLineIcons name="arrow-right" size={18} />
         </TouchableOpacity>
       </TouchableOpacity>

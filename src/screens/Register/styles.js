@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#5a5a5aff",
     marginTop: 10,
-    marginBottom: 10,
+    marginBottom: 7,
     textAlign: "center",
   },
   innerContainer: {

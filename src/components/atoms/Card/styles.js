@@ -101,16 +101,19 @@ const styles = StyleSheet.create({
   },
 
   delete: {
-    position: "absolute",
-    right: 20,
-    top: 7,
-    bottom: 0,
-    width: 300,
-    height: 80,
     backgroundColor: "red",
-    justifyContent: "center",
-    alignItems: "center",
+    padding: 15,
+    marginHorizontal: 10,
+    marginVertical: 7,
     borderRadius: 20,
+    height: 80,
+    width: 60,
+    // position: "absolute",
+  },
+  deleteIcon: {
+    // position: "absolute",
+    top: 20,
+    right: 20,
   },
 });
 export default styles;

@@ -2,20 +2,23 @@ import CustomInput from "@components/atoms/CustomInput";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import style from "@screens/GuestConversion/styles";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Text, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
 import { RootStackParamList } from "src/navigation/types";
 import { NotesSchema } from "src/validations/NotesPassword";
 import styles from "./styles";
-import { useUpdateMutation } from "@redux/api/noteApi";
-import { useDispatch } from "react-redux";
+import { useSearchNotesQuery, useUpdateMutation } from "@redux/api/noteApi";
+import { useDispatch, useSelector } from "react-redux";
 import { setCommonPasswordSet } from "@redux/slice/authSlice";
 import { db } from "src/db/notes";
 import { notesTable } from "src/db/schema";
 import { eq } from "drizzle-orm";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import * as Linking from "expo-linking";
+import { useResetNotesPasswordMutation } from "@redux/api/authApi";
+import { RootState } from "@redux/store";
 
 type NotesPasswordProps = NativeStackScreenProps<
   RootStackParamList,
@@ -26,6 +29,10 @@ export default function NotesPassword({
   route,
 }: Readonly<NotesPasswordProps>) {
   const [updateNote, { isLoading }] = useUpdateMutation();
+  const [resetNotesApi] = useResetNotesPasswordMutation();
+  const hasCommonPassword = useSelector(
+    (state: RootState) => state.auth.isCommonPasswordSet,
+  );
   const {
     control,
     handleSubmit,
@@ -37,36 +44,53 @@ export default function NotesPassword({
       confirmPassword: "",
     },
   });
+  const url = Linking.useLinkingURL();
 
+  const resetToken = useMemo(() => {
+    if (!url) return null;
+    const parsed = Linking.parse(url);
+    return parsed.queryParams?.token as string | null;
+  }, [url]);
   const dispatch = useDispatch();
-  // const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  // const [isConfirmVisible, setIsConfirmVisible] = useState(false);
+
   const noteID = route?.params?.id;
   const title = route?.params?.title ?? "";
   const content = route?.params?.content ?? "";
 
   async function handle(data: any) {
     try {
-      const response = await updateNote({
-        id: noteID,
-        title,
-        content,
-        isPasswordProtected: true,
-        password: data.password,
-      }).unwrap();
+      if (hasCommonPassword) {
+        const response = await resetNotesApi({
+          newNotesPassword: data.password,
+          token: resetToken,
+        }).unwrap();
+        if (response.success) {
+          Toast.show({ text1: "Password set successfully!" });
+          navigation.goBack();
+        }
+      } else {
+        console.log("fjhfj");
+        const response = await updateNote({
+          id: noteID,
+          title,
+          content,
+          isPasswordProtected: true,
+          password: data.password,
+        }).unwrap();
 
-      console.log(response, "response from lock api");
-      if (response.success) {
-        dispatch(setCommonPasswordSet(true));
-        await db
-          .update(notesTable)
-          .set({
-            isPasswordProtected: 1,
-            updatedAt: new Date().toISOString(),
-          })
-          .where(eq(notesTable.id, noteID));
-        Toast.show({ text1: "Password set successfully!" });
-        navigation.goBack();
+        console.log(response, "response from lock api");
+        if (response.success) {
+          dispatch(setCommonPasswordSet(true));
+          await db
+            .update(notesTable)
+            .set({
+              isPasswordProtected: 1,
+              updatedAt: new Date().toISOString(),
+            })
+            .where(eq(notesTable.id, noteID));
+          Toast.show({ text1: "Password set successfully!" });
+          navigation.goBack();
+        }
       }
     } catch (error: any) {
       if (error?.data?.message) {
@@ -84,10 +108,6 @@ export default function NotesPassword({
 
   return (
     <KeyboardAwareScrollView style={styles.container}>
-      <Text style={{ fontSize: 20, fontWeight: "500", textAlign: "center" }}>
-        Set Password
-      </Text>
-
       <Controller
         control={control}
         name="password"

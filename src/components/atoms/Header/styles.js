@@ -15,9 +15,10 @@ const styles = StyleSheet.create({
   },
   right: {},
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
     marginLeft: -35,
+    paddingTop: 5,
   },
   headerButton: {
     backgroundColor: "#E0E7FF",

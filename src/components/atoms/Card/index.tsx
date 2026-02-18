@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Pressable } from "react-native";
+import { View, Text, TouchableOpacity, Pressable, Alert } from "react-native";
 import styles from "./styles";
 import { AntDesign, Feather, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -10,21 +10,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { setNotesUnlocked, lockNotes } from "@redux/slice/authSlice";
 import { useDeleteMutation, useUnlockNoteMutation } from "@redux/api/noteApi";
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from "react-native-gesture-handler";
-import Animated, {
-  createAnimatedComponent,
-  useAnimatedStyle,
-  useSharedValue,
-} from "react-native-reanimated";
 import { db } from "src/db/notes";
+import Reanimated, {
+  SharedValue,
+  useAnimatedStyle,
+} from "react-native-reanimated";
+import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { notesTable } from "src/db/schema";
 import { and, eq } from "drizzle-orm";
 import { useNetInfo } from "@react-native-community/netinfo";
-import { runOnJS } from "react-native-worklets";
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("en-IN", {
     day: "2-digit",
@@ -41,13 +35,15 @@ export default function Card(props: any) {
   const userId = useSelector((state: RootState) => state.auth.token);
   const { isConnected } = useNetInfo();
   const [deleteApi] = useDeleteMutation();
-  const { isNotesUnlocked, notesUnlockUntil } = useSelector(
-    (state: RootState) => state.auth,
+  const notesUnlockUntil = useSelector(
+    (state: RootState) => state.auth.notesUnlockUntil,
+  );
+  const isNotesUnlocked = useSelector(
+    (state: RootState) => state.auth.isNotesUnlocked,
   );
 
   const [unlockNote] = useUnlockNoteMutation();
-  const AnimatedTouchableOpacity =
-    Animated.createAnimatedComponent(TouchableOpacity);
+
   const [showLockedModal, setShowLockedModal] = useState(false);
 
   const [unlockValue, setUnlockValue] = useState<{
@@ -123,7 +119,10 @@ export default function Card(props: any) {
   }
 
   function handlePress() {
-    if (props.isLocked && !isNotesUnlocked) {
+    const isStillUnlocked =
+      isNotesUnlocked && notesUnlockUntil && Date.now() < notesUnlockUntil;
+
+    if ((props.isLocked || props.isPasswordProtected) && !isStillUnlocked) {
       setShowLockedModal(true);
       return;
     }
@@ -131,27 +130,44 @@ export default function Card(props: any) {
     navigation.navigate("CreateNote", { id: props.id });
   }
 
-  const offset = useSharedValue(0);
-
-  const pan = Gesture.Pan()
-    .onUpdate((event) => {
-      if (event.translationX < 0) {
-        offset.value = event.translationX;
-      }
-    })
-    .onEnd(() => {
-      if (offset.value < 100) {
-        runOnJS(handleDelete)();
-      } else {
-        offset.value = 0;
-      }
+  function confirmDelete() {
+    Alert.alert(
+      "Delete Account",
+      "This action is permanent. Are you sure?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: handleDelete },
+      ],
+      { cancelable: true },
+    );
+  }
+  function RightAction(
+    progress: SharedValue<number>,
+    translation: SharedValue<number>,
+  ) {
+    const animatedStyle = useAnimatedStyle(() => {
+      return {
+        translateX: translation.value + 70,
+      };
     });
 
-  const sliderStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateX: offset.value }],
-    };
-  });
+    return (
+      <Reanimated.View style={[styles.delete, animatedStyle]}>
+        <TouchableOpacity
+          onPress={confirmDelete}
+          style={{ position: "absolute", right: 0, top: 0 }}
+        >
+          <MaterialIcons
+            name="delete-outline"
+            size={38}
+            color="white"
+            style={styles.deleteIcon}
+          />
+        </TouchableOpacity>
+      </Reanimated.View>
+    );
+  }
+
   return (
     <>
       {showLockedModal && (
@@ -203,15 +219,16 @@ export default function Card(props: any) {
         </Modal>
       )}
       <View>
-        <View style={styles.delete}>
-          <MaterialIcons name="delete" size={24} color="black" />
-        </View>
-        <GestureDetector gesture={pan}>
-          <AnimatedTouchableOpacity
+        <ReanimatedSwipeable
+          enabled={!props.isPasswordProtected}
+          enableTrackpadTwoFingerGesture
+          renderRightActions={RightAction}
+          rightThreshold={10}
+        >
+          <TouchableOpacity
             style={[
               styles.container,
               { backgroundColor: props.backgroundColor },
-              sliderStyle,
             ]}
             onPress={handlePress}
           >
@@ -234,8 +251,8 @@ export default function Card(props: any) {
                 </Pressable>
               ) : null}
             </View>
-          </AnimatedTouchableOpacity>
-        </GestureDetector>
+          </TouchableOpacity>
+        </ReanimatedSwipeable>
       </View>
     </>
   );

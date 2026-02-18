@@ -32,6 +32,7 @@ const linking = {
   config: {
     screens: {
       ResetPassword: "reset-password",
+      NotesPassword: "reset-notes-password",
     },
   },
 };
@@ -52,11 +53,19 @@ const RootNavigator = () => {
                 component={Onboarding}
                 options={{ headerShown: false }}
               />
+              <Stack.Screen
+                name={ROUTES.EDITPROFILE}
+                component={EditProfile}
+                options={() => ({
+                  title: "Edit Profile",
+                })}
+              />
               <Stack.Screen name={ROUTES.LOGIN} component={Login} />
               <Stack.Screen
                 name={ROUTES.FORGOTPASSWORD}
                 component={ForgotPassword}
               />
+
               <Stack.Screen
                 name={ROUTES.RESETPASSWORD}
                 component={ResetPassword}
@@ -123,6 +132,10 @@ const RootNavigator = () => {
                 options={() => ({
                   title: "Notifications",
                 })}
+              />
+              <Stack.Screen
+                name={ROUTES.FORGOTPASSWORD}
+                component={ForgotPassword}
               />
               <Stack.Screen
                 name={ROUTES.SLIDER}

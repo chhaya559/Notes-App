@@ -3,7 +3,9 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   Dashboard: undefined;
-  ForgotPassword: undefined;
+  ForgotPassword: {
+    name?: string;
+  };
   Reminders: undefined;
   Profile: undefined;
   CreateNote: {

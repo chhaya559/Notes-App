@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   add: {
     position: "absolute",
 
-    bottom: 20,
+    bottom: 60,
     //left: 20,
     right: 20,
     elevation: 6,
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   listContent: {
-    paddingBottom: 30,
+    paddingBottom: 0,
     paddingTop: 10,
     paddingHorizontal: 10,
   },

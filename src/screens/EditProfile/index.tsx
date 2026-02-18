@@ -57,7 +57,11 @@ export default function EditProfile({
         Toast.show({
           text1: "Profile updated successfully!",
         });
-        navigation.goBack();
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          navigation.navigate("Dashboard");
+        }
       }
     } catch (error) {
       console.log(error);
@@ -83,7 +87,7 @@ export default function EditProfile({
             text="First Name"
             placeholder={firstName ?? undefined}
             color="#707070ff"
-            value={value}
+            value={value?.trim()}
             onChangeText={onChange}
             onBlur={onBlur}
           />
@@ -100,7 +104,7 @@ export default function EditProfile({
             text="Last Name"
             placeholder={lastName ?? undefined}
             color="#707070ff"
-            value={value}
+            value={value?.trim()}
             onChangeText={onChange}
             onBlur={onBlur}
           />
@@ -117,7 +121,7 @@ export default function EditProfile({
             text="Username"
             placeholder={username ?? undefined}
             color="#707070ff"
-            value={value}
+            value={value?.trim()}
             onChangeText={onChange}
             onBlur={onBlur}
           />

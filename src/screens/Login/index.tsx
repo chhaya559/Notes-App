@@ -126,6 +126,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
         type: "success",
         text1: "Logged in with google",
       });
+
       requestUserPermission();
     } catch (error: any) {
       console.log("Google Sign-In Error:", error);

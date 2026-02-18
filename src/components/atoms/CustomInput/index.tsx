@@ -43,6 +43,8 @@ export default function CustomInput({
           autoCapitalize="none"
           onFocus={() => setFocused(true)}
           secureTextEntry={isPassword ? !isVisible : false}
+          cursorColor="#5757f8"
+          selectionColor="#5757f8"
         />
         {isPassword && (
           <Pressable onPress={onToggleVisibility} style={styles.icon}>

@@ -94,6 +94,9 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
     });
   }, []);
 
+  navigation.setOptions({
+    title: "Create Account",
+  });
   async function handleGoogleSignin() {
     try {
       await GoogleSignin.hasPlayServices();
@@ -122,6 +125,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           isNotesUnlocked: response.data.isNotesUnlocked,
         }),
       );
+      navigation.navigate("EditProfile");
       Toast.show({
         type: "success",
         text1: "Logged in with gogle",
@@ -136,8 +140,14 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
   }
   async function handleSignup(data: any) {
     try {
-      const response = await registerApi(data).unwrap();
-      console.log(response);
+      const response = await registerApi({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        userName: data.username,
+        email: data.email,
+        password: data.password,
+      }).unwrap();
+      console.log(response, "ffgufgr");
       if (response.success) {
         dispatch(
           register({
@@ -154,13 +164,9 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
         requestUserPermission();
       } else {
         Alert.alert("Signup failed", response.message);
+        console.log(response, "dweugjdl");
       }
     } catch (error: any) {
-      if (error.data.Errors.includes("Email already exists")) {
-        Toast.show({
-          text1: "Email already exists",
-        });
-      }
       if (error.data.message) {
         Toast.show({
           text1: error.data.message,
@@ -176,10 +182,9 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
   return (
     <KeyboardAwareScrollView style={[styles.container]}>
       {/* <ScrollView contentContainerStyle={styles.container} scrollEnabled={true}> */}
-      <View style={styles.innerContainer}>
-        <Text style={styles.heading}>Create Account</Text>
-        <Text style={styles.text}>Join NoteSmart today</Text>
-      </View>
+      {/* <View style={styles.innerContainer}> */}
+      <Text style={styles.text}>Join NoteSmart today</Text>
+      {/* </View> */}
       <View>
         <Controller
           control={control}

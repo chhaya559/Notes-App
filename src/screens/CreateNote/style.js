@@ -105,6 +105,7 @@ const styles = StyleSheet.create({
   options: {
     flexDirection: "row",
     justifyContent: "space-around",
+    paddingBottom: 25,
     //elevation: 5,
   },
   optionButton: {
@@ -179,6 +180,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
     borderRadius: 8,
     backgroundColor: "#DDE3FF",
+    height: 50,
   },
 });
 

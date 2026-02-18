@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import {
   TextInput,
   View,
@@ -95,6 +101,15 @@ export default function CreateNote({
       // handleSave(false);
     };
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+      if (isSavedRef.current) return;
+      handleSave();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   useFocusEffect(
     useCallback(() => {
@@ -246,6 +261,7 @@ export default function CreateNote({
   const [optionsVisible, setOptionsVisible] = useState(true);
   const [existingFiles, setExistingFiles] = useState<string[]>([]);
   const [files, setFiles] = useState<DocumentPickerResponse[]>([]);
+
   async function pickFile() {
     try {
       const result = await pick({
@@ -260,6 +276,7 @@ export default function CreateNote({
   async function removeFile(filePath: any) {
     setFiles((prev) => prev.filter((item) => item !== filePath));
   }
+
   async function DeleteFilefromNote(filePath: string) {
     console.log(filePath, "filepathfilepath");
     try {
@@ -269,6 +286,7 @@ export default function CreateNote({
       }).unwrap();
 
       Toast.show({ text1: "File removed" });
+      setExistingFiles((prev) => prev.filter((item) => item !== filePath));
     } catch (error) {
       console.log("Error removing file", error);
       Toast.show({ text1: "Failed to remove file" });
@@ -343,8 +361,13 @@ export default function CreateNote({
           type: "error",
           text1: error.data.errors[0],
         });
+      } else if (error?.data.message) {
+        Toast.show({
+          type: "error",
+          text1: error?.data.message,
+        });
       }
-      console.log("Save error:", error?.data ?? error);
+      console.log("Save error:", error?.data.message ?? error);
     }
   }
 
@@ -448,27 +471,26 @@ export default function CreateNote({
       console.log("Open file error:", error);
     }
   }
-  function handleBackSave() {
-    handleSave(true);
-  }
+
   useEffect(() => {
+    console.log(noteBackground, "gkfgh");
     navigation.setOptions({
       headerStyle: {
         backgroundColor: noteBackground,
       },
-      headerLeft: () => (
-        <TouchableOpacity
-          onPress={() => handleBackSave()}
-          style={styles.headerButton}
-        >
-          <Ionicons
-            name="arrow-back-outline"
-            size={26}
-            color="#5757f8"
-            style={{ padding: 5 }}
-          />
-        </TouchableOpacity>
-      ),
+      // headerLeft: () => (
+      //   <TouchableOpacity
+      //     onPress={() => navigation.goBack()}
+      //     style={styles.headerButton}
+      //   >
+      //     <Ionicons
+      //       name="arrow-back-outline"
+      //       size={26}
+      //       color="#5757f8"
+      //       style={{ padding: 5 }}
+      //     />
+      //   </TouchableOpacity>
+      // ),
       headerRight: () => (
         <View style={styles.header}>
           <TouchableOpacity onPress={() => handleSave()}>
@@ -509,7 +531,7 @@ export default function CreateNote({
   const richText = useRef<RichEditor | null>(null);
   return (
     <KeyboardAvoidingView
-      style={[styles.all]}
+      style={[styles.all, { backgroundColor: noteBackground }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={[styles.container, { backgroundColor: noteBackground }]}>
@@ -523,6 +545,8 @@ export default function CreateNote({
           }
           onFocus={() => setOptionsVisible(false)}
           onBlur={() => setOptionsVisible(true)}
+          selectionColor="#5757f8"
+          cursorColor="#5757f8"
         />
         <ScrollView
           bounces={false}
@@ -560,7 +584,7 @@ export default function CreateNote({
           </View>
         </ScrollView>
         <View style={{ padding: 10 }}>
-          {files.length > 0 && (
+          {files.length > 0 ? (
             <FlatList
               data={files}
               keyExtractor={(item, index) => index.toString()}
@@ -585,6 +609,37 @@ export default function CreateNote({
                 </TouchableOpacity>
               )}
             />
+          ) : (
+            existingFiles.length > 0 && (
+              <FlatList
+                data={existingFiles}
+                keyExtractor={(item, index) => `${item}-${index}`}
+                horizontal
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (item.match(/\.(jpg|jpeg|png|webp)$/)) {
+                        setPreviewImage(item);
+                      } else {
+                        Linking.openURL(item);
+                      }
+                    }}
+                    style={styles.existingFile}
+                  >
+                    <Text>{item.split("/").pop()}</Text>
+                    <Text style={{ fontSize: 10, color: "#555" }}>
+                      Saved file
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.close}
+                      onPress={() => DeleteFilefromNote(item)}
+                    >
+                      <AntDesign name="close" size={16} />
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                )}
+              />
+            )
           )}
         </View>
 
@@ -615,34 +670,7 @@ export default function CreateNote({
             />
           </View>
         )}
-        {existingFiles.length > 0 && (
-          <FlatList
-            data={existingFiles}
-            keyExtractor={(item, index) => `${item}-${index}`}
-            horizontal
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() => {
-                  if (item.match(/\.(jpg|jpeg|png|webp)$/)) {
-                    setPreviewImage(item);
-                  } else {
-                    Linking.openURL(item);
-                  }
-                }}
-                style={styles.existingFile}
-              >
-                <Text>{item.split("/").pop()}</Text>
-                <Text style={{ fontSize: 10, color: "#555" }}>Saved file</Text>
-                <TouchableOpacity
-                  style={styles.close}
-                  onPress={() => DeleteFilefromNote(item)}
-                >
-                  <AntDesign name="close" size={16} />
-                </TouchableOpacity>
-              </TouchableOpacity>
-            )}
-          />
-        )}
+
         {textToolBarVisibility && (
           <View style={styles.modal}>
             <RichToolbar

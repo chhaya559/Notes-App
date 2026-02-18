@@ -9,7 +9,12 @@ export default function Header({
   options,
 }: Readonly<NativeStackHeaderProps>) {
   return (
-    <View style={styles.header}>
+    <View
+      style={[
+        styles.header,
+        { backgroundColor: options?.headerStyle?.backgroundColor ?? "#f5f5f5" },
+      ]}
+    >
       <View style={styles.left}>
         {options.headerLeft
           ? options.headerLeft({})

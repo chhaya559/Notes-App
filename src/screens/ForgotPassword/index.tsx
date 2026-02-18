@@ -7,17 +7,22 @@ import { forgotSchema } from "src/validations/forgotSchema";
 import { Entypo, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
-import { useForgotpasswordMutation } from "@redux/api/authApi";
+import {
+  useForgotNotesPasswordMutation,
+  useForgotpasswordMutation,
+} from "@redux/api/authApi";
 import Toast from "react-native-toast-message";
 import Modal from "react-native-modal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 type ForgotScreenProps = NativeStackScreenProps<
   RootStackParamList,
   "ForgotPassword"
 >;
+
 export default function ForgotPassword({
   navigation,
+  route,
 }: Readonly<ForgotScreenProps>) {
   const {
     control,
@@ -30,24 +35,43 @@ export default function ForgotPassword({
     },
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
-
+  const isNotesReset = Boolean(route?.params?.name);
+  console.log(isNotesReset, "resetrest");
   const [forgotapi] = useForgotpasswordMutation();
+  const [forgotNotesApi] = useForgotNotesPasswordMutation();
 
   async function handle(data: any) {
     try {
-      const response = await forgotapi({
-        email: data.email,
-      }).unwrap();
-      if (response.success) {
-        Toast.show({
-          text1: "Email sent",
-          visibilityTime: 2000,
-          onHide: () => setIsModalVisible(true),
-        });
+      if (isNotesReset) {
+        const response = await forgotNotesApi({
+          email: data.email,
+        }).unwrap();
+        if (response.success) {
+          Toast.show({
+            text1: "Email sent",
+            visibilityTime: 2000,
+            onHide: () => setIsModalVisible(true),
+          });
+        } else {
+          Toast.show({
+            text1: "Email not sent",
+          });
+        }
       } else {
-        Toast.show({
-          text1: "Sign in failed",
-        });
+        const response = await forgotapi({
+          email: data.email,
+        }).unwrap();
+        if (response.success) {
+          Toast.show({
+            text1: "Email sent",
+            visibilityTime: 2000,
+            onHide: () => setIsModalVisible(true),
+          });
+        } else {
+          Toast.show({
+            text1: "Email not sent",
+          });
+        }
       }
     } catch (error: any) {
       console.log(error);
@@ -56,6 +80,19 @@ export default function ForgotPassword({
       });
     }
   }
+  useEffect(() => {
+    let timer: any;
+    if (isModalVisible) {
+      timer = setTimeout(() => {
+        setIsModalVisible(false);
+        navigation.goBack();
+      }, 4000);
+    }
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isModalVisible]);
+
   return (
     <>
       <Modal isVisible={isModalVisible} backdropOpacity={0.8}>
@@ -73,10 +110,10 @@ export default function ForgotPassword({
             appear within a few minutes,check your spam folder.
           </Text>
           <TouchableOpacity
-            onPress={() => navigation.replace("Login")}
+            onPress={() => navigation.goBack()}
             style={styles.backButtom}
           >
-            <Text style={styles.modalLogin}>Back to login</Text>
+            <Text style={styles.modalLogin}>Go Back</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity
@@ -89,7 +126,7 @@ export default function ForgotPassword({
       <KeyboardAwareScrollView style={styles.container}>
         <Text style={styles.heading}>Forgot your password?</Text>
         <Text style={styles.text}>
-          A code will be sent to your email to help reset password
+          A link will be sent to your email to help reset password
         </Text>
         <Controller
           control={control}
@@ -114,13 +151,6 @@ export default function ForgotPassword({
         >
           <Text style={styles.pressableText}>Reset password</Text>
         </TouchableOpacity>
-        <Pressable
-          style={styles.navigator}
-          onPress={() => navigation.replace("Login")}
-        >
-          <Feather name="arrow-left" size={18} />
-          <Text style={styles.backText}>Back to login</Text>
-        </Pressable>
       </KeyboardAwareScrollView>
     </>
   );

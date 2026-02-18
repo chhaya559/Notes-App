@@ -237,10 +237,15 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
               onChangeText={setSearchText}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
+              autoCorrect={false}
+              cursorColor="#5757f8"
+              selectionColor="#5757f8"
             />
-            <TouchableOpacity onPress={clearSearchText}>
-              <MaterialIcons name="clear" size={22} color="#979090ff" />
-            </TouchableOpacity>
+            {searchText && (
+              <TouchableOpacity onPress={clearSearchText}>
+                <MaterialIcons name="clear" size={22} color="#979090ff" />
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </View>
