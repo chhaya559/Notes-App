@@ -21,12 +21,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
   },
-  text:{
-    textAlign : "center",
-    margin : 2,
-    fontWeight : "regular",
-    fontSize: 15
-  }
+  text: {
+    textAlign: "center",
+    margin: 2,
+    fontWeight: "regular",
+    fontSize: 15,
+  },
 });
 
 export default styles;

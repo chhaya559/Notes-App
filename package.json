@@ -2,15 +2,16 @@
   "name": "my-app",
   "version": "1.0.0",
   "main": "index.ts",
-  "scripts": {
+"scripts": {
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "prebuild": "expo prebuild --clean --skip-dependency-update react",
     "format": "prettier --write .",
     "lint": "expo lint --fix --max-warnings=2",
-    "prepare": "husky"
-  },
+    "prepare": "husky",
+    "check:obscure": "node src/utils/security-check.js"
+},
   "dependencies": {
     "@10play/tentap-editor": "^1.0.1",
     "@expo/vector-icons": "^15.0.3",
@@ -59,6 +60,7 @@
     "react-native-material-menu": "^2.0.0",
     "react-native-modal": "^14.0.0-rc.1",
     "react-native-pell-rich-editor": "^1.10.0",
+    "react-native-permissions": "^5.4.4",
     "react-native-popup-menu": "^0.19.0",
     "react-native-raw-bottom-sheet": "^3.0.0",
     "react-native-reanimated": "^4.2.1",

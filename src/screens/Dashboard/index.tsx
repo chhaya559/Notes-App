@@ -99,7 +99,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       setAllNotes((prev) => [...prev, ...data.data]);
     }
   }, [data]);
-  console.log(allNotes);
 
   const loadNotes = useCallback(async () => {
     if (!userId) return;
@@ -233,7 +232,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
               placeholder="Search notes..."
               placeholderTextColor="#979090ff"
               style={styles.search}
-              value={searchText}
+              value={searchText.trim()}
               onChangeText={setSearchText}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
@@ -262,6 +261,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             <Card
               id={item.id}
               title={item.title}
+              content={item.content}
               updatedAt={item.updatedAt}
               backgroundColor={item.backgroundColor}
               isPasswordProtected={item.isPasswordProtected && !isNotesUnlocked}

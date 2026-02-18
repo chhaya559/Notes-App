@@ -39,12 +39,11 @@ const linking = {
 
 const RootNavigator = () => {
   const token = useSelector((state: RootState) => state.auth.token);
-
   return (
     <SafeAreaProvider>
       <NavigationContainer linking={linking}>
         {token == null ? (
-          <Stack.Navigator>
+          <Stack.Navigator initialRouteName="Onboarding">
             <Stack.Group
               screenOptions={{ header: (props) => <Header {...props} /> }}
             >
@@ -53,13 +52,7 @@ const RootNavigator = () => {
                 component={Onboarding}
                 options={{ headerShown: false }}
               />
-              <Stack.Screen
-                name={ROUTES.EDITPROFILE}
-                component={EditProfile}
-                options={() => ({
-                  title: "Edit Profile",
-                })}
-              />
+
               <Stack.Screen name={ROUTES.LOGIN} component={Login} />
               <Stack.Screen
                 name={ROUTES.FORGOTPASSWORD}
@@ -70,12 +63,18 @@ const RootNavigator = () => {
                 name={ROUTES.RESETPASSWORD}
                 component={ResetPassword}
               />
-
+              <Stack.Screen
+                name={ROUTES.EDITPROFILE}
+                component={EditProfile}
+                options={() => ({
+                  title: "Edit Profile",
+                })}
+              />
               <Stack.Screen name={ROUTES.REGISTER} component={Register} />
             </Stack.Group>
           </Stack.Navigator>
         ) : (
-          <Stack.Navigator initialRouteName="Dashboard">
+          <Stack.Navigator>
             <Stack.Group
               screenOptions={{ header: (props) => <Header {...props} /> }}
             >
@@ -95,12 +94,6 @@ const RootNavigator = () => {
                   title: "Profile",
                 })}
               />
-
-              <Stack.Screen
-                name={ROUTES.RESETPASSWORD}
-                component={ResetPassword}
-              />
-              <Stack.Screen name={ROUTES.CREATENOTE} component={CreateNote} />
               <Stack.Screen
                 name={ROUTES.EDITPROFILE}
                 component={EditProfile}
@@ -108,6 +101,12 @@ const RootNavigator = () => {
                   title: "Edit Profile",
                 })}
               />
+              <Stack.Screen
+                name={ROUTES.RESETPASSWORD}
+                component={ResetPassword}
+              />
+              <Stack.Screen name={ROUTES.CREATENOTE} component={CreateNote} />
+
               <Stack.Screen
                 name={ROUTES.GUESTCONVERSION}
                 component={GuestConversion}

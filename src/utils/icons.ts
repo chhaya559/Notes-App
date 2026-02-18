@@ -1,11 +1,11 @@
-import User from '@assets/svg/user.svg';
+import User from "@assets/svg/user.svg";
 
-import { RFValue } from 'react-native-responsive-fontsize';
+import { RFValue } from "react-native-responsive-fontsize";
 const iconStyle = ({
   width = 0,
   height = 0,
-  color = 'black',
-  borderColor = 'none',
+  color = "black",
+  borderColor = "none",
 }) => ({
   width: RFValue(width),
   height: RFValue(height),

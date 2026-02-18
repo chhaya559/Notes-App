@@ -1,6 +1,6 @@
-import { ColorValue, ImageStyle, TextStyle, ViewStyle } from 'react-native';
+import { ColorValue, ImageStyle, TextStyle, ViewStyle } from "react-native";
 
-import { ThemeColors } from './constants';
+import { ThemeColors } from "./constants";
 
 export type Style = ViewStyle | TextStyle | ImageStyle;
 type StyleFunctionWithNumber = (value: number) => Style;
@@ -21,10 +21,10 @@ export default function LayoutStyles({
   return {
     flex: { flex: 1 },
     center: {
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
     },
-    backgroundColor: color => ({
+    backgroundColor: (color) => ({
       backgroundColor: color,
     }),
     padding: (value: number) => ({

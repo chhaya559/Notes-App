@@ -87,22 +87,22 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
       PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
     );
   }, []);
-  useEffect(() => {
-    GoogleSignin.configure({
-      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-      iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    });
-  }, []);
 
   navigation.setOptions({
     title: "Create Account",
   });
+
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    });
+  }, []);
   async function handleGoogleSignin() {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       if (!isSuccessResponse(userInfo)) {
-        Alert.alert("Google Sign-In failed");
+        Alert.alert("Google Sign-Up failed");
         return;
       }
 
@@ -114,6 +114,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
       }
 
       const response = await googleApi({ idToken }).unwrap();
+      console.log("response", response);
 
       dispatch(
         google({
@@ -123,12 +124,12 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           profileImageUrl: userInfo.data.user.photo,
           isCommonPasswordSet: response.data.isCommonPasswordSet,
           isNotesUnlocked: response.data.isNotesUnlocked,
+          needsProfileCompletion: true,
         }),
       );
-      navigation.navigate("EditProfile");
       Toast.show({
         type: "success",
-        text1: "Logged in with gogle",
+        text1: "Logged in with google",
       });
       requestUserPermission();
     } catch (error: any) {
@@ -138,6 +139,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
       });
     }
   }
+
   async function handleSignup(data: any) {
     try {
       const response = await registerApi({
@@ -266,11 +268,11 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
               onChangeText={onChange}
               onBlur={onBlur}
               isPassword
-              isVisible={isVisible}
-              onToggleVisibility={() => {
-                setIsVisible((prev) => !prev);
-              }}
-              secureTextEntry={!isVisible}
+              // isVisible={isVisible}
+              // onToggleVisibility={() => {
+              //   setIsVisible((prev) => !prev);
+              // }}
+              // secureTextEntry={!isVisible}
             />
           )}
         />

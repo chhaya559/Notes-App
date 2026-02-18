@@ -132,6 +132,13 @@ export const noteApi = createApi({
       }),
       invalidatesTags: ["NotificationCount", "Notifications"],
     }),
+    deleteNotification: builder.mutation({
+      query: ({ id }) => ({
+        url: `/notifications/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["NotificationCount", "Notifications"],
+    }),
     getNotificationById: builder.mutation({
       query: ({ id }) => ({
         url: `/notifications/${id}`,
@@ -178,4 +185,5 @@ export const {
   useGetNotificationByIdMutation,
   useUploadFileMutation,
   useRemoveFileMutation,
+  useDeleteNotificationMutation,
 } = noteApi;

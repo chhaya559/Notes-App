@@ -1,16 +1,22 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import Modal from "react-native-modal";
-import { AntDesign, Entypo, Ionicons } from "@expo/vector-icons";
+import { AntDesign, Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import styles from "./styles";
 import {
   useClearAllNotificationMutation,
   useGetNotificationsQuery,
   useReadAllNotificationMutation,
   useMarkNoificationReadMutation,
+  useDeleteNotificationMutation,
 } from "@redux/api/noteApi";
 import { useFocusEffect } from "@react-navigation/native";
-
+import Reanimated, {
+  SharedValue,
+  useAnimatedStyle,
+} from "react-native-reanimated";
+import { cosineDistance } from "drizzle-orm";
 export default function Notifications() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
@@ -25,7 +31,7 @@ export default function Notifications() {
 
   const [allNotifications, setAllNotifications] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(true);
-
+  const [deleteNotificationApi] = useDeleteNotificationMutation();
   const [readAllApi] = useReadAllNotificationMutation();
   const [clearAllApi] = useClearAllNotificationMutation();
   const [markReadApi] = useMarkNoificationReadMutation();
@@ -67,7 +73,6 @@ export default function Notifications() {
       }
     }
   }
-
   async function readAll() {
     try {
       await readAllApi().unwrap();
@@ -76,7 +81,14 @@ export default function Notifications() {
       console.error("Failed to mark all read:", err);
     }
   }
-
+  async function deleteNotification(id: string) {
+    try {
+      const respone = await deleteNotificationApi({ id: id }).unwrap();
+      console.log(respone, "response from delete notification");
+    } catch (error) {
+      console.log("Error deleting: ", error);
+    }
+  }
   async function clearAll() {
     try {
       await clearAllApi().unwrap();
@@ -92,6 +104,27 @@ export default function Notifications() {
     }
   };
 
+  function RightAction(translation: SharedValue<number>, item: any) {
+    const animatedStyle = useAnimatedStyle(() => {
+      return {
+        translateX: translation.value + 80,
+      };
+    });
+
+    return (
+      <Reanimated.View style={[animatedStyle, styles.swipe]}>
+        <TouchableOpacity onPress={() => deleteNotification(item.id)}>
+          <MaterialIcons
+            name="delete-outline"
+            size={38}
+            color="#5757f8"
+            style={styles.delete}
+          />
+        </TouchableOpacity>
+      </Reanimated.View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -99,22 +132,29 @@ export default function Notifications() {
         bounces={false}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => openDetails(item)}
-            style={styles.card}
+          <ReanimatedSwipeable
+            enableTrackpadTwoFingerGesture
+            renderRightActions={(progress, translation) =>
+              RightAction(translation, item)
+            }
+            rightThreshold={10}
           >
-            <Text>{item.title}</Text>
-            <Text>{item.noteTitle}</Text>
-
-            {!item.isRead && (
-              <Entypo
-                name="dot-single"
-                size={26}
-                color="#5757f8"
-                style={{ position: "absolute", right: 5, top: 7 }}
-              />
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => openDetails(item)}
+              style={styles.card}
+            >
+              <Text>{item.title}</Text>
+              <Text>{item.noteTitle}</Text>
+              {!item.isRead && (
+                <Entypo
+                  name="dot-single"
+                  size={26}
+                  color="#5757f8"
+                  style={{ position: "absolute", right: 5, top: 7 }}
+                />
+              )}
+            </TouchableOpacity>
+          </ReanimatedSwipeable>
         )}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}

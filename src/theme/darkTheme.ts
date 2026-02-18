@@ -1,5 +1,5 @@
 export const DarkColors = {
-  white: '#fff',
+  white: "#fff",
 };
 
 export type DarkColorType = typeof DarkColors;

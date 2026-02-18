@@ -1,8 +1,8 @@
-import { t } from 'i18next';
+import { t } from "i18next";
 
 export const STRINGS = new Proxy(
   {
-    HI: 'HI',
+    HI: "HI",
   },
   {
     get: function (target, prop) {

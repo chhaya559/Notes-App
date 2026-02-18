@@ -5,19 +5,20 @@ import {
   Pressable,
   TouchableOpacity,
   Alert,
-  Platform,
   PermissionsAndroid,
   ScrollView,
+  ImageStyle,
+  ViewStyle,
+  Platform,
 } from "react-native";
 import styles from "./styles";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@redux/store";
+import { request, PERMISSIONS, RESULTS } from "react-native-permissions";
 import {
   AntDesign,
   Entypo,
   EvilIcons,
-  Feather,
-  FontAwesome6,
   Ionicons,
   MaterialIcons,
 } from "@expo/vector-icons";
@@ -138,7 +139,26 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   }, [profileImage]);
 
   async function openCamera() {
+    const permissionType = Platform.select({
+      ios: PERMISSIONS.IOS.CAMERA,
+      android: PERMISSIONS.ANDROID.CAMERA,
+    });
     try {
+      const permissionResult = await request(permissionType);
+      switch (permissionResult) {
+        case RESULTS.GRANTED:
+          console.log("You can use the camera");
+          break;
+        case RESULTS.DENIED:
+          console.log("Permission denied to use camera");
+
+          return;
+        case RESULTS.UNAVAILABLE:
+          console.log("Feature not available on this device.");
+
+          break;
+      }
+
       const result = await launchCamera({
         mediaType: "photo",
       });
@@ -181,29 +201,25 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   }
 
   async function pickImage() {
+    const permissionType = Platform.select({
+      ios: PERMISSIONS.IOS.MEDIA_LIBRARY,
+      android: PERMISSIONS.ANDROID.READ_MEDIA_IMAGES,
+    });
     try {
-      if (Platform.OS === "android") {
-        const apiLevel = parseInt(Platform.Version.toString(), 10);
+      const permissionResult = await request(permissionType);
+      switch (permissionResult) {
+        case RESULTS.GRANTED:
+          console.log("You can use the media images");
 
-        if (apiLevel < 33) {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-            {
-              title: "Gallery Permission",
-              message:
-                "Your app needs access to your gallery to select photos.",
-              buttonNeutral: "Ask Me Later",
-              buttonNegative: "Cancel",
-              buttonPositive: "OK",
-            },
-          );
-          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-            console.log("Gallery permission granted");
-          } else {
-            console.log("Gallery permission denied");
-            return;
-          }
-        }
+          break;
+        case RESULTS.DENIED:
+          console.log("Permission denied to access images");
+
+          return;
+        case RESULTS.UNAVAILABLE:
+          console.log("Feature not available on this device.");
+
+          return;
       }
 
       const result = await launchImageLibrary({
@@ -261,11 +277,11 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
           <Text style={styles.text}>Manage your account settings</Text>
         </View>
 
-        <View style={styles.profile}>
+        <View style={styles.profile as ViewStyle}>
           <Image
             key={profileImage}
             source={{ uri: profileImage }}
-            style={styles.image}
+            style={styles.image as ImageStyle}
           />
         </View>
 
@@ -299,7 +315,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
               ? { uri: profileImage }
               : require("../../../assets/default.png")
           }
-          style={styles.image}
+          style={styles.image as ImageStyle}
         />
         {/* onPress={pickFile} */}
         {!isGoogle && (

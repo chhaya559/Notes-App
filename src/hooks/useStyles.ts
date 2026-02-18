@@ -1,7 +1,7 @@
-import { ThemeColors } from '@theme/constants';
+import { ThemeColors } from "@theme/constants";
 
-import useLayoutStyles from './useLayoutStyles';
-import useTheme from './useTheme';
+import useLayoutStyles from "./useLayoutStyles";
+import useTheme from "./useTheme";
 
 /**
  * Custom hook to apply dynamic styles based on the current theme.

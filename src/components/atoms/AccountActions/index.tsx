@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@redux/store";
 import { logout } from "@redux/slice/authSlice";
 import Toast from "react-native-toast-message";
-import ForgotPassword from "@screens/ForgotPassword";
 
 type props = {
   hasCommonPassword: boolean;

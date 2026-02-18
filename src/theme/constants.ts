@@ -1,10 +1,10 @@
-import { DarkColorType } from './darkTheme';
-import { DefaultColorType } from './lightTheme';
+import { DarkColorType } from "./darkTheme";
+import { DefaultColorType } from "./lightTheme";
 
 export enum THEME {
-  DEVICE = 'Device',
-  LIGHT = 'Light',
-  DARK = 'Dark',
+  DEVICE = "Device",
+  LIGHT = "Light",
+  DARK = "Dark",
 }
 
 export interface ThemeColors extends DefaultColorType, DarkColorType {

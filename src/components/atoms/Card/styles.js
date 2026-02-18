@@ -1,53 +1,62 @@
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
+const screenWidth = Dimensions.get("screen").width;
+const screenHeight = Dimensions.get("screen").height;
+
+const isSmallScreen = screenHeight < 800;
 
 const styles = StyleSheet.create({
   container: {
     padding: 15,
+    paddingBottom: 20,
     margin: 10,
+    paddingVertical: 10,
     marginHorizontal: 10,
     marginVertical: 7,
     borderRadius: 20,
-    height: 80,
+    height: 90,
     width: "auto",
-    elevation: 3,
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 3, height: 3 },
+    gap: 8,
+    // paddingLeft: 20,
+    overflow: "hidden",
   },
   heading: {
-    fontSize: 16,
-    fontWeight: "700",
-    margin: 5,
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111827",
   },
-  text: {
-    margin: 5,
+
+  created: {
+    color: "#656565ff",
   },
-  created: {},
   createdContainer: {
     flexDirection: "row",
     gap: 3,
-    margin: 5,
+    margin: 0,
   },
   iconsWrap: {
     flexDirection: "row",
     justifyContent: "flex-end",
     gap: 12,
+    verticalAlign: "middle",
     position: "absolute",
     right: 20,
-    top: 15,
+    top: 26,
   },
   modal: {
-    backgroundColor: "#ffffffff",
-    marginTop: 250,
-    width: 350,
-    marginBottom: 250,
+    backgroundColor: "#fff",
+    width: screenWidth * 0.9,
+    marginTop: isSmallScreen ? screenHeight * 0.25 : screenHeight * 0.3,
+    marginBottom: isSmallScreen ? screenHeight * 0.25 : screenHeight * 0.3,
     borderRadius: 10,
-    padding: 10,
   },
+
   unlockHeading: {
     fontWeight: "600",
     fontSize: 20,
     textAlign: "center",
     color: "#5757f8",
+    paddingTop: 10,
+    paddingBottom: 0,
   },
   passwordText: {
     marginLeft: 15,
@@ -67,8 +76,8 @@ const styles = StyleSheet.create({
   },
   close: {
     position: "absolute",
-    top: 10,
     right: 10,
+    top: -25,
   },
   counter: {
     flexDirection: "row",
@@ -79,6 +88,8 @@ const styles = StyleSheet.create({
   counterTime: {
     backgroundColor: "#D0DAF3",
     borderRadius: 10,
+    width: 45,
+    alignItems: "center",
   },
   time: {
     color: "#ffffffff",
@@ -95,13 +106,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   icon: {
-    backgroundColor: "#adadadff",
-    borderRadius: 25,
-    padding: 6,
+    // backgroundColor: "#adadadff",
+    //borderRadius: 25,
+    //padding: 6,
   },
 
   delete: {
-    backgroundColor: "red",
+    backgroundColor: "#d60f0fff",
     padding: 15,
     marginHorizontal: 10,
     marginVertical: 7,
@@ -111,9 +122,11 @@ const styles = StyleSheet.create({
     // position: "absolute",
   },
   deleteIcon: {
-    // position: "absolute",
-    top: 20,
-    right: 20,
+    top: 5,
+    right: 5,
+  },
+  swipe: {
+    flexDirection: "row",
   },
 });
 export default styles;

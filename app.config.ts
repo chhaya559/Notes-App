@@ -28,6 +28,10 @@ const config: ExpoConfig = {
     googleServicesFile: "./GoogleService-Info.plist",
     bundleIdentifier: BUNDLE_IDENTIFIER,
     infoPlist: {
+      NSCameraUsageDescription:
+        "This app needs access to the camera to takephotos.",
+      NSPhotoLibraryUsageDescription: "This app needs access to your photos.",
+      NSAppleMusicUsageDescription: "This app needs access to your photos.",
       UIBackgroundModes: ["remote-notification"],
       CFBundleURLTypes: [
         {
@@ -46,7 +50,13 @@ const config: ExpoConfig = {
     },
     package: BUNDLE_IDENTIFIER,
     googleServicesFile: "./google-services.json",
-    permissions: ["RECEIVE_BOOT_COMPLETED"],
+    permissions: [
+      "RECEIVE_BOOT_COMPLETED",
+      "android.permission.CAMERA",
+      "android.permission.READ_MEDIA_IMAGES",
+      "android.permission.READ_EXTERNAL_STORAGE",
+      "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+    ],
   },
   extra: {
     APP_VARIANT: process.env.APP_VARIANT,
@@ -73,6 +83,12 @@ const config: ExpoConfig = {
           useFrameworks: "static",
           forceStaticLinking: ["RNFBApp"],
         },
+      },
+    ],
+    [
+      "react-native-permissions",
+      {
+        iosPermissions: ["Camera", "PhotoLibrary", "MediaLibrary"],
       },
     ],
     "@react-native-firebase/app",

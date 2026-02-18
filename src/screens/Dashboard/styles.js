@@ -4,8 +4,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     position: "relative",
-    backgroundColor: "#F5F5F5",
-    margin: 10,
+    padding: 10,
     marginTop: 0,
     marginBottom: 0,
   },
@@ -71,9 +70,9 @@ const styles = StyleSheet.create({
   add: {
     position: "absolute",
 
-    bottom: 60,
+    bottom: 40,
     //left: 20,
-    right: 20,
+    right: 15,
     elevation: 6,
   },
   image: {
@@ -83,9 +82,10 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   listContent: {
-    paddingBottom: 0,
+    paddingBottom: 30,
     paddingTop: 10,
     paddingHorizontal: 10,
+    backgroundColor: "#eaeaecff",
   },
   bottomHeaderText: {
     fontSize: 22,

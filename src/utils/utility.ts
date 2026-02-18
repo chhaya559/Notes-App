@@ -1,8 +1,8 @@
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
 
-import { FONT_WEIGHTS } from './constants';
+import { FONT_WEIGHTS } from "./constants";
 
-import { RFValue } from 'react-native-responsive-fontsize';
+import { RFValue } from "react-native-responsive-fontsize";
 
 /**
  * Checks if the current platform is iOS.
@@ -10,7 +10,7 @@ import { RFValue } from 'react-native-responsive-fontsize';
  * @returns {boolean} - True if the platform is iOS, false otherwise.
  */
 export const isIos = (): boolean => {
-  return Platform.OS === 'ios';
+  return Platform.OS === "ios";
 };
 
 /**
@@ -19,7 +19,7 @@ export const isIos = (): boolean => {
  * @returns {boolean} - True if the platform is Android, false otherwise.
  */
 export const isAndroid = (): boolean => {
-  return Platform.OS === 'android';
+  return Platform.OS === "android";
 };
 
 export const boldText = isAndroid() ? FONT_WEIGHTS[700] : FONT_WEIGHTS[600];

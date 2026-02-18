@@ -10,7 +10,7 @@ import { useEditUserMutation } from "@redux/api/authApi";
 import Toast from "react-native-toast-message";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
-import { edit } from "@redux/slice/authSlice";
+import { edit, setProfileCompleted } from "@redux/slice/authSlice";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 type EditProfileProps = NativeStackScreenProps<
@@ -54,14 +54,11 @@ export default function EditProfile({
             username: data.username,
           }),
         );
+        dispatch(setProfileCompleted());
         Toast.show({
           text1: "Profile updated successfully!",
         });
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        } else {
-          navigation.navigate("Dashboard");
-        }
+        if (navigation.canGoBack()) navigation.goBack();
       }
     } catch (error) {
       console.log(error);

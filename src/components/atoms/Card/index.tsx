@@ -1,4 +1,12 @@
-import { View, Text, TouchableOpacity, Pressable, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Pressable,
+  Alert,
+  Dimensions,
+  useWindowDimensions,
+} from "react-native";
 import styles from "./styles";
 import { AntDesign, Feather, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -6,6 +14,7 @@ import { useState, useEffect } from "react";
 import CustomInput from "../CustomInput";
 import Modal from "react-native-modal";
 import Toast from "react-native-toast-message";
+import { RenderHTML } from "react-native-render-html";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { setNotesUnlocked, lockNotes } from "@redux/slice/authSlice";
@@ -19,8 +28,9 @@ import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeabl
 import { notesTable } from "src/db/schema";
 import { and, eq } from "drizzle-orm";
 import { useNetInfo } from "@react-native-community/netinfo";
+
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-IN", {
+  return new Date(dateString).toLocaleDateString(undefined, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -53,6 +63,7 @@ export default function Card(props: any) {
     password: "",
     unlockMinutes: null,
   });
+  const { width } = useWindowDimensions();
 
   useEffect(() => {
     if (!notesUnlockUntil) return;
@@ -83,11 +94,6 @@ export default function Card(props: any) {
         unlockMinutes: unlockValue.unlockMinutes,
       }).unwrap();
 
-      if (!res?.success) {
-        Toast.show({ text1: "Wrong password" });
-        return;
-      }
-
       const unlockUntil = Date.now() + unlockValue.unlockMinutes * 60 * 1000;
 
       dispatch(setNotesUnlocked({ unlockUntil }));
@@ -95,15 +101,19 @@ export default function Card(props: any) {
       setShowLockedModal(false);
 
       navigation.navigate("CreateNote", { id: props.id });
-    } catch {
-      Toast.show({ text1: "Unlock failed" });
+    } catch (error) {
+      Toast.show({
+        text1: error?.data?.message,
+      });
     }
   }
   async function handleDelete() {
     try {
       await db
         .delete(notesTable)
-        .where(and(eq(notesTable.id, props.id), eq(notesTable.userId, userId)));
+        .where(
+          and(eq(notesTable.id, props.id), eq(notesTable?.userId, userId)),
+        );
       if (isConnected) {
         await deleteApi({ id: props.id }).unwrap();
       }
@@ -152,19 +162,28 @@ export default function Card(props: any) {
     });
 
     return (
-      <Reanimated.View style={[styles.delete, animatedStyle]}>
-        <TouchableOpacity
-          onPress={confirmDelete}
-          style={{ position: "absolute", right: 0, top: 0 }}
-        >
-          <MaterialIcons
-            name="delete-outline"
-            size={38}
-            color="white"
-            style={styles.deleteIcon}
-          />
-        </TouchableOpacity>
-      </Reanimated.View>
+      <View style={styles.swipe}>
+        <Reanimated.View style={[styles.delete, animatedStyle]}>
+          <TouchableOpacity onPress={confirmDelete}>
+            <MaterialIcons
+              name="delete-outline"
+              size={38}
+              color="white"
+              style={styles.deleteIcon}
+            />
+          </TouchableOpacity>
+        </Reanimated.View>
+        <Reanimated.View style={[styles.delete, animatedStyle]}>
+          <TouchableOpacity onPress={confirmDelete}>
+            <MaterialIcons
+              name="delete-outline"
+              size={38}
+              color="white"
+              style={styles.deleteIcon}
+            />
+          </TouchableOpacity>
+        </Reanimated.View>
+      </View>
     );
   }
 
@@ -172,50 +191,50 @@ export default function Card(props: any) {
     <>
       {showLockedModal && (
         <Modal isVisible backdropOpacity={0.5} style={styles.modal}>
-          <Text style={styles.unlockHeading}>Unlock Notes</Text>
+          <View>
+            <Text style={styles.unlockHeading}>Unlock Notes</Text>
+            <TouchableOpacity>
+              <AntDesign
+                name="close"
+                size={24}
+                color="#5757f8"
+                style={styles.close}
+                onPress={() => setShowLockedModal(false)}
+              />
+            </TouchableOpacity>
+            <CustomInput
+              placeholder="Enter password"
+              color="#707070ff"
+              value={unlockValue.password}
+              onChangeText={(text: string) =>
+                setUnlockValue((p) => ({ ...p, password: text }))
+              }
+              isPassword
+            />
 
-          <CustomInput
-            placeholder="Enter password"
-            value={unlockValue.password}
-            onChangeText={(text: string) =>
-              setUnlockValue((p) => ({ ...p, password: text }))
-            }
-            isPassword
-            // secureTextEntry={!isVisible}
-            // isVisible={isVisible}
-            // onToggleVisibility={() => setIsVisible((p) => !p)}
-          />
+            <Text style={styles.timeText}>Unlock for</Text>
 
-          <Text style={styles.timeText}>Unlock for</Text>
+            <View style={styles.counter}>
+              {[5, 10, 20, 30, 50].map((min) => (
+                <TouchableOpacity
+                  key={min}
+                  style={[
+                    styles.counterTime,
+                    unlockValue.unlockMinutes === min && styles.counterActive,
+                  ]}
+                  onPress={() =>
+                    setUnlockValue((p) => ({ ...p, unlockMinutes: min }))
+                  }
+                >
+                  <Text style={styles.time}>{min}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
-          <View style={styles.counter}>
-            {[5, 10, 20, 30, 50].map((min) => (
-              <TouchableOpacity
-                key={min}
-                style={[
-                  styles.counterTime,
-                  unlockValue.unlockMinutes === min && styles.counterActive,
-                ]}
-                onPress={() =>
-                  setUnlockValue((p) => ({ ...p, unlockMinutes: min }))
-                }
-              >
-                <Text style={styles.time}>{min}</Text>
-              </TouchableOpacity>
-            ))}
+            <TouchableOpacity onPress={handleUnlock} style={styles.pressable}>
+              <Text style={styles.pressableText}>Unlock</Text>
+            </TouchableOpacity>
           </View>
-
-          <TouchableOpacity onPress={handleUnlock} style={styles.pressable}>
-            <Text style={styles.pressableText}>Unlock</Text>
-          </TouchableOpacity>
-
-          <AntDesign
-            name="close"
-            size={24}
-            color="#5757f8"
-            style={styles.close}
-            onPress={() => setShowLockedModal(false)}
-          />
         </Modal>
       )}
       <View>
@@ -232,22 +251,27 @@ export default function Card(props: any) {
             ]}
             onPress={handlePress}
           >
-            <Text style={styles.heading}>{props.title.substring(0, 25)}</Text>
-
+            <Text style={styles.heading}>{props.title.substring(0, 20)}</Text>
             <View style={styles.createdContainer}>
-              <Feather name="calendar" size={16} />
+              <Feather name="calendar" size={16} color="#656565ff" />
               <Text style={styles.created}>{formatDate(props.updatedAt)}</Text>
             </View>
+            {props?.content?.trim()?.length > 0 && (
+              <RenderHTML
+                source={{ html: props.content.substring(0, 25) }}
+                contentWidth={width}
+              />
+            )}
 
             <View style={styles.iconsWrap}>
               {props.isLocked ? (
                 <Pressable style={styles.icon}>
-                  <Feather name="lock" size={24} color="#ffffffff" />
+                  <Feather name="lock" size={24} color="#000000ff" />
                 </Pressable>
               ) : null}
               {props.isReminderSet ? (
                 <Pressable style={styles.icon}>
-                  <Feather name="clock" size={24} color="#ffffffff" />
+                  <Feather name="clock" size={24} color="#000000ff" />
                 </Pressable>
               ) : null}
             </View>

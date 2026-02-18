@@ -1,6 +1,6 @@
-import LayoutStyles from '@theme/Layout';
+import LayoutStyles from "@theme/Layout";
 
-import useTheme from './useTheme';
+import useTheme from "./useTheme";
 
 /**
  * Custom hook to get common layout styles based on the current theme.

@@ -17,6 +17,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     marginLeft: 5,
     marginRight: 5,
+    height: 70,
   },
   icon: {
     alignSelf: "center",
@@ -31,7 +32,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 12,
     height: 200,
-    backgroundColor: "#fefeffff",
+    backgroundColor: "#f5f5f5",
     shadowColor: "#a0a0d9ff",
     shadowOpacity: 0.7,
   },
@@ -45,6 +46,7 @@ const styles = StyleSheet.create({
   buttons: {
     flexDirection: "row",
     justifyContent: "space-around",
+    paddingBottom: 15,
   },
   title: {
     textAlign: "center",
@@ -72,6 +74,21 @@ const styles = StyleSheet.create({
   emptyMessage: {
     fontWeight: "500",
     fontSize: 16,
+  },
+  delete: {
+    // position: "absolute",
+  },
+  swipe: {
+    backgroundColor: "#e9e9f1ff",
+    padding: 15,
+    borderRadius: 20,
+    elevation: 3,
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 2, height: 2 },
+    marginBottom: 15,
+    marginLeft: 5,
+    marginRight: 5,
+    height: 70,
   },
 });
 

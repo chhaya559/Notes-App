@@ -105,7 +105,8 @@ export default function CreateNote({
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
       if (isSavedRef.current) return;
-      handleSave();
+      console.log("Before remove going back");
+      handleSave(false);
     });
 
     return unsubscribe;
@@ -177,7 +178,7 @@ export default function CreateNote({
   const isEditMode = Boolean(noteId);
   const [notes, setNotes] = useState({
     id: "",
-    title: "New Note",
+    title: "",
     content: "",
     isPasswordProtected: false,
     isReminderSet: null,
@@ -192,7 +193,7 @@ export default function CreateNote({
     if (!NotesData?.data) return;
     setNotes({
       id: NotesData.data.id ?? "",
-      title: NotesData.data.title ?? "New Note",
+      title: NotesData.data.title ?? "",
       content: NotesData.data.content ?? "",
       isPasswordProtected: NotesData.data.isPasswordProtected ?? false,
       isLocked: NotesData.data.isLocked ?? false,
@@ -321,6 +322,9 @@ export default function CreateNote({
             text1: "Your note needs at least a title or content",
           });
         }
+        if (!notes.title) {
+          setNotes((prev) => ({ ...prev, title: "New Note" }));
+        }
       }
       let filePaths: string[] = [];
 
@@ -367,7 +371,7 @@ export default function CreateNote({
           text1: error?.data.message,
         });
       }
-      console.log("Save error:", error?.data.message ?? error);
+      console.log("Save error:", error);
     }
   }
 
@@ -473,24 +477,10 @@ export default function CreateNote({
   }
 
   useEffect(() => {
-    console.log(noteBackground, "gkfgh");
     navigation.setOptions({
       headerStyle: {
         backgroundColor: noteBackground,
       },
-      // headerLeft: () => (
-      //   <TouchableOpacity
-      //     onPress={() => navigation.goBack()}
-      //     style={styles.headerButton}
-      //   >
-      //     <Ionicons
-      //       name="arrow-back-outline"
-      //       size={26}
-      //       color="#5757f8"
-      //       style={{ padding: 5 }}
-      //     />
-      //   </TouchableOpacity>
-      // ),
       headerRight: () => (
         <View style={styles.header}>
           <TouchableOpacity onPress={() => handleSave()}>
