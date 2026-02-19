@@ -11,6 +11,8 @@ import styles from "../NotesPassword/styles";
 import { changeNotePasswordSchema } from "src/validations/ChangeNotePassword";
 import { useChangePasswordMutation } from "@redux/api/noteApi";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import useStyles from "@hooks/useStyles";
+import useTheme from "@hooks/useTheme";
 
 type ChangeNotesPasswordProps = NativeStackScreenProps<
   RootStackParamList,
@@ -33,9 +35,7 @@ export default function ChangeNotePassword({
     },
   });
 
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isConfirmVisible, setIsConfirmVisible] = useState(false);
-
+  const { dynamicStyles } = useStyles(styles);
   async function handle(data: any) {
     try {
       const response = await changeApi({
@@ -61,9 +61,9 @@ export default function ChangeNotePassword({
       console.log(error.data.message);
     }
   }
-
+  const { Colors } = useTheme();
   return (
-    <KeyboardAwareScrollView style={styles.container}>
+    <KeyboardAwareScrollView style={dynamicStyles.container}>
       <Controller
         control={control}
         name="currentPassword"
@@ -75,12 +75,14 @@ export default function ChangeNotePassword({
             onChangeText={onChange}
             onBlur={onBlur}
             isPassword
-            color="#707070ff"
+            color={Colors.placeholder}
           />
         )}
       />
       {errors.currentPassword && (
-        <Text style={styles.error}>{errors.currentPassword.message}</Text>
+        <Text style={dynamicStyles.error}>
+          {errors.currentPassword.message}
+        </Text>
       )}
       <Controller
         control={control}
@@ -93,12 +95,12 @@ export default function ChangeNotePassword({
             onChangeText={onChange}
             onBlur={onBlur}
             isPassword
-            color="#707070ff"
+            color={Colors.placeholder}
           />
         )}
       />
       {errors.password && (
-        <Text style={styles.error}>{errors.password.message}</Text>
+        <Text style={dynamicStyles.error}>{errors.password.message}</Text>
       )}
 
       <Controller
@@ -112,20 +114,22 @@ export default function ChangeNotePassword({
             onChangeText={onChange}
             onBlur={onBlur}
             isPassword
-            color="#707070ff"
+            color={Colors.placeholder}
           />
         )}
       />
       {errors.confirmPassword && (
-        <Text style={styles.error}>{errors.confirmPassword.message}</Text>
+        <Text style={dynamicStyles.error}>
+          {errors.confirmPassword.message}
+        </Text>
       )}
 
       <TouchableOpacity
         disabled={isLoading}
         onPress={handleSubmit(handle)}
-        style={styles.pressable}
+        style={dynamicStyles.pressable}
       >
-        <Text style={styles.pressableText}>
+        <Text style={dynamicStyles.pressableText}>
           {isLoading ? "Changing password..." : "Change password"}
         </Text>
       </TouchableOpacity>

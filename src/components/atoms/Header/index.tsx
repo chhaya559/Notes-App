@@ -2,38 +2,45 @@ import { NativeStackHeaderProps } from "@react-navigation/native-stack";
 import { TouchableOpacity, View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import styles from "./styles";
+import useTheme from "@hooks/useTheme";
+import useStyles from "@hooks/useStyles";
 
 export default function Header({
   navigation,
   back,
   options,
 }: Readonly<NativeStackHeaderProps>) {
+  const { Colors } = useTheme();
+  const { dynamicStyles } = useStyles(styles);
   return (
     <View
       style={[
-        styles.header,
-        { backgroundColor: options?.headerStyle?.backgroundColor ?? "#f5f5f5" },
+        dynamicStyles.header,
+        {
+          backgroundColor:
+            options?.headerStyle?.backgroundColor ?? Colors.background,
+        },
       ]}
     >
-      <View style={styles.left}>
+      <View style={dynamicStyles.left}>
         {options.headerLeft
           ? options.headerLeft({})
           : back && (
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
-                style={styles.headerButton}
+                style={dynamicStyles.headerButton}
               >
                 <Ionicons
                   name="arrow-back-outline"
                   size={26}
-                  color="#5757f8"
+                  color={Colors.icon}
                   style={{ padding: 5 }}
                 />
               </TouchableOpacity>
             )}
       </View>
-      <Text style={styles.title}>{options?.title}</Text>
-      <View style={styles.right}>{options.headerRight?.({})}</View>
+      <Text style={dynamicStyles.title}>{options?.title}</Text>
+      <View style={dynamicStyles.right}>{options.headerRight?.({})}</View>
     </View>
   );
 }

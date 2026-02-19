@@ -22,7 +22,6 @@ import DashboardLeftHeader from "@components/atoms/DashBoardLeftHeader";
 import NotesPassword from "@screens/NotesPassword";
 import ChangeNotePassword from "@screens/ChangeNotePassword";
 import Notifications from "@screens/Notifications";
-import Slider from "@screens/Slider";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const prefix = Linking.createURL("/");
@@ -42,7 +41,7 @@ const RootNavigator = () => {
   return (
     <SafeAreaProvider>
       <NavigationContainer linking={linking}>
-        {token == null ? (
+        {token !== null ? (
           <Stack.Navigator initialRouteName="Onboarding">
             <Stack.Group
               screenOptions={{ header: (props) => <Header {...props} /> }}
@@ -135,13 +134,6 @@ const RootNavigator = () => {
               <Stack.Screen
                 name={ROUTES.FORGOTPASSWORD}
                 component={ForgotPassword}
-              />
-              <Stack.Screen
-                name={ROUTES.SLIDER}
-                component={Slider}
-                options={() => ({
-                  title: "Slider",
-                })}
               />
             </Stack.Group>
           </Stack.Navigator>

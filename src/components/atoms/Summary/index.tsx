@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import styles from "./styles";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
+import useStyles from "@hooks/useStyles";
 
 type props = {
   onClose: () => void;
@@ -14,10 +15,11 @@ type props = {
   data?: string;
 };
 export default function Summary({ onClose, id, data }: Readonly<props>) {
+  const { dynamicStyles } = useStyles(styles);
   return (
-    <View style={styles.container}>
-      <View style={styles.headingContainer}>
-        <Pressable style={styles.icon}>
+    <View style={dynamicStyles.container}>
+      <View style={dynamicStyles.headingContainer}>
+        <Pressable style={dynamicStyles.icon}>
           <Ionicons
             name="sparkles-outline"
             size={26}
@@ -25,13 +27,13 @@ export default function Summary({ onClose, id, data }: Readonly<props>) {
             color="#5757f8"
           />
         </Pressable>
-        <Text style={styles.heading}>AI Generated Summary</Text>
+        <Text style={dynamicStyles.heading}>AI Generated Summary</Text>
       </View>
       {data == null && <ActivityIndicator size="large" color="#5757f8" />}
-      <View style={styles.content}>
-        <Text style={styles.contentText}>{data}</Text>
+      <View style={dynamicStyles.content}>
+        <Text style={dynamicStyles.contentText}>{data}</Text>
       </View>
-      <TouchableOpacity style={styles.close}>
+      <TouchableOpacity style={dynamicStyles.close}>
         <AntDesign name="close" size={22} onPress={onClose} color="#5757f8" />
       </TouchableOpacity>
     </View>

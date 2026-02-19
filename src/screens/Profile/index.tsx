@@ -5,7 +5,6 @@ import {
   Pressable,
   TouchableOpacity,
   Alert,
-  PermissionsAndroid,
   ScrollView,
   ImageStyle,
   ViewStyle,
@@ -38,12 +37,14 @@ import AccountActions from "@components/atoms/AccountActions";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import { useEffect, useRef, useState } from "react";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import useTheme from "@hooks/useTheme";
+import useStyles from "@hooks/useStyles";
 
 type ProfileProps = NativeStackScreenProps<RootStackParamList, "Profile">;
 
 export default function Profile({ navigation }: Readonly<ProfileProps>) {
   const dispatch = useDispatch<AppDispatch>();
-
+  const { Colors } = useTheme();
   const username = useSelector((state: RootState) => state.auth.firstName);
   const email = useSelector((state: RootState) => state.auth.email);
   const isGoogle = useSelector((state: RootState) => state.auth.isGoogle);
@@ -269,45 +270,45 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       }
     }
   }
-
+  const { dynamicStyles } = useStyles(styles);
   if (!username) {
     return (
-      <View>
-        <View style={styles.upperContainer}>
-          <Text style={styles.text}>Manage your account settings</Text>
+      <View style={{ backgroundColor: Colors.background, height: "100%" }}>
+        <View style={dynamicStyles.upperContainer}>
+          <Text style={dynamicStyles.text}>Manage your account settings</Text>
         </View>
 
-        <View style={styles.profile as ViewStyle}>
+        <View style={dynamicStyles.profile as ViewStyle}>
           <Image
             key={profileImage}
             source={{ uri: profileImage }}
-            style={styles.image as ImageStyle}
+            style={dynamicStyles.image as ImageStyle}
           />
         </View>
 
-        <Text style={styles.name}>Hi, Guest</Text>
+        <Text style={dynamicStyles.name}>Hi, Guest</Text>
 
         <Pressable
-          style={styles.pressable}
+          style={dynamicStyles.pressable}
           onPress={() => navigation.navigate("GuestConversion")}
         >
-          <Text style={styles.registerText}>Register Yourself</Text>
+          <Text style={dynamicStyles.registerText}>Register Yourself</Text>
         </Pressable>
 
-        <Pressable style={styles.pressable} onPress={confirmLogout}>
+        <Pressable style={dynamicStyles.pressable} onPress={confirmLogout}>
           <AntDesign name="logout" size={18} color="#fff" />
-          <Text style={styles.registerText}>Logout</Text>
+          <Text style={dynamicStyles.registerText}>Logout</Text>
         </Pressable>
       </View>
     );
   }
   return (
-    <ScrollView style={styles.container} bounces={false}>
-      <View style={styles.upperContainer}>
-        <Text style={styles.text}>Manage your account settings</Text>
+    <ScrollView style={dynamicStyles.container} bounces={false}>
+      <View style={dynamicStyles.upperContainer}>
+        <Text style={dynamicStyles.text}>Manage your account settings</Text>
       </View>
 
-      <View style={styles.profile}>
+      <View style={dynamicStyles.profile}>
         <Image
           key={profileImage}
           source={
@@ -315,32 +316,32 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
               ? { uri: profileImage }
               : require("../../../assets/default.png")
           }
-          style={styles.image as ImageStyle}
+          style={dynamicStyles.image as ImageStyle}
         />
         {/* onPress={pickFile} */}
         {!isGoogle && (
-          <TouchableOpacity style={styles.editImage}>
+          <TouchableOpacity style={dynamicStyles.editImage}>
             <MaterialIcons
               name="edit"
               size={24}
-              color="black"
+              color={Colors.icon}
               onPress={() => bottomSheetRef?.current?.open()}
             />
           </TouchableOpacity>
         )}
       </View>
 
-      <Text style={styles.name}>Hi, {username}</Text>
-      <Text style={styles.email}>{email}</Text>
+      <Text style={dynamicStyles.name}>Hi, {username}</Text>
+      <Text style={dynamicStyles.email}>{email}</Text>
 
       <AccountActions hasCommonPassword={hasCommonPassword} />
 
       <TouchableOpacity
-        style={[styles.pressable, styles.logout]}
+        style={[dynamicStyles.pressable, dynamicStyles.logout]}
         onPress={confirmLogout}
       >
-        <AntDesign name="logout" size={18} color="#fff" />
-        <Text style={styles.registerText}>Logout</Text>
+        <AntDesign name="logout" size={18} color={Colors.icon} />
+        <Text style={dynamicStyles.registerText}>Logout</Text>
       </TouchableOpacity>
       <RBSheet
         ref={bottomSheetRef}
@@ -352,39 +353,45 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
           },
           container: {
             borderRadius: 20,
-            backgroundColor: "#f5f5f5",
+            backgroundColor: Colors.textPrimary,
             height: 280,
           },
         }}
       >
-        <View style={styles.bottomsheetContainer}>
-          <Text style={styles.profileText}>Profile Picture</Text>
-          <View style={styles.optionsContainer}>
-            <TouchableOpacity style={styles.optionsStyle} onPress={pickImage}>
-              <Ionicons name="images" size={24} color="#5757f8" />
-              <Text style={styles.optionText}>Choose from Gallery</Text>
+        <View style={dynamicStyles.bottomsheetContainer}>
+          <Text style={dynamicStyles.profileText}>Profile Picture</Text>
+          <View style={dynamicStyles.optionsContainer}>
+            <TouchableOpacity
+              style={dynamicStyles.optionsStyle}
+              onPress={pickImage}
+            >
+              <Ionicons name="images" size={24} color={Colors.icon} />
+              <Text style={dynamicStyles.optionText}>Choose from Gallery</Text>
             </TouchableOpacity>
-            <View style={styles.line} />
-            <TouchableOpacity style={styles.optionsStyle} onPress={openCamera}>
-              <Entypo name="camera" size={24} color="#5757f8" />
-              <Text style={styles.optionText}>Take Photo</Text>
+            <View style={dynamicStyles.line} />
+            <TouchableOpacity
+              style={dynamicStyles.optionsStyle}
+              onPress={openCamera}
+            >
+              <Entypo name="camera" size={24} color={Colors.icon} />
+              <Text style={dynamicStyles.optionText}>Take Photo</Text>
             </TouchableOpacity>
-            <View style={styles.line} />
+            <View style={dynamicStyles.line} />
 
             <TouchableOpacity
-              style={styles.optionsStyle}
+              style={dynamicStyles.optionsStyle}
               onPress={deleteProfile}
             >
-              <AntDesign name="delete" size={24} color="#5757f8" />
-              <Text style={styles.optionText}>Remove Current Photo</Text>
+              <AntDesign name="delete" size={24} color={Colors.icon} />
+              <Text style={dynamicStyles.optionText}>Remove Current Photo</Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity
-            style={styles.close}
+            style={dynamicStyles.close}
             onPress={() => bottomSheetRef?.current?.close()}
           >
-            <EvilIcons name="close-o" size={28} color="#5757f8" />
+            <EvilIcons name="close-o" size={28} color={Colors.icon} />
           </TouchableOpacity>
         </View>
       </RBSheet>

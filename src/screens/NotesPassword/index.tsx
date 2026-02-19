@@ -19,6 +19,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import * as Linking from "expo-linking";
 import { useResetNotesPasswordMutation } from "@redux/api/authApi";
 import { RootState } from "@redux/store";
+import useStyles from "@hooks/useStyles";
 
 type NotesPasswordProps = NativeStackScreenProps<
   RootStackParamList,
@@ -105,9 +106,9 @@ export default function NotesPassword({
       console.log(error);
     }
   }
-
+  const { dynamicStyles } = useStyles(styles);
   return (
-    <KeyboardAwareScrollView style={styles.container}>
+    <KeyboardAwareScrollView style={dynamicStyles.container}>
       <Controller
         control={control}
         name="password"
@@ -124,7 +125,7 @@ export default function NotesPassword({
         )}
       />
       {errors.password && (
-        <Text style={styles.error}>{errors.password.message}</Text>
+        <Text style={dynamicStyles.error}>{errors.password.message}</Text>
       )}
 
       <Controller
@@ -143,15 +144,17 @@ export default function NotesPassword({
         )}
       />
       {errors.confirmPassword && (
-        <Text style={styles.error}>{errors.confirmPassword.message}</Text>
+        <Text style={dynamicStyles.error}>
+          {errors.confirmPassword.message}
+        </Text>
       )}
 
       <TouchableOpacity
         disabled={isLoading}
         onPress={handleSubmit(handle)}
-        style={styles.pressable}
+        style={dynamicStyles.pressable}
       >
-        <Text style={styles.pressableText}>
+        <Text style={dynamicStyles.pressableText}>
           {isLoading ? "Saving..." : "Set password"}
         </Text>
       </TouchableOpacity>

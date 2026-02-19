@@ -12,6 +12,7 @@ import {
 import Toast from "react-native-toast-message";
 import { useNavigation } from "@react-navigation/native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import useStyles from "@hooks/useStyles";
 
 type Props = {
   onClose: () => void;
@@ -32,6 +33,7 @@ export default function Reminder({
   const [isFocused, setIsFocused] = useState(false);
   const [setReminderApi, { isLoading }] = useSetReminderMutation();
   const [name, setName] = useState("");
+  const { dynamicStyles } = useStyles(styles);
   const [description, setDescription] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
   useEffect(() => {
@@ -102,16 +104,16 @@ export default function Reminder({
 
   return (
     <Modal isVisible={true}>
-      <View style={styles.container}>
+      <View style={dynamicStyles.container}>
         <KeyboardAwareScrollView bounces={false}>
-          <View style={styles.headingContainer}>
-            <View style={styles.iconBackground}>
+          <View style={dynamicStyles.headingContainer}>
+            <View style={dynamicStyles.iconBackground}>
               <Ionicons color="#5757f8" size={24} name="notifications" />
             </View>
-            <Text style={styles.headingText}>Set Reminder</Text>
+            <Text style={dynamicStyles.headingText}>Set Reminder</Text>
           </View>
 
-          <View style={styles.line} />
+          <View style={dynamicStyles.line} />
 
           {openDateModal && (
             <DatePicker
@@ -128,26 +130,26 @@ export default function Reminder({
             />
           )}
 
-          <View style={styles.contentView}>
-            <Text style={styles.textInput}>Name*</Text>
+          <View style={dynamicStyles.contentView}>
+            <Text style={dynamicStyles.textInput}>Name*</Text>
             <TextInput
               value={name}
               placeholder="Name of Reminder"
               onChangeText={setName}
               placeholderTextColor="#707070ff"
-              style={styles.input}
+              style={dynamicStyles.input}
             />
 
-            <Text style={styles.textInput}>Description</Text>
+            <Text style={dynamicStyles.textInput}>Description</Text>
             <TextInput
-              style={styles.input}
+              style={dynamicStyles.input}
               placeholderTextColor="#707070ff"
               value={description}
               placeholder="Description for your reminder"
               onChangeText={setDescription}
             />
 
-            <Text style={styles.textInput}>Date & Time</Text>
+            <Text style={dynamicStyles.textInput}>Date & Time</Text>
 
             <TouchableOpacity onPress={() => setOpenDateModal(true)}>
               <TextInput
@@ -156,39 +158,48 @@ export default function Reminder({
                 placeholder="Select date & time"
                 placeholderTextColor="#707070ff"
                 value={formattedDate}
-                style={[styles.input, isFocused && styles.focused]}
+                style={[
+                  dynamicStyles.input,
+                  isFocused && dynamicStyles.focused,
+                ]}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
               />
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.calendar}
+              style={dynamicStyles.calendar}
               onPress={() => setOpenDateModal(true)}
             >
               <EvilIcons name="calendar" size={26} />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.line} />
+          <View style={dynamicStyles.line} />
 
           <TouchableOpacity
-            style={[styles.pressable, (!date || isLoading) && { opacity: 0.6 }]}
+            style={[
+              dynamicStyles.pressable,
+              (!date || isLoading) && { opacity: 0.6 },
+            ]}
             disabled={!date || isLoading}
             onPress={setReminder}
           >
-            <Text style={styles.setText}>
+            <Text style={dynamicStyles.setText}>
               {isLoading ? "Setting..." : "Set Reminder"}
             </Text>
           </TouchableOpacity>
 
           {isEditMode && (
-            <TouchableOpacity style={styles.pressable} onPress={handleDelete}>
-              <Text style={styles.setText}>Delete Reminder</Text>
+            <TouchableOpacity
+              style={dynamicStyles.pressable}
+              onPress={handleDelete}
+            >
+              <Text style={dynamicStyles.setText}>Delete Reminder</Text>
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity style={styles.close} onPress={onClose}>
+          <TouchableOpacity style={dynamicStyles.close} onPress={onClose}>
             <AntDesign name="close" size={22} color="#5757f8" />
           </TouchableOpacity>
         </KeyboardAwareScrollView>

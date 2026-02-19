@@ -29,6 +29,8 @@ import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { AntDesign } from "@expo/vector-icons";
 import messaging from "@react-native-firebase/messaging";
+import useStyles from "@hooks/useStyles";
+import useTheme from "@hooks/useTheme";
 type RegisterProps = NativeStackScreenProps<RootStackParamList, "Register">;
 export default function Register({ navigation }: Readonly<RegisterProps>) {
   const dispatch = useDispatch();
@@ -124,7 +126,6 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           profileImageUrl: userInfo.data.user.photo,
           isCommonPasswordSet: response.data.isCommonPasswordSet,
           isNotesUnlocked: response.data.isNotesUnlocked,
-          needsProfileCompletion: true,
         }),
       );
       Toast.show({
@@ -180,12 +181,13 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
       }
     }
   }
-
+  const { dynamicStyles } = useStyles(styles);
+  const { Colors } = useTheme();
   return (
-    <KeyboardAwareScrollView style={[styles.container]}>
+    <KeyboardAwareScrollView style={[dynamicStyles.container]}>
       {/* <ScrollView contentContainerStyle={styles.container} scrollEnabled={true}> */}
       {/* <View style={styles.innerContainer}> */}
-      <Text style={styles.text}>Join NoteSmart today</Text>
+      <Text style={dynamicStyles.text}>Join NoteSmart today</Text>
       {/* </View> */}
       <View>
         <Controller
@@ -195,7 +197,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
             <CustomInput
               text="Username*"
               placeholder="Username"
-              color="#707070ff"
+              color={Colors.placeholder}
               value={value.trim()}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -203,7 +205,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           )}
         />
         {errors.username && (
-          <Text style={styles.error}>{errors.username.message}</Text>
+          <Text style={dynamicStyles.error}>{errors.username.message}</Text>
         )}
         <Controller
           control={control}
@@ -212,7 +214,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
             <CustomInput
               text="First Name*"
               placeholder="First Name"
-              color="#707070ff"
+              color={Colors.placeholder}
               value={value.trim()}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -220,7 +222,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           )}
         />
         {errors.firstName && (
-          <Text style={styles.error}>{errors.firstName.message}</Text>
+          <Text style={dynamicStyles.error}>{errors.firstName.message}</Text>
         )}
         <Controller
           control={control}
@@ -229,7 +231,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
             <CustomInput
               text="Last Name*"
               placeholder="Last Name"
-              color="#707070ff"
+              color={Colors.placeholder}
               value={value.trim()}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -237,7 +239,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           )}
         />
         {errors.lastName && (
-          <Text style={styles.error}>{errors.lastName.message}</Text>
+          <Text style={dynamicStyles.error}>{errors.lastName.message}</Text>
         )}
         <Controller
           control={control}
@@ -246,7 +248,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
             <CustomInput
               text="Email*"
               placeholder="Email"
-              color="#707070ff"
+              color={Colors.placeholder}
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -254,7 +256,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           )}
         />
         {errors.email && (
-          <Text style={styles.error}>{errors.email.message}</Text>
+          <Text style={dynamicStyles.error}>{errors.email.message}</Text>
         )}
         <Controller
           control={control}
@@ -263,42 +265,40 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
             <CustomInput
               text="Password*"
               placeholder="Password"
-              color="#707070ff"
+              color={Colors.placeholder}
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
               isPassword
-              // isVisible={isVisible}
-              // onToggleVisibility={() => {
-              //   setIsVisible((prev) => !prev);
-              // }}
-              // secureTextEntry={!isVisible}
             />
           )}
         />
         {errors.password && (
-          <Text style={styles.error}>{errors.password.message}</Text>
+          <Text style={dynamicStyles.error}>{errors.password.message}</Text>
         )}
       </View>
 
       <TouchableOpacity
-        style={styles.pressable}
+        style={dynamicStyles.pressable}
         onPress={handleSubmit(handleSignup)}
       >
-        <Text style={styles.pressableText}>
+        <Text style={dynamicStyles.pressableText}>
           {isLoading ? "Creating Account..." : "Create Account"}
         </Text>
       </TouchableOpacity>
 
       <View>
-        <View style={styles.lineContainer}>
-          <View style={styles.line} />
-          <Text style={styles.continueText}>or continue with</Text>
-          <View style={styles.line} />
+        <View style={dynamicStyles.lineContainer}>
+          <View style={dynamicStyles.line} />
+          <Text style={dynamicStyles.continueText}>or continue with</Text>
+          <View style={dynamicStyles.line} />
         </View>
-        <TouchableOpacity style={styles.google} onPress={handleGoogleSignin}>
-          <AntDesign name="google" size={20} color="black" />
-          <Text style={styles.googleText}>
+        <TouchableOpacity
+          style={dynamicStyles.google}
+          onPress={handleGoogleSignin}
+        >
+          <AntDesign name="google" size={20} color={Colors.icon} />
+          <Text style={dynamicStyles.googleText}>
             {isGoogleLoading ? "Signing up..." : "Sign up with Google"}
           </Text>
         </TouchableOpacity>

@@ -1,6 +1,8 @@
 import {
+  ActivityIndicator,
   FlatList,
   Image,
+  RefreshControl,
   Text,
   TextInput,
   TouchableOpacity,
@@ -22,7 +24,10 @@ import { useNetInfo } from "@react-native-community/netinfo";
 import useDebounce from "src/debounce/debounce";
 import { lockNotes } from "@redux/slice/authSlice";
 import { useFocusEffect } from "@react-navigation/native";
-import Slider from "@screens/Slider";
+import useStyles from "@hooks/useStyles";
+import useTheme from "@hooks/useTheme";
+import { LinearGradient } from "expo-linear-gradient";
+import GradientText from "@components/atoms/GradientText";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
 type Note = {
@@ -30,7 +35,6 @@ type Note = {
   title: string | null;
   content: string | null;
   updatedAt: string;
-  backgroundColor?: string | null;
   isPasswordProtected: number;
   isLocked: number;
   isReminderSet: number;
@@ -44,6 +48,8 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const userId = useSelector((state: RootState) => state.auth.token);
   const { isConnected } = useNetInfo();
   const [page, setPage] = useState(1);
+  const { dynamicStyles } = useStyles(styles);
+  const { Colors, darkMode } = useTheme();
   const isNotesUnlocked = useSelector(
     (state: RootState) => state.auth.isNotesUnlocked,
   );
@@ -67,7 +73,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   );
 
   const loadMore = () => {
-    if (!isFetching && data?.data?.length === 10) {
+    if (!isSearching && !isFetching && data?.data?.length === 10) {
       setPage((prev) => prev + 1);
     }
   };
@@ -114,7 +120,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         title: n.title ?? "",
         content: n.content ?? "",
         updatedAt: n.updatedAt ?? new Date().toISOString(),
-        backgroundColor: n.backgroundColor ?? "#f5f5f5",
         isPasswordProtected: n.isPasswordProtected ? 1 : 0,
         isReminderSet: n.isReminderSet ? 1 : 0,
         isLocked: n.isLocked ? 1 : 0,
@@ -143,7 +148,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
           isReminderSet: note.isReminderSet ? 1 : 0,
           syncStatus: "synced",
           filePaths: note.filePaths ? JSON.stringify(note.filePaths) : null,
-          backgroundColor: note.backgroundColor ?? "#f5f5f5",
         })
         .onConflictDoUpdate({
           target: notesTable.id,
@@ -156,7 +160,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             isPasswordProtected: note.isPasswordProtected ? 1 : 0,
             isLocked: note.isLocked ? 1 : 0,
             isReminderSet: note.isReminderSet ? 1 : 0,
-            backgroundColor: note.backgroundColor ?? "#f5f5f5",
           },
         });
     }
@@ -189,6 +192,12 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     }, [userId]),
   );
 
+  //header
+  navigation.setOptions({
+    headerStyle: {
+      backgroundColor: darkMode ? Colors.background : Colors.background,
+    },
+  });
   //search
   const debouncedSearch = useDebounce(searchText, 200);
 
@@ -202,109 +211,123 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     ? (SearchedNotes?.data ?? [])
     : (allNotes ?? []);
 
+  console.log(displayNotes, "displaynotes");
   return (
-    <View style={styles.container}>
-      <View style={styles.upperContainer}>
-        <View style={styles.bottomHeader}>
-          <View style={{ flexDirection: "column", gap: 10 }}>
-            <Text style={styles.bottomHeaderText}>
-              Start Capturing your thoughts
-            </Text>
-            <Text style={styles.headerText}>
-              Your ideas deserve a place to live
-            </Text>
-          </View>
-          <Image
-            source={require("../../../assets/dash.png")}
-            style={{ height: 85, width: 85 }}
-          />
-        </View>
-        {/* Search Icon */}
-        {data?.data?.length > 0 && (
-          <View style={[styles.SearchBar, isFocused && styles.focus]}>
-            <Ionicons
-              name="search"
-              color="#979090ff"
-              size={22}
-              style={styles.searchIcon}
-            />
-            <TextInput
-              placeholder="Search notes..."
-              placeholderTextColor="#979090ff"
-              style={styles.search}
-              value={searchText.trim()}
-              onChangeText={setSearchText}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              autoCorrect={false}
-              cursorColor="#5757f8"
-              selectionColor="#5757f8"
-            />
-            {searchText && (
-              <TouchableOpacity onPress={clearSearchText}>
-                <MaterialIcons name="clear" size={22} color="#979090ff" />
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
+    <View style={dynamicStyles.container}>
+      <View style={dynamicStyles.static}>
+        <Text style={dynamicStyles.staticText}>Capture your</Text>
+        <Text style={dynamicStyles.staticText}>thoughts</Text>
+        <Text style={dynamicStyles.staticSecondaryText}>
+          Your ideas deserve a place to live
+        </Text>
       </View>
-
-      {/* Card components */}
-      <View style={[styles.scrollContainer, styles.listContent]}>
-        <FlatList
-          data={displayNotes}
-          bounces={false}
-          keyExtractor={(item) => item.id}
-          scrollEnabled={displayNotes.length > 0}
-          contentContainerStyle={{ paddingBottom: 120 }}
-          renderItem={({ item }) => (
-            <Card
-              id={item.id}
-              title={item.title}
-              content={item.content}
-              updatedAt={item.updatedAt}
-              backgroundColor={item.backgroundColor}
-              isPasswordProtected={item.isPasswordProtected && !isNotesUnlocked}
-              isReminderSet={item.isReminderSet}
-              isLocked={item.isLocked}
-            />
+      {/* Search*/}
+      {data?.data?.length > 0 && (
+        <View
+          style={[dynamicStyles.SearchBar, isFocused && dynamicStyles.focus]}
+        >
+          <Ionicons name="search" color={Colors.mutedIcon} size={22} />
+          <TextInput
+            placeholder="Search notes..."
+            placeholderTextColor={Colors.textMuted}
+            style={dynamicStyles.search}
+            value={searchText.trim()}
+            onChangeText={setSearchText}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            autoCorrect={false}
+            cursorColor="#5757f8"
+            selectionColor="#5757f8"
+          />
+          {searchText && (
+            <TouchableOpacity onPress={clearSearchText}>
+              <MaterialIcons name="clear" size={24} color={Colors.mutedIcon} />
+            </TouchableOpacity>
           )}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.3}
-          ListEmptyComponent={() => {
-            if (isSearching) {
-              return (
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>
-                    No results for “{debouncedSearch}”
-                  </Text>
-                  <Text style={styles.text}>Try a different keyword</Text>
-                </View>
-              );
-            }
-
+        </View>
+      )}
+      <View style={dynamicStyles.optionContainer}>
+        <TouchableOpacity style={dynamicStyles.option}>
+          <Text style={dynamicStyles.optionText}>All Notes</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={dynamicStyles.option}>
+          <Text style={dynamicStyles.optionText}>Locked</Text>
+        </TouchableOpacity>
+      </View>
+      {/* Card components */}
+      <FlatList
+        data={displayNotes}
+        bounces={false}
+        keyExtractor={(item) => item.id}
+        scrollEnabled={displayNotes.length > 0}
+        contentContainerStyle={{ paddingBottom: 120 }}
+        renderItem={({ item }) => (
+          <Card
+            id={item.id}
+            title={item.title}
+            content={item.content}
+            updatedAt={item.updatedAt}
+            isPasswordProtected={item.isPasswordProtected && !isNotesUnlocked}
+            isReminderSet={item.isReminderSet}
+            isLocked={item.isLocked}
+          />
+        )}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={() =>
+          isFetching && page > 1 ? (
+            <View style={{ padding: 20 }}>
+              <ActivityIndicator size="small" color={Colors.primary} />
+            </View>
+          ) : (
+            <View style={{ height: 100 }} />
+          )
+        }
+        ListEmptyComponent={() => {
+          if (isSearching) {
             return (
-              <View style={styles.emptyContainer}>
-                <Image
-                  source={require("../../../assets/dash.png")}
-                  style={{ height: 250, width: 250 }}
-                />
-                <Text style={styles.emptyText}>No notes yet</Text>
-                <Text style={styles.text}>
-                  Tap the + button to write your first thought or idea
+              <View style={dynamicStyles.emptyContainer}>
+                <Text style={dynamicStyles.emptyText}>
+                  No results for “{debouncedSearch}”
+                </Text>
+                <Text style={dynamicStyles.emptySecondaryText}>
+                  Try a different keyword
                 </Text>
               </View>
             );
-          }}
-        />
-      </View>
+          }
+
+          return (
+            <View style={dynamicStyles.emptyContainer}>
+              <Image
+                source={
+                  darkMode
+                    ? require("../../../assets/dark.png")
+                    : require("../../../assets/light.png")
+                }
+                style={{
+                  borderRadius: 40,
+                  height: 200,
+                  width: 200,
+                  alignSelf: "center",
+                }}
+                resizeMode="contain"
+              />
+              <Text style={dynamicStyles.emptyText}>No notes yet</Text>
+              <Text style={dynamicStyles.emptySecondaryText}>
+                Tap the + button to write your first thought or idea
+              </Text>
+            </View>
+          );
+        }}
+      />
 
       {/* Create Note */}
       <TouchableOpacity
-        style={styles.add}
+        style={dynamicStyles.add}
         onPress={() => navigation.navigate("CreateNote" as never)}
       >
-        <Ionicons name="add-circle" size={60} color="#5157F8" />
+        <Ionicons name="add-circle" size={60} color={Colors.primary} />
       </TouchableOpacity>
     </View>
   );

@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { act } from "react";
+import { THEME } from "@theme/constants";
 
 export type AuthState = {
   identifier: string | null;
@@ -14,6 +14,7 @@ export type AuthState = {
   isNotesUnlocked: boolean;
   notesUnlockUntil: number | null;
   isGoogle: boolean;
+  theme: THEME;
 };
 const initialState: AuthState = {
   identifier: null,
@@ -28,6 +29,7 @@ const initialState: AuthState = {
   isNotesUnlocked: false,
   notesUnlockUntil: null,
   isGoogle: false,
+  theme: THEME.DEVICE,
 };
 
 const authSlice = createSlice({
@@ -71,7 +73,9 @@ const authSlice = createSlice({
       state.profileImageUrl = null;
       state.isGoogle = false;
     },
-
+    setTheme(state, action: PayloadAction<THEME>) {
+      state.theme = action.payload;
+    },
     register: (
       state,
       action: PayloadAction<{
@@ -192,5 +196,6 @@ export const {
   setCommonPasswordSet,
   isGuest,
   profileImageUrl,
+  setTheme,
 } = authSlice.actions;
 export default authSlice.reducer;

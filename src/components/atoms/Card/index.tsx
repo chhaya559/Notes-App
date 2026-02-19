@@ -4,13 +4,12 @@ import {
   TouchableOpacity,
   Pressable,
   Alert,
-  Dimensions,
   useWindowDimensions,
 } from "react-native";
 import styles from "./styles";
-import { AntDesign, Feather, MaterialIcons } from "@expo/vector-icons";
+import { AntDesign, Entypo, Feather, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import CustomInput from "../CustomInput";
 import Modal from "react-native-modal";
 import Toast from "react-native-toast-message";
@@ -18,33 +17,48 @@ import { RenderHTML } from "react-native-render-html";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { setNotesUnlocked, lockNotes } from "@redux/slice/authSlice";
-import { useDeleteMutation, useUnlockNoteMutation } from "@redux/api/noteApi";
+import {
+  useDeleteMutation,
+  useNoteLockMutation,
+  useUnlockNoteMutation,
+} from "@redux/api/noteApi";
 import { db } from "src/db/notes";
 import Reanimated, {
   SharedValue,
   useAnimatedStyle,
+  useSharedValue,
+  withSpring,
 } from "react-native-reanimated";
-import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import Animated from "react-native-reanimated";
+import ReanimatedSwipeable, {
+  SwipeableMethods,
+} from "react-native-gesture-handler/ReanimatedSwipeable";
 import { notesTable } from "src/db/schema";
 import { and, eq } from "drizzle-orm";
 import { useNetInfo } from "@react-native-community/netinfo";
+import useStyles from "@hooks/useStyles";
+import useTheme from "@hooks/useTheme";
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString(undefined, {
     day: "2-digit",
     month: "short",
     year: "numeric",
-    hour: "numeric",
-    minute: "numeric",
+    // hour: "numeric",
+    // minute: "numeric",
   });
 }
 
 export default function Card(props: any) {
+  const { Colors } = useTheme();
+  const { dynamicStyles } = useStyles(styles);
+
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
   const userId = useSelector((state: RootState) => state.auth.token);
   const { isConnected } = useNetInfo();
   const [deleteApi] = useDeleteMutation();
+  const [lockApi] = useNoteLockMutation();
   const notesUnlockUntil = useSelector(
     (state: RootState) => state.auth.notesUnlockUntil,
   );
@@ -89,7 +103,7 @@ export default function Card(props: any) {
     }
 
     try {
-      const res: any = await unlockNote({
+      await unlockNote({
         password: unlockValue.password,
         unlockMinutes: unlockValue.unlockMinutes,
       }).unwrap();
@@ -107,6 +121,7 @@ export default function Card(props: any) {
       });
     }
   }
+
   async function handleDelete() {
     try {
       await db
@@ -140,6 +155,23 @@ export default function Card(props: any) {
     navigation.navigate("CreateNote", { id: props.id });
   }
 
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value }],
+    };
+  });
+
+  async function lockNote() {
+    try {
+      const response = await lockApi({ id: String(props.id) }).unwrap();
+      console.log(response);
+    } catch (error: any) {
+      Toast.show({ text1: "Failed to lock note" });
+      console.log(error);
+    }
+  }
+
   function confirmDelete() {
     Alert.alert(
       "Delete Account",
@@ -157,48 +189,70 @@ export default function Card(props: any) {
   ) {
     const animatedStyle = useAnimatedStyle(() => {
       return {
-        translateX: translation.value + 70,
+        translateX: translation.value + 50,
       };
     });
 
     return (
-      <View style={styles.swipe}>
-        <Reanimated.View style={[styles.delete, animatedStyle]}>
+      <View style={dynamicStyles.swipe}>
+        <Reanimated.View style={[dynamicStyles.delete, animatedStyle]}>
           <TouchableOpacity onPress={confirmDelete}>
             <MaterialIcons
               name="delete-outline"
               size={38}
-              color="white"
-              style={styles.deleteIcon}
-            />
-          </TouchableOpacity>
-        </Reanimated.View>
-        <Reanimated.View style={[styles.delete, animatedStyle]}>
-          <TouchableOpacity onPress={confirmDelete}>
-            <MaterialIcons
-              name="delete-outline"
-              size={38}
-              color="white"
-              style={styles.deleteIcon}
+              color={Colors.swipeDeleteIcon}
+              style={dynamicStyles.deleteIcon}
             />
           </TouchableOpacity>
         </Reanimated.View>
       </View>
     );
   }
+  function LeftAction(
+    progress: SharedValue<number>,
+    translation: SharedValue<number>,
+  ) {
+    const animatedStyle = useAnimatedStyle(() => {
+      return {
+        translateX: translation.value + 70,
+      };
+    });
 
+    return (
+      <View style={dynamicStyles.swipe}>
+        <Reanimated.View style={[dynamicStyles.lock, animatedStyle]}>
+          <TouchableOpacity onPress={lockNote}>
+            <Entypo
+              name="lock"
+              size={38}
+              color={Colors.swipeLockIcon}
+              style={dynamicStyles.deleteIcon}
+            />
+          </TouchableOpacity>
+        </Reanimated.View>
+      </View>
+    );
+  }
+  const firstLine = props.content
+    ?.split(/\r?\n|<br\s*\/?>/)[0]
+    ?.substring(0, 40);
+
+  const contentToShow =
+    firstLine?.length > 30 ? firstLine.substring(0, 30) + "..." : firstLine;
+
+  const swipeRef = useRef<SwipeableMethods>(null);
   return (
     <>
       {showLockedModal && (
-        <Modal isVisible backdropOpacity={0.5} style={styles.modal}>
+        <Modal isVisible backdropOpacity={0.5} style={dynamicStyles.modal}>
           <View>
-            <Text style={styles.unlockHeading}>Unlock Notes</Text>
+            <Text style={dynamicStyles.unlockHeading}>Unlock Notes</Text>
             <TouchableOpacity>
               <AntDesign
                 name="close"
                 size={24}
                 color="#5757f8"
-                style={styles.close}
+                style={dynamicStyles.close}
                 onPress={() => setShowLockedModal(false)}
               />
             </TouchableOpacity>
@@ -212,70 +266,88 @@ export default function Card(props: any) {
               isPassword
             />
 
-            <Text style={styles.timeText}>Unlock for</Text>
+            <Text style={dynamicStyles.timeText}>Unlock for</Text>
 
-            <View style={styles.counter}>
+            <View style={dynamicStyles.counter}>
               {[5, 10, 20, 30, 50].map((min) => (
                 <TouchableOpacity
                   key={min}
                   style={[
-                    styles.counterTime,
-                    unlockValue.unlockMinutes === min && styles.counterActive,
+                    dynamicStyles.counterTime,
+                    unlockValue.unlockMinutes === min &&
+                      dynamicStyles.counterActive,
                   ]}
                   onPress={() =>
                     setUnlockValue((p) => ({ ...p, unlockMinutes: min }))
                   }
                 >
-                  <Text style={styles.time}>{min}</Text>
+                  <Text style={dynamicStyles.time}>{min}</Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <TouchableOpacity onPress={handleUnlock} style={styles.pressable}>
-              <Text style={styles.pressableText}>Unlock</Text>
+            <TouchableOpacity
+              onPress={handleUnlock}
+              style={dynamicStyles.pressable}
+            >
+              <Text style={dynamicStyles.pressableText}>Unlock</Text>
             </TouchableOpacity>
           </View>
         </Modal>
       )}
+
       <View>
         <ReanimatedSwipeable
           enabled={!props.isPasswordProtected}
           enableTrackpadTwoFingerGesture
           renderRightActions={RightAction}
+          renderLeftActions={LeftAction}
           rightThreshold={10}
+          ref={swipeRef}
         >
-          <TouchableOpacity
-            style={[
-              styles.container,
-              { backgroundColor: props.backgroundColor },
-            ]}
-            onPress={handlePress}
-          >
-            <Text style={styles.heading}>{props.title.substring(0, 20)}</Text>
-            <View style={styles.createdContainer}>
-              <Feather name="calendar" size={16} color="#656565ff" />
-              <Text style={styles.created}>{formatDate(props.updatedAt)}</Text>
-            </View>
-            {props?.content?.trim()?.length > 0 && (
-              <RenderHTML
-                source={{ html: props.content.substring(0, 25) }}
-                contentWidth={width}
-              />
-            )}
+          <Animated.View style={animatedStyle}>
+            <TouchableOpacity
+              style={[dynamicStyles.container]}
+              onPress={handlePress}
+              activeOpacity={1}
+              onPressIn={() => {
+                scale.value = withSpring(0.9);
+              }}
+              onPressOut={() => {
+                scale.value = withSpring(1);
+              }}
+            >
+              <Text style={dynamicStyles.heading}>
+                {props.title.length > 20
+                  ? props.title.substring(0, 20) + "..."
+                  : props.title}
+              </Text>
 
-            <View style={styles.iconsWrap}>
-              {props.isLocked ? (
-                <Pressable style={styles.icon}>
-                  <Feather name="lock" size={24} color="#000000ff" />
-                </Pressable>
-              ) : null}
-              {props.isReminderSet ? (
-                <Pressable style={styles.icon}>
-                  <Feather name="clock" size={24} color="#000000ff" />
-                </Pressable>
-              ) : null}
-            </View>
-          </TouchableOpacity>
+              <Text style={dynamicStyles.created}>
+                {formatDate(props.updatedAt)}
+              </Text>
+              {props?.content?.trim()?.length > 0 && (
+                <RenderHTML
+                  source={{ html: contentToShow }}
+                  contentWidth={width}
+                  baseStyle={dynamicStyles.contentText}
+                />
+              )}
+
+              <View style={dynamicStyles.iconsWrap}>
+                {props.isLocked ? (
+                  <Pressable style={dynamicStyles.icon}>
+                    <Entypo name="lock" size={24} color={Colors.icon} />
+                  </Pressable>
+                ) : null}
+                {props.isReminderSet ? (
+                  <Pressable style={dynamicStyles.icon}>
+                    <Feather name="clock" size={24} color="#000000ff" />
+                  </Pressable>
+                ) : null}
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
         </ReanimatedSwipeable>
       </View>
     </>

@@ -15,6 +15,7 @@ import Toast from "react-native-toast-message";
 import Modal from "react-native-modal";
 import { useEffect, useState } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import useStyles from "@hooks/useStyles";
 type ForgotScreenProps = NativeStackScreenProps<
   RootStackParamList,
   "ForgotPassword"
@@ -92,40 +93,40 @@ export default function ForgotPassword({
       clearTimeout(timer);
     };
   }, [isModalVisible]);
-
+  const { dynamicStyles } = useStyles(styles);
   return (
     <>
       <Modal isVisible={isModalVisible} backdropOpacity={0.8}>
-        <View style={styles.modal}>
-          <View style={styles.iconWrap}>
+        <View style={dynamicStyles.modal}>
+          <View style={dynamicStyles.iconWrap}>
             <MaterialCommunityIcons
               name="email-open"
               size={42}
               color="#5757f8"
             />
           </View>
-          <Text style={styles.modalHeading}>Reset your Password</Text>
-          <Text style={styles.modalText}>
+          <Text style={dynamicStyles.modalHeading}>Reset your Password</Text>
+          <Text style={dynamicStyles.modalText}>
             Check your email for a link to reset your password. If it doesn't
             appear within a few minutes,check your spam folder.
           </Text>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            style={styles.backButtom}
+            style={dynamicStyles.backButtom}
           >
-            <Text style={styles.modalLogin}>Go Back</Text>
+            <Text style={dynamicStyles.modalLogin}>Go Back</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity
-          style={styles.cross}
+          style={dynamicStyles.cross}
           onPress={() => setIsModalVisible(false)}
         >
           <Entypo name="cross" size={26} color="#5757f8" />
         </TouchableOpacity>
       </Modal>
-      <KeyboardAwareScrollView style={styles.container}>
-        <Text style={styles.heading}>Forgot your password?</Text>
-        <Text style={styles.text}>
+      <KeyboardAwareScrollView style={dynamicStyles.container}>
+        <Text style={dynamicStyles.heading}>Forgot your password?</Text>
+        <Text style={dynamicStyles.text}>
           A link will be sent to your email to help reset password
         </Text>
         <Controller
@@ -143,13 +144,13 @@ export default function ForgotPassword({
           )}
         />
         {errors.email && (
-          <Text style={styles.error}>{errors.email.message}</Text>
+          <Text style={dynamicStyles.error}>{errors.email.message}</Text>
         )}
         <TouchableOpacity
-          style={styles.pressable}
+          style={dynamicStyles.pressable}
           onPress={handleSubmit(handle)}
         >
-          <Text style={styles.pressableText}>Reset password</Text>
+          <Text style={dynamicStyles.pressableText}>Reset password</Text>
         </TouchableOpacity>
       </KeyboardAwareScrollView>
     </>

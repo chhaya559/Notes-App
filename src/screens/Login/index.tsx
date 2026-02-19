@@ -31,6 +31,8 @@ import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { AntDesign } from "@expo/vector-icons";
 import messaging from "@react-native-firebase/messaging";
+import useStyles from "@hooks/useStyles";
+import useTheme from "@hooks/useTheme";
 
 type LoginProps = NativeStackScreenProps<RootStackParamList, "Login">;
 export default function Login({ navigation }: Readonly<LoginProps>) {
@@ -175,14 +177,15 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       }
     }
   }
-
+  const { dynamicStyles } = useStyles(styles);
+  const { Colors } = useTheme();
   return (
-    <KeyboardAwareScrollView style={styles.container}>
-      <View style={styles.innerContainer}>
-        <Text style={styles.heading}>Welcome Back</Text>
-        <Text style={styles.text}>Sign in to continue</Text>
+    <KeyboardAwareScrollView style={dynamicStyles.container}>
+      <View style={dynamicStyles.innerContainer}>
+        <Text style={dynamicStyles.heading}>Welcome Back</Text>
+        <Text style={dynamicStyles.text}>Sign in to continue</Text>
       </View>
-      <View style={styles.inputContainer}>
+      <View style={dynamicStyles.inputContainer}>
         <Controller
           control={control}
           name="identifier"
@@ -190,7 +193,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
             <CustomInput
               text="Email / Username*"
               placeholder="Email or Username"
-              color="#707070ff"
+              color={Colors.placeholder}
               value={value.trim()}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -198,7 +201,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
           )}
         />
         {errors.identifier && (
-          <Text style={styles.error}>{errors.identifier.message}</Text>
+          <Text style={dynamicStyles.error}>{errors.identifier.message}</Text>
         )}
         <Controller
           control={control}
@@ -207,25 +210,20 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
             <CustomInput
               text="Password*"
               placeholder="Password"
-              color="#707070ff"
+              color={Colors.placeholder}
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
               isPassword
-              // isVisible={isVisible}
-              // onToggleVisibility={() => {
-              //   setIsVisible((prev) => !prev);
-              // }}
-              // secureTextEntry={!isVisible}
             />
           )}
         />
         {errors.password && (
-          <Text style={styles.error}>{errors.password.message}</Text>
+          <Text style={dynamicStyles.error}>{errors.password.message}</Text>
         )}
         <Pressable>
           <Text
-            style={styles.forgot}
+            style={dynamicStyles.forgot}
             onPress={() => navigation.replace("ForgotPassword")}
           >
             Forgot Password?
@@ -233,21 +231,24 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
         </Pressable>
       </View>
       <TouchableOpacity
-        style={styles.pressable}
+        style={dynamicStyles.pressable}
         onPress={handleSubmit(handleLogin)}
       >
-        <Text style={styles.pressableText}>
+        <Text style={dynamicStyles.pressableText}>
           {isLoading ? "Logging in..." : "Login"}
         </Text>
       </TouchableOpacity>
-      <View style={styles.lineContainer}>
-        <View style={styles.line} />
-        <Text style={styles.continueText}>or continue with</Text>
-        <View style={styles.line} />
+      <View style={dynamicStyles.lineContainer}>
+        <View style={dynamicStyles.line} />
+        <Text style={dynamicStyles.continueText}>or continue with</Text>
+        <View style={dynamicStyles.line} />
       </View>
-      <TouchableOpacity style={styles.google} onPress={handleGoogleSignin}>
-        <AntDesign name="google" size={20} color="black" />
-        <Text style={styles.googleText}>
+      <TouchableOpacity
+        style={dynamicStyles.google}
+        onPress={handleGoogleSignin}
+      >
+        <AntDesign name="google" size={20} color={Colors.icon} />
+        <Text style={dynamicStyles.googleText}>
           {isGoogleLoading ? "Sigining you in" : "Sign in with Google"}
         </Text>
       </TouchableOpacity>

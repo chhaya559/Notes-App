@@ -7,6 +7,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@redux/store";
 import { logout } from "@redux/slice/authSlice";
 import Toast from "react-native-toast-message";
+import useStyles from "@hooks/useStyles";
+import useTheme from "@hooks/useTheme";
 
 type props = {
   hasCommonPassword: boolean;
@@ -15,7 +17,7 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
   const [deleteApi] = useDeleteUserMutation();
   const dispatch = useDispatch<AppDispatch>();
   const isGoogle = useSelector((state: RootState) => state.auth.isGoogle);
-
+  const { dynamicStyles } = useStyles(styles);
   const navigation = useNavigation<any>();
 
   function confirmDelete() {
@@ -51,97 +53,125 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
     }
   }
 
+  const { Colors } = useTheme();
   return (
-    <View style={styles.container}>
+    <View style={dynamicStyles.container}>
       <TouchableOpacity
-        style={styles.wrapper}
+        style={dynamicStyles.wrapper}
         onPress={() => navigation.navigate("EditProfile")}
       >
-        <View style={styles.wrap}>
-          <Pressable style={styles.iconWrap}>
-            <MaterialIcons name="edit" size={20} style={{ padding: 3 }} />
+        <View style={dynamicStyles.wrap}>
+          <Pressable style={dynamicStyles.iconWrap}>
+            <MaterialIcons
+              name="edit"
+              size={20}
+              style={{ padding: 3 }}
+              color={Colors.icon}
+            />
           </Pressable>
-          <Text style={styles.text}>Edit Profile Info</Text>
+          <Text style={dynamicStyles.text}>Edit Profile Info</Text>
         </View>
         <TouchableOpacity
-          style={styles.actionIcon}
+          style={dynamicStyles.actionIcon}
           onPress={() => navigation.navigate("EditProfile")}
         >
-          <SimpleLineIcons name="arrow-right" size={18} />
+          <SimpleLineIcons name="arrow-right" size={18} color={Colors.icon} />
         </TouchableOpacity>
       </TouchableOpacity>
-      <View style={styles.line} />
+      <View style={dynamicStyles.line} />
       {!isGoogle && (
         <TouchableOpacity
-          style={styles.wrapper}
+          style={dynamicStyles.wrapper}
           onPress={() => navigation.navigate("ResetPassword")}
         >
-          <View style={styles.wrap}>
-            <Pressable style={styles.iconWrap}>
-              <MaterialIcons name="password" size={20} style={{ padding: 3 }} />
+          <View style={dynamicStyles.wrap}>
+            <Pressable style={dynamicStyles.iconWrap}>
+              <MaterialIcons
+                name="password"
+                size={20}
+                color={Colors.icon}
+                style={{ padding: 3 }}
+              />
             </Pressable>
-            <Text style={styles.text}>Change Password</Text>
+            <Text style={dynamicStyles.text}>Change Password</Text>
           </View>
           <TouchableOpacity
-            style={styles.actionIcon}
-            onPress={() => navigation.navigate("EditProfile")}
+            style={dynamicStyles.actionIcon}
+            onPress={() => navigation.navigate("ResetPassword")}
           >
-            <SimpleLineIcons name="arrow-right" size={18} />
+            <SimpleLineIcons name="arrow-right" color={Colors.icon} size={18} />
           </TouchableOpacity>
         </TouchableOpacity>
       )}
-      <View style={styles.line} />
-      {hasCommonPassword && (
+      <View style={dynamicStyles.line} />
+      <TouchableOpacity
+        style={dynamicStyles.wrapper}
+        onPress={() => navigation.navigate("ChangeNotePassword")}
+      >
+        <View style={dynamicStyles.wrap}>
+          <Pressable style={dynamicStyles.iconWrap}>
+            <MaterialIcons
+              name="password"
+              size={20}
+              style={{ padding: 3 }}
+              color={Colors.icon}
+            />
+          </Pressable>
+          <Text style={dynamicStyles.text}>Change Notes Password</Text>
+        </View>
         <TouchableOpacity
-          style={styles.wrapper}
+          style={dynamicStyles.actionIcon}
           onPress={() => navigation.navigate("ChangeNotePassword")}
         >
-          <View style={styles.wrap}>
-            <Pressable style={styles.iconWrap}>
-              <MaterialIcons name="password" size={20} style={{ padding: 3 }} />
-            </Pressable>
-            <Text style={styles.text}>Notes Password</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.actionIcon}
-            onPress={() => navigation.navigate("EditProfile")}
-          >
-            <SimpleLineIcons name="arrow-right" size={18} />
-          </TouchableOpacity>
+          <SimpleLineIcons name="arrow-right" size={18} color={Colors.icon} />
         </TouchableOpacity>
-      )}
-      <View style={styles.line} />
+      </TouchableOpacity>
+
+      <View style={dynamicStyles.line} />
       {hasCommonPassword && (
         <TouchableOpacity
-          style={styles.wrapper}
+          style={dynamicStyles.wrapper}
           onPress={() =>
             navigation.navigate("ForgotPassword", { name: "notes" })
           }
         >
-          <View style={styles.wrap}>
-            <Pressable style={styles.iconWrap}>
-              <MaterialIcons name="password" size={20} style={{ padding: 3 }} />
+          <View style={dynamicStyles.wrap}>
+            <Pressable style={dynamicStyles.iconWrap}>
+              <MaterialIcons
+                name="password"
+                size={20}
+                style={{ padding: 3 }}
+                color={Colors.icon}
+              />
             </Pressable>
-            <Text style={styles.text}>Reset Notes Password</Text>
+            <Text style={dynamicStyles.text}>Reset Notes Password</Text>
           </View>
           <TouchableOpacity
-            style={styles.actionIcon}
-            onPress={() => navigation.navigate("EditProfile")}
+            style={dynamicStyles.actionIcon}
+            onPress={() => navigation.navigate("ForgotPassword")}
           >
-            <SimpleLineIcons name="arrow-right" size={18} />
+            <SimpleLineIcons name="arrow-right" size={18} color={Colors.icon} />
           </TouchableOpacity>
         </TouchableOpacity>
       )}
-      <View style={styles.line} />
-      <TouchableOpacity style={styles.wrapper} onPress={confirmDelete}>
-        <View style={styles.wrap}>
-          <Pressable style={styles.iconWrap}>
-            <MaterialIcons name="delete" size={20} style={{ padding: 3 }} />
+      <View style={dynamicStyles.line} />
+      <TouchableOpacity style={dynamicStyles.wrapper} onPress={confirmDelete}>
+        <View style={dynamicStyles.wrap}>
+          <Pressable style={dynamicStyles.iconWrap}>
+            <MaterialIcons
+              name="delete"
+              size={20}
+              style={{ padding: 3 }}
+              color={Colors.icon}
+            />
           </Pressable>
-          <Text style={styles.text}>Delete Account</Text>
+          <Text style={dynamicStyles.text}>Delete Account</Text>
         </View>
-        <TouchableOpacity style={styles.actionIcon} onPress={confirmDelete}>
-          <SimpleLineIcons name="arrow-right" size={18} />
+        <TouchableOpacity
+          style={dynamicStyles.actionIcon}
+          onPress={confirmDelete}
+        >
+          <SimpleLineIcons name="arrow-right" size={18} color={Colors.icon} />
         </TouchableOpacity>
       </TouchableOpacity>
     </View>

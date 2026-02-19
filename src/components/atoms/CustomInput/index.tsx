@@ -2,6 +2,8 @@ import { Text, TextInput, View, Pressable } from "react-native";
 import styles from "./styles";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import useStyles from "@hooks/useStyles";
+import useTheme from "@hooks/useTheme";
 
 type props = {
   text?: string;
@@ -23,13 +25,15 @@ export default function CustomInput({
 }: Readonly<props>) {
   const [focused, setFocused] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const { dynamicStyles } = useStyles(styles);
   function onToggleVisibility() {
     setIsVisible((p) => !p);
   }
+  const { Colors } = useTheme();
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>{text}</Text>
-      <View style={isPassword && styles.passwordWrapper}>
+    <View style={dynamicStyles.container}>
+      <Text style={dynamicStyles.label}>{text}</Text>
+      <View style={isPassword && dynamicStyles.passwordWrapper}>
         <TextInput
           placeholder={placeholder}
           placeholderTextColor={color}
@@ -39,19 +43,19 @@ export default function CustomInput({
             setFocused(false);
             onBlur?.();
           }}
-          style={[styles.input, focused && styles.focused]}
+          style={[dynamicStyles.input, focused && dynamicStyles.focused]}
           autoCapitalize="none"
           onFocus={() => setFocused(true)}
           secureTextEntry={isPassword ? !isVisible : false}
-          cursorColor="#5757f8"
-          selectionColor="#5757f8"
+          cursorColor={Colors.primary}
+          selectionColor={Colors.primary}
         />
         {isPassword && (
-          <Pressable onPress={onToggleVisibility} style={styles.icon}>
+          <Pressable onPress={onToggleVisibility} style={dynamicStyles.icon}>
             <Ionicons
               name={isVisible ? "eye" : "eye-off"}
               size={22}
-              color="#666"
+              color={Colors.icon}
             />
           </Pressable>
         )}

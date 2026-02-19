@@ -6,10 +6,14 @@ import { useDispatch } from "react-redux";
 import { guest } from "@redux/slice/authSlice";
 import { useGuestMutation } from "@redux/api/authApi";
 import { AppDispatch } from "@redux/store";
+import useStyles from "@hooks/useStyles";
+import useTheme from "@hooks/useTheme";
+import { useState } from "react";
 type OnboardingProps = NativeStackScreenProps<RootStackParamList, "Onboarding">;
 export default function Onboarding({ navigation }: Readonly<OnboardingProps>) {
   const dispatch = useDispatch<AppDispatch>();
   const [guestApi, { isLoading }] = useGuestMutation();
+  const { Colors } = useTheme();
   async function handleGuestLogin() {
     const response = await guestApi().unwrap();
     console.log(response);
@@ -20,42 +24,45 @@ export default function Onboarding({ navigation }: Readonly<OnboardingProps>) {
       }),
     );
   }
+  const { dynamicStyles } = useStyles(styles);
 
   return (
-    <View style={styles.outerContainer}>
-      <View style={styles.container}>
-        <Image
+    <View style={dynamicStyles.outerContainer}>
+      <View style={dynamicStyles.container}>
+        {/* <Image
           source={require("../../../assets/notes.png")}
-          style={styles.image}
-        />
-        <Text style={styles.name}>NoteSmart</Text>
-        <Text style={styles.text}>Your intelligent note-taking companion</Text>
-        <Text style={styles.ai}>AI - Powered summaries</Text>
+          style={dynamicStyles.image}
+        /> */}
+        <Text style={dynamicStyles.name}>NoteSmart</Text>
+        <Text style={dynamicStyles.text}>
+          Your intelligent note-taking companion
+        </Text>
+        <Text style={dynamicStyles.ai}>AI - Powered summaries</Text>
       </View>
-      <View style={styles.innerContainer}>
+      <View style={dynamicStyles.innerContainer}>
         <TouchableOpacity
-          style={styles.signin}
+          style={dynamicStyles.signin}
           onPress={() => navigation.navigate("Login")}
         >
-          <Text style={styles.signinText}>Sign In</Text>
+          <Text style={dynamicStyles.signinText}>Sign In</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.create}
+          style={dynamicStyles.create}
           onPress={() => navigation.navigate("Register")}
         >
-          <Text style={styles.createText}>Create Account</Text>
+          <Text style={dynamicStyles.createText}>Create Account</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.guest}
+          style={[dynamicStyles.guest]}
           onPress={() => handleGuestLogin()}
         >
-          <Text style={styles.guestText}>
+          <Text style={dynamicStyles.guestText}>
             {isLoading ? "Signing in as Guest.." : "Continue as Guest"}
           </Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.footer}>
+      <Text style={dynamicStyles.footer}>
         Secure . Offline Support . Smart Reminders
       </Text>
     </View>

@@ -1,10 +1,5 @@
 import { useEffect } from "react";
-import {
-  TextInput,
-  TextStyle,
-  PermissionsAndroid,
-  Platform,
-} from "react-native";
+import { TextInput, TextStyle } from "react-native";
 import { preloadFonts } from "@utils/constants";
 import { preloadImages } from "@utils/images";
 import RootNavigator from "./src/navigation/RootNavigator";
@@ -15,11 +10,10 @@ import * as SplashScreen from "expo-splash-screen";
 import { Provider } from "react-redux";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { StatusBar } from "expo-status-bar";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PersistGate } from "redux-persist/integration/react";
-import messaging from "@react-native-firebase/messaging";
-import { usePushNotificationMutation } from "@redux/api/authApi";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import useTheme from "@hooks/useTheme";
 
 SplashScreen.preventAutoHideAsync();
 interface ExtendedText extends Text {
@@ -34,12 +28,12 @@ interface ExtendedTextInput extends TextInput {
     allowFontScaling: boolean;
   };
 }
-
 export default function App() {
   (Text as unknown as ExtendedText).defaultProps = { allowFontScaling: false };
   (TextInput as unknown as ExtendedTextInput).defaultProps = {
     allowFontScaling: false,
   };
+
   useEffect(() => {
     (async () => {
       preloadImages();
@@ -51,21 +45,29 @@ export default function App() {
   return (
     <Provider store={store}>
       <PersistGate persistor={persistor}>
-        <SafeAreaProvider>
-          <KeyboardProvider>
-            {/* <SafeAreaView
+        <MainApp />
+      </PersistGate>
+    </Provider>
+  );
+}
+
+function MainApp() {
+  const { darkMode } = useTheme();
+
+  return (
+    <SafeAreaProvider>
+      <KeyboardProvider>
+        {/* <SafeAreaView
               style={{ flex: 1, backgroundColor: "#f5f5f5" }}
               edges={["bottom"]}
             > */}
-            <GestureHandlerRootView>
-              <RootNavigator />
-            </GestureHandlerRootView>
-            <StatusBar style="dark" />
-            <Toast />
-            {/* </SafeAreaView> */}
-          </KeyboardProvider>
-        </SafeAreaProvider>
-      </PersistGate>
-    </Provider>
+        <GestureHandlerRootView>
+          <RootNavigator />
+        </GestureHandlerRootView>
+        <StatusBar style={darkMode ? "light" : "dark"} />
+        <Toast />
+        {/* </SafeAreaView> */}
+      </KeyboardProvider>
+    </SafeAreaProvider>
   );
 }

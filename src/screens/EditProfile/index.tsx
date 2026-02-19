@@ -10,8 +10,10 @@ import { useEditUserMutation } from "@redux/api/authApi";
 import Toast from "react-native-toast-message";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
-import { edit, setProfileCompleted } from "@redux/slice/authSlice";
+import { edit } from "@redux/slice/authSlice";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import useStyles from "@hooks/useStyles";
+import useTheme from "@hooks/useTheme";
 
 type EditProfileProps = NativeStackScreenProps<
   RootStackParamList,
@@ -73,9 +75,11 @@ export default function EditProfile({
       }
     }
   }
+  const { dynamicStyles } = useStyles(styles);
+  const { Colors } = useTheme();
   return (
-    <KeyboardAwareScrollView style={styles.container}>
-      <Text style={styles.text}>Update your profile details</Text>
+    <KeyboardAwareScrollView style={dynamicStyles.container}>
+      <Text style={dynamicStyles.text}>Update your profile details</Text>
       <Controller
         control={control}
         name="firstName"
@@ -83,7 +87,7 @@ export default function EditProfile({
           <CustomInput
             text="First Name"
             placeholder={firstName ?? undefined}
-            color="#707070ff"
+            color={Colors.placeholder}
             value={value?.trim()}
             onChangeText={onChange}
             onBlur={onBlur}
@@ -91,7 +95,7 @@ export default function EditProfile({
         )}
       />
       {errors.firstName?.message && (
-        <Text style={styles.error}>{errors.firstName.message}</Text>
+        <Text style={dynamicStyles.error}>{errors.firstName.message}</Text>
       )}
       <Controller
         control={control}
@@ -100,7 +104,7 @@ export default function EditProfile({
           <CustomInput
             text="Last Name"
             placeholder={lastName ?? undefined}
-            color="#707070ff"
+            color={Colors.placeholder}
             value={value?.trim()}
             onChangeText={onChange}
             onBlur={onBlur}
@@ -108,7 +112,7 @@ export default function EditProfile({
         )}
       />
       {errors.lastName?.message && (
-        <Text style={styles.error}>{errors.lastName.message}</Text>
+        <Text style={dynamicStyles.error}>{errors.lastName.message}</Text>
       )}
       <Controller
         control={control}
@@ -117,7 +121,7 @@ export default function EditProfile({
           <CustomInput
             text="Username"
             placeholder={username ?? undefined}
-            color="#707070ff"
+            color={Colors.placeholder}
             value={value?.trim()}
             onChangeText={onChange}
             onBlur={onBlur}
@@ -125,11 +129,14 @@ export default function EditProfile({
         )}
       />
       {errors.username?.message && (
-        <Text style={styles.error}>{errors.username.message}</Text>
+        <Text style={dynamicStyles.error}>{errors.username.message}</Text>
       )}
 
-      <TouchableOpacity style={styles.pressable} onPress={handleSubmit(handle)}>
-        <Text style={styles.pressableText}>Update Profile</Text>
+      <TouchableOpacity
+        style={dynamicStyles.pressable}
+        onPress={handleSubmit(handle)}
+      >
+        <Text style={dynamicStyles.pressableText}>Update Profile</Text>
       </TouchableOpacity>
     </KeyboardAwareScrollView>
   );

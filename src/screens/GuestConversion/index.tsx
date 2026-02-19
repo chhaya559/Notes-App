@@ -5,7 +5,7 @@ import {
   usePushNotificationMutation,
 } from "@redux/api/authApi";
 import { conversion, isGuest } from "@redux/slice/authSlice";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   PermissionsAndroid,
@@ -22,6 +22,8 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import messaging from "@react-native-firebase/messaging";
+import useStyles from "@hooks/useStyles";
+import useTheme from "@hooks/useTheme";
 
 type ConversionProps = NativeStackScreenProps<
   RootStackParamList,
@@ -83,7 +85,6 @@ export default function GuestConversion({
   }, []);
   const dispatch = useDispatch();
   const [conversionApi] = useGuestConversionMutation();
-  // const [isVisible, setIsVisible] = useState(false);
 
   async function handleConversion(data: any) {
     try {
@@ -130,11 +131,13 @@ export default function GuestConversion({
     }
     navigation.navigate("Dashboard");
   }
+  const { dynamicStyles } = useStyles(style);
+  const { Colors } = useTheme();
   return (
-    <KeyboardAwareScrollView>
-      <View style={style.container}>
-        <Text style={style.heading}>Convert Guest to User</Text>
-        <Text style={style.text}>Sign up to save your notes</Text>
+    <KeyboardAwareScrollView style={{ backgroundColor: Colors.background }}>
+      <View style={dynamicStyles.container}>
+        <Text style={dynamicStyles.heading}>Convert Guest to User</Text>
+        <Text style={dynamicStyles.text}>Sign up to save your notes</Text>
         <Controller
           control={control}
           name="username"
@@ -142,7 +145,7 @@ export default function GuestConversion({
             <CustomInput
               text="Username*"
               placeholder="Username"
-              color="#707070ff"
+              color={Colors.placeholder}
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -151,7 +154,7 @@ export default function GuestConversion({
         />
 
         {errors.username?.message && (
-          <Text style={style.error}>{errors.username.message}</Text>
+          <Text style={dynamicStyles.error}>{errors.username.message}</Text>
         )}
         <Controller
           control={control}
@@ -160,7 +163,7 @@ export default function GuestConversion({
             <CustomInput
               text="First Name*"
               placeholder="First Name"
-              color="#707070ff"
+              color={Colors.placeholder}
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -168,7 +171,7 @@ export default function GuestConversion({
           )}
         />
         {errors.firstName?.message && (
-          <Text style={style.error}>{errors.firstName.message}</Text>
+          <Text style={dynamicStyles.error}>{errors.firstName.message}</Text>
         )}
         <Controller
           control={control}
@@ -177,7 +180,7 @@ export default function GuestConversion({
             <CustomInput
               text="Last Name*"
               placeholder="Last Name"
-              color="#707070ff"
+              color={Colors.placeholder}
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -185,7 +188,7 @@ export default function GuestConversion({
           )}
         />
         {errors.lastName?.message && (
-          <Text style={style.error}>{errors.lastName.message}</Text>
+          <Text style={dynamicStyles.error}>{errors.lastName.message}</Text>
         )}
         <Controller
           control={control}
@@ -194,7 +197,7 @@ export default function GuestConversion({
             <CustomInput
               text="Email*"
               placeholder="Email"
-              color="#707070ff"
+              color={Colors.placeholder}
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -202,7 +205,7 @@ export default function GuestConversion({
           )}
         />
         {errors.email?.message && (
-          <Text style={style.error}>{errors.email.message}</Text>
+          <Text style={dynamicStyles.error}>{errors.email.message}</Text>
         )}
         <Controller
           control={control}
@@ -211,27 +214,22 @@ export default function GuestConversion({
             <CustomInput
               text="Password*"
               placeholder="Password"
-              color="#707070ff"
+              color={Colors.placeholder}
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
               isPassword
-              // isVisible={isVisible}
-              // onToggleVisibility={() => {
-              //   setIsVisible((prev) => !prev);
-              // }}
-              // secureTextEntry={!isVisible}
             />
           )}
         />
         {errors.password?.message && (
-          <Text style={style.error}>{errors.password.message}</Text>
+          <Text style={dynamicStyles.error}>{errors.password.message}</Text>
         )}
         <Pressable
           onPress={handleSubmit(handleConversion)}
-          style={style.pressable}
+          style={dynamicStyles.pressable}
         >
-          <Text style={style.pressableText}>Convert to User</Text>
+          <Text style={dynamicStyles.pressableText}>Convert to User</Text>
         </Pressable>
       </View>
     </KeyboardAwareScrollView>

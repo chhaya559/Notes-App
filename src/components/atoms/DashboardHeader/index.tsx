@@ -2,14 +2,19 @@ import React, { useCallback, useEffect } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import styles from "./styles";
-import { Ionicons } from "@expo/vector-icons";
+import { Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import messaging from "@react-native-firebase/messaging";
 import { useGetNotificationsCountQuery } from "@redux/api/noteApi";
 import { RootState } from "@redux/store";
 import { useSelector } from "react-redux";
+import { THEME } from "@theme/constants";
+import useTheme from "@hooks/useTheme";
+import useStyles from "@hooks/useStyles";
 
 export default function DashboardHeader() {
   const navigation = useNavigation<any>();
+  const { toggleTheme, darkMode, Colors } = useTheme();
+  const { dynamicStyles } = useStyles(styles);
 
   const profileImage = useSelector(
     (state: RootState) => state.auth.profileImageUrl,
@@ -40,25 +45,33 @@ export default function DashboardHeader() {
   }, [refetch]);
 
   return (
-    <View style={styles.outer}>
+    <View style={dynamicStyles.outer}>
       <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
         <Ionicons
           name="notifications-circle-outline"
-          color="#5757f8"
-          size={40}
+          color={Colors.icon}
+          size={30}
         />
 
         {unreadCount > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>
+          <View style={dynamicStyles.badge}>
+            <Text style={dynamicStyles.badgeText}>
               {unreadCount > 99 ? "99+" : unreadCount}
             </Text>
           </View>
         )}
       </TouchableOpacity>
 
+      <TouchableOpacity onPress={toggleTheme}>
+        {darkMode ? (
+          <Entypo name="light-up" size={24} color={Colors.icon} />
+        ) : (
+          <MaterialIcons name="dark-mode" size={26} color={Colors.icon} />
+        )}
+      </TouchableOpacity>
+
       <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
-        <View style={styles.profileCover}>
+        <View style={dynamicStyles.profileCover}>
           <Image
             key={profileImage}
             source={
@@ -66,7 +79,7 @@ export default function DashboardHeader() {
                 ? { uri: profileImage }
                 : require("../../../../assets/default.png")
             }
-            style={styles.profile}
+            style={dynamicStyles.profile}
           />
         </View>
       </TouchableOpacity>

@@ -85,6 +85,7 @@ export const noteApi = createApi({
         url: `Notes/${id}/lock`,
         method: "POST",
       }),
+      invalidatesTags: ["Notes"],
     }),
     changePassword: builder.mutation({
       query: (data) => ({

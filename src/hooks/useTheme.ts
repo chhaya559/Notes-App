@@ -1,5 +1,5 @@
 import { useColorScheme } from "react-native";
-import { setTheme } from "@redux/slice/Theme";
+import { setTheme } from "@redux/slice/authSlice";
 import { THEME, ThemeColors } from "@theme/constants";
 import { DarkColors } from "@theme/darkTheme";
 import { LightColors } from "@theme/lightTheme";
@@ -7,26 +7,24 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 
 const useTheme = () => {
-  const dispatch = useDispatch();
-  const savedTheme = useSelector((state: RootState) => state.common.theme);
+  let currentTheme: THEME = THEME.DEVICE;
+  let Colors: ThemeColors;
+  const theme = useSelector((state: RootState) => state.auth.theme);
   const deviceScheme = useColorScheme();
-
-  // decide actual theme
-  let currentTheme: THEME;
-
-  if (savedTheme === THEME.DEVICE) {
+  if (theme === THEME.DEVICE || theme === undefined) {
     currentTheme = deviceScheme === "dark" ? THEME.DARK : THEME.LIGHT;
   } else {
-    currentTheme = savedTheme;
+    currentTheme = theme;
   }
-
-  const Colors: ThemeColors =
-    currentTheme === THEME.DARK ? DarkColors : LightColors;
-
+  if (currentTheme === THEME.DARK) {
+    Colors = DarkColors;
+  } else {
+    Colors = LightColors;
+  }
+  const dispatch = useDispatch();
   const toggleTheme = () => {
     dispatch(setTheme(currentTheme === THEME.DARK ? THEME.LIGHT : THEME.DARK));
   };
-
   const changeTheme = (theme: THEME) => {
     dispatch(setTheme(theme));
   };

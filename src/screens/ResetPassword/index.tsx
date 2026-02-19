@@ -17,6 +17,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import * as Linking from "expo-linking";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import useStyles from "@hooks/useStyles";
 
 type ResetPasswordProps = NativeStackScreenProps<
   RootStackParamList,
@@ -55,7 +56,7 @@ export default function ChangePassword({
     useChangePasswordMutation();
 
   const url = Linking.useLinkingURL();
-
+  const { dynamicStyles } = useStyles(styles);
   const resetToken = useMemo(() => {
     if (!url) return null;
     const parsed = Linking.parse(url);
@@ -118,7 +119,7 @@ export default function ChangePassword({
   const isLoading = isResetLoading || isChangeLoading;
 
   return (
-    <KeyboardAwareScrollView style={styles.container}>
+    <KeyboardAwareScrollView style={dynamicStyles.container}>
       {authToken && (
         <>
           <Controller
@@ -140,7 +141,9 @@ export default function ChangePassword({
             )}
           />
           {errors.currentPassword && (
-            <Text style={styles.error}>{errors.currentPassword.message}</Text>
+            <Text style={dynamicStyles.error}>
+              {errors.currentPassword.message}
+            </Text>
           )}
         </>
       )}
@@ -164,7 +167,7 @@ export default function ChangePassword({
         )}
       />
       {errors.password && (
-        <Text style={styles.error}>{errors.password.message}</Text>
+        <Text style={dynamicStyles.error}>{errors.password.message}</Text>
       )}
 
       <Controller
@@ -186,15 +189,17 @@ export default function ChangePassword({
         )}
       />
       {errors.confirmPassword && (
-        <Text style={styles.error}>{errors.confirmPassword.message}</Text>
+        <Text style={dynamicStyles.error}>
+          {errors.confirmPassword.message}
+        </Text>
       )}
 
       <TouchableOpacity
-        style={[styles.pressable, isLoading && { opacity: 0.6 }]}
+        style={[dynamicStyles.pressable, isLoading && { opacity: 0.6 }]}
         disabled={isLoading}
         onPress={handleSubmit(onSubmit)}
       >
-        <Text style={styles.updateText}>
+        <Text style={dynamicStyles.updateText}>
           {isLoading ? "Please wait..." : "Update Password"}
         </Text>
       </TouchableOpacity>

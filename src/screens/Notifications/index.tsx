@@ -17,6 +17,7 @@ import Reanimated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 import { cosineDistance } from "drizzle-orm";
+import useStyles from "@hooks/useStyles";
 export default function Notifications() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
@@ -124,9 +125,9 @@ export default function Notifications() {
       </Reanimated.View>
     );
   }
-
+  const { dynamicStyles } = useStyles(styles);
   return (
-    <View style={styles.container}>
+    <View style={dynamicStyles.container}>
       <FlatList
         data={allNotifications}
         bounces={false}
@@ -141,7 +142,7 @@ export default function Notifications() {
           >
             <TouchableOpacity
               onPress={() => openDetails(item)}
-              style={styles.card}
+              style={dynamicStyles.card}
             >
               <Text>{item.title}</Text>
               <Text>{item.noteTitle}</Text>
@@ -167,28 +168,30 @@ export default function Notifications() {
         }
         ListEmptyComponent={
           // !isLoading && (
-          <View style={styles.emptyComponent}>
+          <View style={dynamicStyles.emptyComponent}>
             <Ionicons
               name="notifications-off-circle"
               size={200}
               color="#E0E7FF"
             />
-            <Text style={styles.noText}>No notifications</Text>
-            <Text style={styles.emptyMessage}>You're all caught up!</Text>
+            <Text style={dynamicStyles.noText}>No notifications</Text>
+            <Text style={dynamicStyles.emptyMessage}>
+              You're all caught up!
+            </Text>
           </View>
           //  )
         }
       />
 
       {allNotifications.length > 0 && (
-        <View style={styles.buttons}>
-          <TouchableOpacity style={styles.pressable} onPress={readAll}>
+        <View style={dynamicStyles.buttons}>
+          <TouchableOpacity style={dynamicStyles.pressable} onPress={readAll}>
             <Text style={{ color: "#fff", fontSize: 16, textAlign: "center" }}>
               Read All
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.pressable} onPress={clearAll}>
+          <TouchableOpacity style={dynamicStyles.pressable} onPress={clearAll}>
             <Text style={{ color: "#fff", fontSize: 16, textAlign: "center" }}>
               Clear All
             </Text>
@@ -201,10 +204,10 @@ export default function Notifications() {
         backdropOpacity={0.5}
         onBackdropPress={() => setShowDetailedNotification(false)}
       >
-        <View style={styles.modal}>
+        <View style={dynamicStyles.modal}>
           <TouchableOpacity
             onPress={() => setShowDetailedNotification(false)}
-            style={styles.close}
+            style={dynamicStyles.close}
           >
             <AntDesign name="close" size={20} color="#5757f8" />
           </TouchableOpacity>
@@ -212,12 +215,14 @@ export default function Notifications() {
             name="notifications-circle"
             size={70}
             color="#E0E7FF"
-            style={styles.icon}
+            style={dynamicStyles.icon}
           />
 
-          <Text style={styles.title}>{selectedNotification?.title}</Text>
-          <Text style={styles.message}>{selectedNotification?.message}</Text>
-          <Text style={styles.messageDescription}>
+          <Text style={dynamicStyles.title}>{selectedNotification?.title}</Text>
+          <Text style={dynamicStyles.message}>
+            {selectedNotification?.message}
+          </Text>
+          <Text style={dynamicStyles.messageDescription}>
             {selectedNotification?.description}
           </Text>
         </View>
