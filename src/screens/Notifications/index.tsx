@@ -18,6 +18,7 @@ import Reanimated, {
 } from "react-native-reanimated";
 import { cosineDistance } from "drizzle-orm";
 import useStyles from "@hooks/useStyles";
+import useTheme from "@hooks/useTheme";
 export default function Notifications() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
@@ -36,7 +37,6 @@ export default function Notifications() {
   const [readAllApi] = useReadAllNotificationMutation();
   const [clearAllApi] = useClearAllNotificationMutation();
   const [markReadApi] = useMarkNoificationReadMutation();
-
   const [showDetailedNotification, setShowDetailedNotification] =
     useState(false);
   const [selectedNotification, setSelectedNotification] = useState<any>(null);
@@ -113,19 +113,20 @@ export default function Notifications() {
     });
 
     return (
-      <Reanimated.View style={[animatedStyle, styles.swipe]}>
+      <Reanimated.View style={[animatedStyle, dynamicStyles.swipe]}>
         <TouchableOpacity onPress={() => deleteNotification(item.id)}>
           <MaterialIcons
             name="delete-outline"
             size={38}
             color="#5757f8"
-            style={styles.delete}
+            style={dynamicStyles.delete}
           />
         </TouchableOpacity>
       </Reanimated.View>
     );
   }
   const { dynamicStyles } = useStyles(styles);
+  const { Colors } = useTheme();
   return (
     <View style={dynamicStyles.container}>
       <FlatList
@@ -144,13 +145,13 @@ export default function Notifications() {
               onPress={() => openDetails(item)}
               style={dynamicStyles.card}
             >
-              <Text>{item.title}</Text>
-              <Text>{item.noteTitle}</Text>
+              <Text style={dynamicStyles.reminderName}>{item.title}</Text>
+              <Text style={dynamicStyles.reminderText}>{item.noteTitle}</Text>
               {!item.isRead && (
                 <Entypo
                   name="dot-single"
                   size={26}
-                  color="#5757f8"
+                  color={Colors.icon}
                   style={{ position: "absolute", right: 5, top: 7 }}
                 />
               )}
@@ -161,7 +162,13 @@ export default function Notifications() {
         onEndReachedThreshold={0.5}
         ListFooterComponent={
           isFetching && page > 1 ? (
-            <Text style={{ textAlign: "center", padding: 10 }}>
+            <Text
+              style={{
+                textAlign: "center",
+                padding: 10,
+                color: Colors.textSecondary,
+              }}
+            >
               Loading more...
             </Text>
           ) : null
@@ -172,7 +179,7 @@ export default function Notifications() {
             <Ionicons
               name="notifications-off-circle"
               size={200}
-              color="#E0E7FF"
+              color={Colors.icon}
             />
             <Text style={dynamicStyles.noText}>No notifications</Text>
             <Text style={dynamicStyles.emptyMessage}>
@@ -186,13 +193,17 @@ export default function Notifications() {
       {allNotifications.length > 0 && (
         <View style={dynamicStyles.buttons}>
           <TouchableOpacity style={dynamicStyles.pressable} onPress={readAll}>
-            <Text style={{ color: "#fff", fontSize: 16, textAlign: "center" }}>
+            <Text
+              style={{ color: Colors.icon, fontSize: 16, textAlign: "center" }}
+            >
               Read All
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={dynamicStyles.pressable} onPress={clearAll}>
-            <Text style={{ color: "#fff", fontSize: 16, textAlign: "center" }}>
+            <Text
+              style={{ color: Colors.icon, fontSize: 16, textAlign: "center" }}
+            >
               Clear All
             </Text>
           </TouchableOpacity>
@@ -209,12 +220,12 @@ export default function Notifications() {
             onPress={() => setShowDetailedNotification(false)}
             style={dynamicStyles.close}
           >
-            <AntDesign name="close" size={20} color="#5757f8" />
+            <AntDesign name="close" size={20} color={Colors.icon} />
           </TouchableOpacity>
           <Ionicons
             name="notifications-circle"
             size={70}
-            color="#E0E7FF"
+            color={Colors.icon}
             style={dynamicStyles.icon}
           />
 

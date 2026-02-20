@@ -130,6 +130,14 @@ export default function CreateNote({
   function toggleHeaderModalVisibility() {
     setHeaderModalVisibility(!headerModalVisibility);
   }
+  const [activeOption, setActiveOption] = useState<
+    "text" | "attachment" | "summary" | "reminder" | null
+  >(null);
+  const handleToggle = (
+    option: "text" | "attachment" | "summary" | "reminder",
+  ) => {
+    setActiveOption((prev) => (prev === option ? null : option));
+  };
   const [isColorPaletteVisible, setIsColorPaletteVisible] = useState(false);
   function toggleColorPaletteVisibility() {
     setIsColorPaletteVisible(!isColorPaletteVisible);
@@ -658,7 +666,7 @@ export default function CreateNote({
                 actions.setStrikethrough,
               ]}
               iconSize={28}
-              selectIconTint={Colors.primaryPressed}
+              selectedIconTint={Colors.textPrimary}
               iconTint={Colors.primary}
               style={dynamicStyles.toolbar}
             />
@@ -666,7 +674,7 @@ export default function CreateNote({
               onPress={toggleTextToolBarVisibility}
               style={{
                 alignSelf: "center",
-                backgroundColor: "#E0E7FF",
+                backgroundColor: Colors.mutedIcon,
                 borderRadius: 25,
                 padding: 2,
               }}
@@ -682,7 +690,7 @@ export default function CreateNote({
         {headerModalVisibility && (
           <View style={{ position: "absolute", bottom: 80, right: 20 }}>
             <View style={dynamicStyles.headerMenu}>
-              {isEditMode &&
+              {/* {isEditMode &&
                 (notes.isLocked ? (
                   <TouchableOpacity
                     style={dynamicStyles.touchables}
@@ -706,7 +714,7 @@ export default function CreateNote({
                     <AntDesign name="lock" color="#5757f8" size={24} />
                     <Text style={dynamicStyles.touchableText}>Lock</Text>
                   </TouchableOpacity>
-                ))}
+                ))} */}
               {isEditMode && (
                 <TouchableOpacity
                   style={[
@@ -775,7 +783,8 @@ export default function CreateNote({
         {textToolBarVisibility ? null : (
           <View style={dynamicStyles.options}>
             <TouchableOpacity
-              onPress={toggleTextToolBarVisibility}
+              // onPress={toggleTextToolBarVisibility}
+              onPress={() => handleToggle("text")}
               style={dynamicStyles.optionButton}
             >
               <MaterialCommunityIcons
@@ -786,7 +795,10 @@ export default function CreateNote({
             </TouchableOpacity>
             <TouchableOpacity
               style={dynamicStyles.optionButton}
-              onPress={pickFile}
+              onPress={() => {
+                pickFile;
+                handleToggle("attachment");
+              }}
             >
               <Entypo
                 name="attachment"
@@ -795,10 +807,14 @@ export default function CreateNote({
               />
             </TouchableOpacity>
             <TouchableOpacity
-              style={[dynamicStyles.optionButton]}
+              style={[
+                dynamicStyles.optionButton,
+                { opacity: isEditMode || isGuest ? 1 : 0.5 },
+              ]}
               onPress={() => {
                 toggleShowSummary();
                 generateSummary();
+                handleToggle("summary");
               }}
               disabled={!isEditMode}
             >
@@ -809,6 +825,37 @@ export default function CreateNote({
               />
             </TouchableOpacity>
             <TouchableOpacity
+              style={[
+                dynamicStyles.optionButton,
+                { opacity: isEditMode || isGuest ? 1 : 0.5 },
+              ]}
+              onPress={() => {
+                handleToggle("reminder");
+                toggleReminderVisibility();
+              }}
+              disabled={isGuest && !isEditMode}
+            >
+              <Ionicons
+                style={dynamicStyles.optionIcon}
+                size={24}
+                name="notifications-outline"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                dynamicStyles.optionButton,
+                { opacity: isEditMode ? 1 : 0.5 },
+              ]}
+              onPress={() => alertDelete()}
+              disabled={isGuest && !isEditMode}
+            >
+              <MaterialIcons
+                name="delete-outline"
+                size={24}
+                style={dynamicStyles.optionIcon}
+              />
+            </TouchableOpacity>
+            {/* <TouchableOpacity
               onPress={() => {
                 toggleHeaderModalVisibility();
               }}
@@ -827,7 +874,7 @@ export default function CreateNote({
                   style={dynamicStyles.optionIcon}
                 />
               )}
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         )}
       </View>

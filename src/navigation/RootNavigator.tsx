@@ -41,7 +41,7 @@ const RootNavigator = () => {
   return (
     <SafeAreaProvider>
       <NavigationContainer linking={linking}>
-        {token !== null ? (
+        {token == null ? (
           <Stack.Navigator initialRouteName="Onboarding">
             <Stack.Group
               screenOptions={{ header: (props) => <Header {...props} /> }}

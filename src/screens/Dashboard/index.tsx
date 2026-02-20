@@ -246,14 +246,14 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
           )}
         </View>
       )}
-      <View style={dynamicStyles.optionContainer}>
+      {/* <View style={dynamicStyles.optionContainer}>
         <TouchableOpacity style={dynamicStyles.option}>
           <Text style={dynamicStyles.optionText}>All Notes</Text>
         </TouchableOpacity>
         <TouchableOpacity style={dynamicStyles.option}>
           <Text style={dynamicStyles.optionText}>Locked</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
       {/* Card components */}
       <FlatList
         data={displayNotes}

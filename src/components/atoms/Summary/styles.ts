@@ -7,7 +7,7 @@ const styles = (Colors: ThemeColors) =>
       backgroundColor: Colors.background,
       borderRadius: 10,
       borderWidth: 1,
-      borderColor: "#cdcdcdff",
+      borderColor: Colors.border,
       padding: 20,
       alignItems: "center",
       margin: 15,
@@ -22,22 +22,23 @@ const styles = (Colors: ThemeColors) =>
     },
     icon: {},
     heading: {
-      color: "#5757f8",
+      color: Colors.textPrimary,
       fontSize: 18,
       fontWeight: "700",
     },
     close: {
       position: "absolute",
       right: 15,
-      top: 10,
+      top: 22,
     },
     content: {
-      backgroundColor: "#bebeebff",
+      backgroundColor: Colors.surfaceSoft,
       borderRadius: 10,
       padding: 10,
     },
     contentText: {
       fontSize: 16,
+      color: Colors.textPrimary,
     },
   });
 

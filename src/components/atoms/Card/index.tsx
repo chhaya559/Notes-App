@@ -20,6 +20,7 @@ import { setNotesUnlocked, lockNotes } from "@redux/slice/authSlice";
 import {
   useDeleteMutation,
   useNoteLockMutation,
+  useSaveNoteMutation,
   useUnlockNoteMutation,
 } from "@redux/api/noteApi";
 import { db } from "src/db/notes";
@@ -154,18 +155,28 @@ export default function Card(props: any) {
 
     navigation.navigate("CreateNote", { id: props.id });
   }
-
+  const [saveApi] = useSaveNoteMutation();
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: scale.value }],
     };
   });
-
+  async function unLockNote() {}
   async function lockNote() {
     try {
-      const response = await lockApi({ id: String(props.id) }).unwrap();
+      const response = await lockApi({
+        id: String(props.id),
+        isPasswordProtected: true,
+      }).unwrap();
+
       console.log(response);
+      if (response.success) {
+        Toast.show({
+          text1: "Note Locked",
+        });
+        swipeRef.current?.close();
+      }
     } catch (error: any) {
       Toast.show({ text1: "Failed to lock note" });
       console.log(error);
@@ -178,7 +189,14 @@ export default function Card(props: any) {
       "This action is permanent. Are you sure?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: handleDelete },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            await handleDelete();
+            swipeRef.current?.close();
+          },
+        },
       ],
       { cancelable: true },
     );
@@ -221,14 +239,25 @@ export default function Card(props: any) {
     return (
       <View style={dynamicStyles.swipe}>
         <Reanimated.View style={[dynamicStyles.lock, animatedStyle]}>
-          <TouchableOpacity onPress={lockNote}>
-            <Entypo
-              name="lock"
-              size={38}
-              color={Colors.swipeLockIcon}
-              style={dynamicStyles.deleteIcon}
-            />
-          </TouchableOpacity>
+          {props.isPasswordProtected ? (
+            <TouchableOpacity onPress={unLockNote}>
+              <Entypo
+                name="lock-open"
+                size={38}
+                color={Colors.swipeLockIcon}
+                style={dynamicStyles.deleteIcon}
+              />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={lockNote}>
+              <Entypo
+                name="lock"
+                size={38}
+                color={Colors.swipeLockIcon}
+                style={dynamicStyles.deleteIcon}
+              />
+            </TouchableOpacity>
+          )}
         </Reanimated.View>
       </View>
     );
@@ -251,14 +280,14 @@ export default function Card(props: any) {
               <AntDesign
                 name="close"
                 size={24}
-                color="#5757f8"
+                color={Colors.icon}
                 style={dynamicStyles.close}
                 onPress={() => setShowLockedModal(false)}
               />
             </TouchableOpacity>
             <CustomInput
               placeholder="Enter password"
-              color="#707070ff"
+              color={Colors.placeholder}
               value={unlockValue.password}
               onChangeText={(text: string) =>
                 setUnlockValue((p) => ({ ...p, password: text }))
@@ -298,7 +327,6 @@ export default function Card(props: any) {
 
       <View>
         <ReanimatedSwipeable
-          enabled={!props.isPasswordProtected}
           enableTrackpadTwoFingerGesture
           renderRightActions={RightAction}
           renderLeftActions={LeftAction}
@@ -335,14 +363,14 @@ export default function Card(props: any) {
               )}
 
               <View style={dynamicStyles.iconsWrap}>
-                {props.isLocked ? (
+                {props.isPasswordProtected ? (
                   <Pressable style={dynamicStyles.icon}>
                     <Entypo name="lock" size={24} color={Colors.icon} />
                   </Pressable>
                 ) : null}
                 {props.isReminderSet ? (
                   <Pressable style={dynamicStyles.icon}>
-                    <Feather name="clock" size={24} color="#000000ff" />
+                    <Feather name="clock" size={24} color={Colors.icon} />
                   </Pressable>
                 ) : null}
               </View>

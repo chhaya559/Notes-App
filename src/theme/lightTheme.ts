@@ -1,13 +1,14 @@
 export const LightColors = {
   // Background Layers
 
-  background: "#F4F6FB",
+  background: "#dbe2f3ff",
   surface: "#FFFFFF",
   surfaceSoft: "#FAFBFF",
-  emptyContainer: "#EEF2FF",
+  emptyContainer: "#f5f5f5",
 
   // Primary Brand
-
+  buttonIcon: "#ffffff",
+  buttonText: "#ffffffff",
   primary: "#6C63FF",
   primarySoft: "#ECEBFF",
   primaryPressed: "#5A54E8",

@@ -43,7 +43,7 @@ const styles = (Colors: ThemeColors) =>
       top: 26,
     },
     modal: {
-      backgroundColor: "#fff",
+      backgroundColor: Colors.surface,
       width: screenWidth * 0.9,
       marginTop: isSmallScreen ? screenHeight * 0.25 : screenHeight * 0.3,
       marginBottom: isSmallScreen ? screenHeight * 0.25 : screenHeight * 0.3,
@@ -54,7 +54,7 @@ const styles = (Colors: ThemeColors) =>
       fontWeight: "600",
       fontSize: 20,
       textAlign: "center",
-      color: "#5757f8",
+      color: Colors.textPrimary,
       paddingTop: 10,
       paddingBottom: 0,
     },
@@ -63,13 +63,13 @@ const styles = (Colors: ThemeColors) =>
       marginBottom: 0,
     },
     pressable: {
-      backgroundColor: "#5757f8",
+      backgroundColor: Colors.primary,
       margin: 15,
       borderRadius: 15,
       padding: 10,
     },
     pressableText: {
-      color: "#fff",
+      color: Colors.textPrimary,
       padding: 7,
       fontSize: 18,
       textAlign: "center",
@@ -86,24 +86,25 @@ const styles = (Colors: ThemeColors) =>
       marginBottom: 10,
     },
     counterTime: {
-      backgroundColor: "#D0DAF3",
+      backgroundColor: Colors.iconSoftBg,
       borderRadius: 10,
       width: 45,
       alignItems: "center",
     },
     time: {
-      color: "#ffffffff",
+      color: Colors.textPrimary,
       padding: 7,
       fontSize: 22,
     },
     counterActive: {
-      backgroundColor: "#5757f8",
+      backgroundColor: Colors.primaryPressed,
     },
     timeText: {
       marginLeft: 15,
       marginTop: 15,
       marginBottom: 10,
       fontSize: 18,
+      color: Colors.textSecondary,
     },
     icon: {
       // backgroundColor: "#adadadff",

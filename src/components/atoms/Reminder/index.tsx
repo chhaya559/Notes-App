@@ -13,6 +13,7 @@ import Toast from "react-native-toast-message";
 import { useNavigation } from "@react-navigation/native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import useStyles from "@hooks/useStyles";
+import useTheme from "@hooks/useTheme";
 
 type Props = {
   onClose: () => void;
@@ -101,14 +102,14 @@ export default function Reminder({
       console.log("error deleting reminder", error);
     }
   }
-
+  const { Colors } = useTheme();
   return (
     <Modal isVisible={true}>
       <View style={dynamicStyles.container}>
         <KeyboardAwareScrollView bounces={false}>
           <View style={dynamicStyles.headingContainer}>
             <View style={dynamicStyles.iconBackground}>
-              <Ionicons color="#5757f8" size={24} name="notifications" />
+              <Ionicons color={Colors.icon} size={24} name="notifications" />
             </View>
             <Text style={dynamicStyles.headingText}>Set Reminder</Text>
           </View>
@@ -136,14 +137,14 @@ export default function Reminder({
               value={name}
               placeholder="Name of Reminder"
               onChangeText={setName}
-              placeholderTextColor="#707070ff"
+              placeholderTextColor={Colors.placeholder}
               style={dynamicStyles.input}
             />
 
             <Text style={dynamicStyles.textInput}>Description</Text>
             <TextInput
               style={dynamicStyles.input}
-              placeholderTextColor="#707070ff"
+              placeholderTextColor={Colors.placeholder}
               value={description}
               placeholder="Description for your reminder"
               onChangeText={setDescription}
@@ -156,7 +157,7 @@ export default function Reminder({
                 pointerEvents="none"
                 editable={false}
                 placeholder="Select date & time"
-                placeholderTextColor="#707070ff"
+                placeholderTextColor={Colors.placeholder}
                 value={formattedDate}
                 style={[
                   dynamicStyles.input,
@@ -171,7 +172,7 @@ export default function Reminder({
               style={dynamicStyles.calendar}
               onPress={() => setOpenDateModal(true)}
             >
-              <EvilIcons name="calendar" size={26} />
+              {/* <EvilIcons name="calendar" size={26} color={Colors.icon} /> */}
             </TouchableOpacity>
           </View>
 
@@ -200,7 +201,7 @@ export default function Reminder({
           )}
 
           <TouchableOpacity style={dynamicStyles.close} onPress={onClose}>
-            <AntDesign name="close" size={22} color="#5757f8" />
+            <AntDesign name="close" size={22} color={Colors.icon} />
           </TouchableOpacity>
         </KeyboardAwareScrollView>
       </View>

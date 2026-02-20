@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 const styles = (Colors: ThemeColors) =>
   StyleSheet.create({
     container: {
-      backgroundColor: Colors.background,
+      backgroundColor: Colors.surfaceSoft,
       borderRadius: 15,
       padding: 15,
     },
@@ -16,14 +16,14 @@ const styles = (Colors: ThemeColors) =>
     },
     line: {
       height: 1,
-      borderColor: "#e4e6e6",
+      borderColor: Colors.mutedIcon,
       width: "100%",
       borderWidth: 1,
       borderStyle: "dashed",
     },
     headingText: {
       textAlign: "center",
-      color: "#5757f8",
+      color: Colors.textPrimary,
       fontWeight: "bold",
       fontSize: 20,
       verticalAlign: "middle",
@@ -42,15 +42,13 @@ const styles = (Colors: ThemeColors) =>
     },
     pressable: {
       margin: 10,
-      backgroundColor: "#5757f8",
+      backgroundColor: Colors.primary,
       borderRadius: 10,
       marginTop: 20,
       padding: 4,
-      shadowColor: "#1029e4ff",
-      shadowOpacity: 0.4,
     },
     setText: {
-      color: "#fff",
+      color: Colors.textPrimary,
       fontSize: 18,
       fontWeight: "400",
       padding: 10,
@@ -58,28 +56,30 @@ const styles = (Colors: ThemeColors) =>
     },
     calendar: {
       position: "absolute",
-      top: 193,
+      top: 191,
       right: 25,
     },
     input: {
       borderWidth: 1,
       borderRadius: 10,
-      borderColor: "#bfbebeff",
+      borderColor: Colors.primaryBorder,
       padding: 10,
       marginTop: 3,
       marginBottom: 2,
+      color: Colors.textPrimary,
     },
     focused: {
-      borderWidth: 2,
-      borderColor: "#000",
+      borderWidth: 3,
+      borderColor: Colors.primaryPressed,
     },
 
     textInput: {
       margin: 3,
       fontSize: 15,
+      color: Colors.textPrimary,
     },
     iconBackground: {
-      backgroundColor: "#E0E7FF",
+      backgroundColor: Colors.mutedIcon,
       padding: 3,
       borderRadius: 25,
     },

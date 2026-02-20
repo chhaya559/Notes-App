@@ -16,6 +16,7 @@ import Modal from "react-native-modal";
 import { useEffect, useState } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import useStyles from "@hooks/useStyles";
+import useTheme from "@hooks/useTheme";
 type ForgotScreenProps = NativeStackScreenProps<
   RootStackParamList,
   "ForgotPassword"
@@ -94,6 +95,7 @@ export default function ForgotPassword({
     };
   }, [isModalVisible]);
   const { dynamicStyles } = useStyles(styles);
+  const { Colors } = useTheme();
   return (
     <>
       <Modal isVisible={isModalVisible} backdropOpacity={0.8}>
@@ -102,7 +104,7 @@ export default function ForgotPassword({
             <MaterialCommunityIcons
               name="email-open"
               size={42}
-              color="#5757f8"
+              color={Colors.icon}
             />
           </View>
           <Text style={dynamicStyles.modalHeading}>Reset your Password</Text>
@@ -121,7 +123,7 @@ export default function ForgotPassword({
           style={dynamicStyles.cross}
           onPress={() => setIsModalVisible(false)}
         >
-          <Entypo name="cross" size={26} color="#5757f8" />
+          <Entypo name="cross" size={26} color={Colors.icon} />
         </TouchableOpacity>
       </Modal>
       <KeyboardAwareScrollView style={dynamicStyles.container}>
@@ -136,7 +138,7 @@ export default function ForgotPassword({
             <CustomInput
               text="Email address*"
               placeholder="Emaill"
-              color="#707070ff"
+              color={Colors.placeholder}
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}

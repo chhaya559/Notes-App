@@ -18,6 +18,7 @@ export const DarkColors = {
   textSecondary: "#CBD5E1",
   textMuted: "#64748B",
   placeholder: "#6B7280",
+  buttonText: "#F8FAFC",
 
   // Borders & Dividers
 
@@ -25,9 +26,9 @@ export const DarkColors = {
   divider: "#1E2432",
 
   // Icons
-
+  buttonIcon: "#F1F5F9",
   icon: "#F1F5F9",
-  mutedIcon: "#7C829A",
+  mutedIcon: "#919193ff",
   iconSoftBg: "#1F2433",
 
   // Swipe Actions

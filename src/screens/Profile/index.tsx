@@ -296,7 +296,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         </Pressable>
 
         <Pressable style={dynamicStyles.pressable} onPress={confirmLogout}>
-          <AntDesign name="logout" size={18} color="#fff" />
+          <AntDesign name="logout" size={18} color={Colors.buttonIcon} />
           <Text style={dynamicStyles.registerText}>Logout</Text>
         </Pressable>
       </View>

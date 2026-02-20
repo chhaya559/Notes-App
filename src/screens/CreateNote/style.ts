@@ -70,13 +70,11 @@ const styles = (Colors: ThemeColors) =>
       gap: 20,
     },
     modal: {
-      shadowColor: "#000",
-      shadowOpacity: 0.2,
       shadowRadius: 10,
       padding: 5,
       elevation: 5,
       flexDirection: "row",
-      backgroundColor: "#fff",
+      backgroundColor: Colors.surfaceSoft,
       justifyContent: "space-around",
     },
     options: {
@@ -87,11 +85,11 @@ const styles = (Colors: ThemeColors) =>
     },
     optionButton: {
       padding: 5,
-      backgroundColor: "#E0E7FF",
+      backgroundColor: Colors.iconSoftBg,
       borderRadius: 25,
     },
     optionIcon: {
-      color: "#5757f8",
+      color: Colors.icon,
       padding: 5,
     },
     headerMenu: {
@@ -115,7 +113,7 @@ const styles = (Colors: ThemeColors) =>
       alignSelf: "center",
     },
     toolbar: {
-      backgroundColor: "#fff",
+      backgroundColor: Colors.surfaceSoft,
     },
     attachmentOptions: {
       justifyContent: "center",

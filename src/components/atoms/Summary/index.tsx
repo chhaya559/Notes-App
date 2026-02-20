@@ -8,6 +8,7 @@ import {
 import styles from "./styles";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import useStyles from "@hooks/useStyles";
+import useTheme from "@hooks/useTheme";
 
 type props = {
   onClose: () => void;
@@ -16,6 +17,7 @@ type props = {
 };
 export default function Summary({ onClose, id, data }: Readonly<props>) {
   const { dynamicStyles } = useStyles(styles);
+  const { Colors } = useTheme();
   return (
     <View style={dynamicStyles.container}>
       <View style={dynamicStyles.headingContainer}>
@@ -24,17 +26,22 @@ export default function Summary({ onClose, id, data }: Readonly<props>) {
             name="sparkles-outline"
             size={26}
             style={{ alignItems: "center" }}
-            color="#5757f8"
+            color={Colors.icon}
           />
         </Pressable>
         <Text style={dynamicStyles.heading}>AI Generated Summary</Text>
       </View>
-      {data == null && <ActivityIndicator size="large" color="#5757f8" />}
+      {data == null && <ActivityIndicator size="large" color={Colors.icon} />}
       <View style={dynamicStyles.content}>
         <Text style={dynamicStyles.contentText}>{data}</Text>
       </View>
       <TouchableOpacity style={dynamicStyles.close}>
-        <AntDesign name="close" size={22} onPress={onClose} color="#5757f8" />
+        <AntDesign
+          name="close"
+          size={22}
+          onPress={onClose}
+          color={Colors.icon}
+        />
       </TouchableOpacity>
     </View>
   );
