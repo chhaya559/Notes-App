@@ -202,24 +202,36 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   }
 
   async function pickImage() {
-    const permissionType = Platform.select({
-      ios: PERMISSIONS.IOS.MEDIA_LIBRARY,
-      android: PERMISSIONS.ANDROID.READ_MEDIA_IMAGES,
-    });
     try {
-      const permissionResult = await request(permissionType);
+      let permissionResult;
+      if (Platform.OS === "android") {
+        if (Platform.Version >= 33) {
+          permissionResult = await request(
+            PERMISSIONS.ANDROID.READ_MEDIA_IMAGES,
+          );
+        } else {
+          permissionResult = await request(
+            PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE,
+          );
+        }
+      } else {
+        permissionResult = await request(PERMISSIONS.IOS.MEDIA_LIBRARY);
+      }
       switch (permissionResult) {
         case RESULTS.GRANTED:
           console.log("You can use the media images");
-
           break;
         case RESULTS.DENIED:
+          Toast.show({
+            text1: "Permission denied to access images",
+          });
           console.log("Permission denied to access images");
-
           return;
         case RESULTS.UNAVAILABLE:
+          Toast.show({
+            text1: "Feature not available on this device",
+          });
           console.log("Feature not available on this device.");
-
           return;
       }
 
@@ -340,7 +352,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         style={[dynamicStyles.pressable, dynamicStyles.logout]}
         onPress={confirmLogout}
       >
-        <AntDesign name="logout" size={18} color={Colors.icon} />
+        <AntDesign name="logout" size={18} color={Colors.buttonIcon} />
         <Text style={dynamicStyles.registerText}>Logout</Text>
       </TouchableOpacity>
       <RBSheet
@@ -353,7 +365,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
           },
           container: {
             borderRadius: 20,
-            backgroundColor: Colors.textPrimary,
+            backgroundColor: Colors.surface,
             height: 280,
           },
         }}
@@ -366,6 +378,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
               onPress={pickImage}
             >
               <Ionicons name="images" size={24} color={Colors.icon} />
+
               <Text style={dynamicStyles.optionText}>Choose from Gallery</Text>
             </TouchableOpacity>
             <View style={dynamicStyles.line} />

@@ -40,7 +40,7 @@ const style = (Colors: ThemeColors) =>
       padding: 5,
       alignSelf: "flex-start",
       borderRadius: 10,
-      color: Colors.textSecondary,
+      color: Colors.danger,
     },
   });
 

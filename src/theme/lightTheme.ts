@@ -1,59 +1,58 @@
 export const LightColors = {
-  // Background Layers
+  // Background Layer
 
-  background: "#dbe2f3ff",
-  surface: "#FFFFFF",
-  surfaceSoft: "#FAFBFF",
-  emptyContainer: "#f5f5f5",
+  background: "#e6eaf4ff", // Soft cool gray background
+  surface: "#FFFFFF", // Main card surface
+  surfaceSoft: "#FAFBFF", // Slightly tinted container
+  emptyContainer: "#f5f5f5", // Subtle lavender tint
 
   // Primary Brand
-  buttonIcon: "#ffffff",
-  buttonText: "#ffffffff",
-  primary: "#6C63FF",
-  primarySoft: "#ECEBFF",
-  primaryPressed: "#5A54E8",
-  primaryBorder: "#e5e5e5ff",
+
+  primary: "#6C63FF", // Slightly deeper than dark primary
+  primarySoft: "#E9E7FF", // Soft brand background
+  primaryPressed: "#5A52E0", // Darker press feedback
+  primaryBorder: "#D9D6FF", // Soft border tint
 
   // Text Hierarchy
 
-  textPrimary: "#111827",
-  textSecondary: "#475569",
-  textMuted: "#94A3B8",
-  placeholder: "#A1A1AA",
+  textPrimary: "#0F172A", // Deep slate (better than pure black)
+  textSecondary: "#475569", // Cool gray
+  textMuted: "#94A3B8", // Muted text
+  placeholder: "#9CA3AF", // Input placeholder
+  buttonText: "#FFFFFF", // White on primary buttons
 
   // Borders & Dividers
 
-  border: "#E6E8F0",
-  divider: "#F1F3F9",
+  border: "#b6b6b7ff", // Soft gray border
+  divider: "#ECEFF5", // Subtle divider
 
   // Icons
 
-  icon: "#1F2937",
-  mutedIcon: "#9CA3AF",
-  iconSoftBg: "#F3F4FF",
+  buttonIcon: "#FFFFFF", // Keep white on primary button
+  icon: "#3f4494ff", // Soft indigo (brand-aligned)
+  mutedIcon: "#9AA1D3", // Light indigo-gray
+  iconSoftBg: "#E8EBFF", // Very soft lavender bg
 
   // Swipe Actions
 
-  swipeLockBg: "#E8EDFF",
-  swipeLockIcon: "#4F46E5",
+  swipeLockBg: "#c5d1f9ff", // Light indigo background
+  swipeLockIcon: "#6C63FF",
 
-  swipeDeleteBg: "#FFE7E7",
+  swipeDeleteBg: "#FEE2E2", // Light red background
   swipeDeleteIcon: "#DC2626",
 
   // Status
 
-  success: "#22C55E",
+  success: "#10B981",
   warning: "#F59E0B",
   danger: "#EF4444",
 
   // Shadows
 
-  shadowLight: "rgba(15, 23, 42, 0.04)",
-  shadowMedium: "rgba(15, 23, 42, 0.08)",
+  shadowLight: "rgba(108,99,255,0.08)",
+  shadowMedium: "rgba(108,99,255,0.15)",
 
-  // Premium Gradients
-
-  primaryGradient: ["#6C63FF", "#8B80FF"],
+  primaryGradient: ["#8B80FF", "#6C63FF"],
 };
 
 export type DefaultColorType = typeof LightColors;

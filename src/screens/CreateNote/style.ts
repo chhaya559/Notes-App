@@ -7,6 +7,7 @@ const styles = (Colors: ThemeColors) =>
       flex: 1,
       backgroundColor: Colors.background,
       marginTop: 5,
+      height: "100%",
     },
     editorContainer: {
       paddingBottom: 8,
@@ -31,6 +32,7 @@ const styles = (Colors: ThemeColors) =>
     all: {
       flex: 1,
       backgroundColor: Colors.background,
+      height: "100%",
     },
     button: {
       borderWidth: 1,

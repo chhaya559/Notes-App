@@ -30,7 +30,7 @@ const styles = (Colors: ThemeColors) =>
 
       alignSelf: "flex-start",
       borderRadius: 10,
-      color: Colors.textSecondary,
+      color: Colors.danger,
     },
   });
 

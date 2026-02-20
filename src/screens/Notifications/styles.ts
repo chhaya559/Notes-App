@@ -7,7 +7,6 @@ const styles = (Colors: ThemeColors) =>
       flex: 1,
       backgroundColor: Colors.background,
       padding: 16,
-      paddingTop: 30,
     },
     card: {
       backgroundColor: Colors.surface,
@@ -47,9 +46,30 @@ const styles = (Colors: ThemeColors) =>
     buttons: {
       flexDirection: "row",
       justifyContent: "space-between",
-      paddingBottom: 15,
-      marginLeft: 20,
-      marginRight: 20,
+      marginLeft: 15,
+      marginRight: 15,
+      backgroundColor: Colors.surfaceSoft,
+      padding: 2,
+      marginBottom: 20,
+      borderRadius: 25,
+    },
+    text: {
+      color: Colors.textPrimary,
+      textAlign: "center",
+      fontSize: 16,
+      padding: 3,
+    },
+    focused: {
+      backgroundColor: Colors.primary,
+      paddingHorizontal: 10,
+    },
+    touchable: {
+      padding: 3,
+      borderRadius: 20,
+    },
+    line: {
+      borderWidth: 1,
+      borderColor: Colors.border,
     },
     title: {
       textAlign: "center",
@@ -83,16 +103,18 @@ const styles = (Colors: ThemeColors) =>
       fontWeight: "bold",
       fontSize: 18,
       margin: 10,
+      color: Colors.textPrimary,
     },
     emptyMessage: {
       fontWeight: "500",
       fontSize: 16,
+      color: Colors.textSecondary,
     },
     delete: {
       // position: "absolute",
     },
     swipe: {
-      backgroundColor: "#e9e9f1ff",
+      backgroundColor: Colors.swipeDeleteBg,
       padding: 15,
       borderRadius: 20,
       elevation: 3,

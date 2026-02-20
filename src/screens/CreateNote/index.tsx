@@ -122,14 +122,7 @@ export default function CreateNote({
   const [lockNote] = useNoteLockMutation();
   const [noteBackground, setNoteBackground] = useState<string>(Colors.surface);
   const { isConnected } = useNetInfo();
-  const [textToolBarVisibility, setTextToolBarVisibility] = useState(false);
-  function toggleTextToolBarVisibility() {
-    setTextToolBarVisibility(!textToolBarVisibility);
-  }
-  const [headerModalVisibility, setHeaderModalVisibility] = useState(false);
-  function toggleHeaderModalVisibility() {
-    setHeaderModalVisibility(!headerModalVisibility);
-  }
+
   const [activeOption, setActiveOption] = useState<
     "text" | "attachment" | "summary" | "reminder" | null
   >(null);
@@ -138,23 +131,6 @@ export default function CreateNote({
   ) => {
     setActiveOption((prev) => (prev === option ? null : option));
   };
-  const [isColorPaletteVisible, setIsColorPaletteVisible] = useState(false);
-  function toggleColorPaletteVisibility() {
-    setIsColorPaletteVisible(!isColorPaletteVisible);
-  }
-  const [showReminder, setShowReminder] = useState(false);
-  function toggleReminderVisibility() {
-    setShowReminder(!showReminder);
-  }
-  const [showSummary, setShowSummary] = useState(false);
-  function toggleShowSummary() {
-    setShowSummary(!showSummary);
-  }
-
-  const [showAttachmentOptions, setShowAttachmentOptions] = useState(false);
-  function toggleShowAttachmentOptions() {
-    setShowAttachmentOptions(!showAttachmentOptions);
-  }
 
   const [saveApi] = useSaveNoteMutation();
   const [editApi] = useUpdateMutation();
@@ -162,7 +138,19 @@ export default function CreateNote({
   const [uploadApi] = useUploadFileMutation();
   const [deleteFile] = useRemoveFileMutation();
 
-  const noteId = route?.params?.id;
+  const [notes, setNotes] = useState({
+    id: "",
+    title: "",
+    content: "",
+    isPasswordProtected: false,
+    isReminderSet: null,
+    isLocked: false,
+  });
+  const [localNoteId, setLocalNoteId] = useState<string | null>(
+    route?.params?.id ?? null,
+  );
+  // const noteId = localNoteId;
+  const [noteId, setNoteId] = useState(localNoteId);
   const { data: NotesData, refetch } = useGetNoteByIdQuery(
     { id: String(noteId) },
     { skip: !noteId, refetchOnFocus: true },
@@ -185,19 +173,13 @@ export default function CreateNote({
     }, [noteId]),
   );
 
-  const isEditMode = Boolean(noteId);
-  const [notes, setNotes] = useState({
-    id: "",
-    title: "",
-    content: "",
-    isPasswordProtected: false,
-    isReminderSet: null,
-    isLocked: false,
-  });
+  const isEditMode = !!noteId;
+
   const notesRef = useRef<any>(null);
   useEffect(() => {
     notesRef.current = notes;
   }, [notes]);
+
   useEffect(() => {
     if (!NotesData?.data) return;
     setNotes({
@@ -222,46 +204,10 @@ export default function CreateNote({
       setIsReminder(true);
     }
   }, [NotesData?.data?.isReminderSet]);
+
   const isDeletingRef = useRef(false);
   const isSavedRef = useRef(false);
 
-  async function toggleLock() {
-    if (!noteId) {
-      Toast.show({ text1: "Save note before locking" });
-      return;
-    }
-
-    if (!hasNotePassword) {
-      navigation.navigate("NotesPassword", {
-        id: String(noteId),
-        title: notes.title ?? "",
-        content: notes.content ?? "",
-      });
-      return;
-    }
-
-    try {
-      const response = await lockNote({ id: String(noteId) }).unwrap();
-      console.log(response);
-      setNotes((prev) => ({
-        ...prev,
-        isPasswordProtected: true,
-        isLocked: true,
-      }));
-    } catch (error: any) {
-      Toast.show({ text1: "Failed to lock note" });
-      console.log(error);
-    }
-  }
-
-  async function unlockNote() {
-    setNotes((prev) => ({
-      ...prev,
-      isLocked: false,
-      isPasswordProtected: false,
-    }));
-  }
-  // const [optionsVisible, setOptionsVisible] = useState(true);
   const [existingFiles, setExistingFiles] = useState<string[]>([]);
   const [files, setFiles] = useState<DocumentPickerResponse[]>([]);
 
@@ -276,6 +222,7 @@ export default function CreateNote({
       console.log("Error uploading file", error);
     }
   }
+
   async function removeFile(filePath: any) {
     setFiles((prev) => prev.filter((item) => item !== filePath));
   }
@@ -317,30 +264,38 @@ export default function CreateNote({
   }
 
   async function handleSave(navigate = true) {
+    let isNetConnected = isConnected === true || isConnected === null;
     try {
+      console.log("hello");
       if (navigate) {
         if (!notes.title && !notes.content) {
           Toast.show({
             text1: "Your note needs at least a title or content",
           });
+          return;
         }
         if (!notes.title) {
           setNotes((prev) => ({ ...prev, title: "New Note" }));
         }
       }
+      console.log("heyy");
       let filePaths: string[] = [];
 
-      if (isConnected && files?.length > 0) {
+      if (isNetConnected && files?.length > 0) {
         filePaths = await uploadFilesToBackend(files);
         console.log(filePaths, "fugfr");
       }
-
+      console.log("heyy2");
       const localId = await saveToLocalDB(
-        isConnected ? "synced" : "pending",
+        isNetConnected ? "synced" : "pending",
         filePaths,
       );
-
-      if (isConnected) {
+      if (!localNoteId) {
+        setLocalNoteId(localId);
+      }
+      console.log("heyy3");
+      console.log(isNetConnected, "connected");
+      if (isNetConnected) {
         const payload = {
           id: localId,
           title: notesRef.current?.title ?? "",
@@ -350,12 +305,12 @@ export default function CreateNote({
           isReminderSet: isReminder,
           filePaths: filePaths ?? [],
         };
-
         console.log("saved", payload);
         if (isEditMode) {
           await editApi(payload).unwrap();
         } else {
-          await saveApi(payload).unwrap();
+          const res = await saveApi(payload).unwrap();
+          setNoteId(res?.data?.id);
         }
       }
       isSavedRef.current = true;
@@ -510,16 +465,19 @@ export default function CreateNote({
     handleSave(false);
   }, [debouncedNotes.title, debouncedNotes.content]);
   const scrollRef = useRef<ScrollView | null>(null);
+
   useEffect(() => {
     setTimeout(() => {
       scrollRef.current?.scrollTo({ y: 0, animated: false });
     }, 100);
   }, []);
+
   const richText = useRef<RichEditor | null>(null);
+
   return (
     <KeyboardAvoidingView
       style={[dynamicStyles.all]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      // behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={[dynamicStyles.container]}>
         <TextInput
@@ -530,8 +488,6 @@ export default function CreateNote({
           onChangeText={(value) =>
             setNotes((prev) => ({ ...prev, title: value }))
           }
-          // onFocus={() => setOptionsVisible(false)}
-          // onBlur={() => setOptionsVisible(true)}
           selectionColor={Colors.primary}
           cursorColor={Colors.primary}
         />
@@ -555,6 +511,7 @@ export default function CreateNote({
               editorStyle={{
                 backgroundColor: Colors.background,
                 color: Colors.textPrimary,
+                caretColor: Colors.primary,
               }}
               initialFocus={true}
               // initialHeight={570}
@@ -652,7 +609,7 @@ export default function CreateNote({
           </View>
         )}
 
-        {textToolBarVisibility && (
+        {activeOption == "text" && (
           <View style={dynamicStyles.modal}>
             <RichToolbar
               editor={richText}
@@ -671,7 +628,7 @@ export default function CreateNote({
               style={dynamicStyles.toolbar}
             />
             <TouchableOpacity
-              onPress={toggleTextToolBarVisibility}
+              onPress={() => setActiveOption(null)}
               style={{
                 alignSelf: "center",
                 backgroundColor: Colors.mutedIcon,
@@ -687,79 +644,17 @@ export default function CreateNote({
             </TouchableOpacity>
           </View>
         )}
-        {headerModalVisibility && (
-          <View style={{ position: "absolute", bottom: 80, right: 20 }}>
-            <View style={dynamicStyles.headerMenu}>
-              {/* {isEditMode &&
-                (notes.isLocked ? (
-                  <TouchableOpacity
-                    style={dynamicStyles.touchables}
-                    onPress={unlockNote}
-                    disabled={isGuest}
-                  >
-                    <AntDesign name="unlock" color="#5757f8" size={24} />
-                    <Text style={dynamicStyles.touchableText}>Unlock</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    style={[
-                      dynamicStyles.touchables,
-                      { opacity: isGuest ? 0.5 : 1 },
-                    ]}
-                    onPress={() => {
-                      toggleLock();
-                    }}
-                    disabled={isGuest}
-                  >
-                    <AntDesign name="lock" color="#5757f8" size={24} />
-                    <Text style={dynamicStyles.touchableText}>Lock</Text>
-                  </TouchableOpacity>
-                ))} */}
-              {isEditMode && (
-                <TouchableOpacity
-                  style={[
-                    dynamicStyles.touchables,
-                    { opacity: isGuest ? 0.5 : 1 },
-                  ]}
-                  onPress={toggleReminderVisibility}
-                  disabled={isGuest}
-                >
-                  <Ionicons
-                    color="#5757f8"
-                    size={24}
-                    name="notifications-outline"
-                  />
-                  <Text style={dynamicStyles.touchableText}>Reminder</Text>
-                </TouchableOpacity>
-              )}
 
-              <TouchableOpacity
-                style={[
-                  dynamicStyles.touchables,
-                  { opacity: isEditMode ? 1 : 0.5 },
-                ]}
-                onPress={() => alertDelete()}
-                disabled={!isEditMode}
-              >
-                <MaterialIcons
-                  name="delete-outline"
-                  size={24}
-                  color="#5757f8"
-                />
-                <Text style={dynamicStyles.touchableText}>Delete</Text>
-              </TouchableOpacity>
-
-              <View />
-            </View>
-          </View>
-        )}
         <View style={dynamicStyles.line} />
-        {showReminder ? (
+
+        {/* show reminder */}
+        {activeOption == "reminder" ? (
           <Reminder
             id={String(noteId)}
-            onClose={() => setShowReminder(false)}
+            onClose={() => setActiveOption(null)}
             onReminderSet={async (id) => {
               setIsReminder(true);
+              setActiveOption(null);
               if (isConnected && id) {
                 await editApi({
                   id,
@@ -772,18 +667,20 @@ export default function CreateNote({
             }}
           />
         ) : null}
-        {showSummary ? (
+
+        {/* show summary */}
+        {activeOption == "summary" ? (
           <Summary
             id={notes.id}
-            onClose={() => setShowSummary(false)}
+            onClose={() => setActiveOption(null)}
             data={aiSummary}
           />
         ) : null}
+
         {/* Options bottom  */}
-        {textToolBarVisibility ? null : (
+        {activeOption == "text" ? null : (
           <View style={dynamicStyles.options}>
             <TouchableOpacity
-              // onPress={toggleTextToolBarVisibility}
               onPress={() => handleToggle("text")}
               style={dynamicStyles.optionButton}
             >
@@ -796,7 +693,7 @@ export default function CreateNote({
             <TouchableOpacity
               style={dynamicStyles.optionButton}
               onPress={() => {
-                pickFile;
+                pickFile();
                 handleToggle("attachment");
               }}
             >
@@ -812,7 +709,6 @@ export default function CreateNote({
                 { opacity: isEditMode || isGuest ? 1 : 0.5 },
               ]}
               onPress={() => {
-                toggleShowSummary();
                 generateSummary();
                 handleToggle("summary");
               }}
@@ -831,7 +727,6 @@ export default function CreateNote({
               ]}
               onPress={() => {
                 handleToggle("reminder");
-                toggleReminderVisibility();
               }}
               disabled={isGuest && !isEditMode}
             >
@@ -855,26 +750,6 @@ export default function CreateNote({
                 style={dynamicStyles.optionIcon}
               />
             </TouchableOpacity>
-            {/* <TouchableOpacity
-              onPress={() => {
-                toggleHeaderModalVisibility();
-              }}
-              style={dynamicStyles.optionButton}
-            >
-              {headerModalVisibility ? (
-                <AntDesign
-                  name="close"
-                  size={24}
-                  style={dynamicStyles.optionIcon}
-                />
-              ) : (
-                <MaterialIcons
-                  name="more-vert"
-                  size={24}
-                  style={dynamicStyles.optionIcon}
-                />
-              )}
-            </TouchableOpacity> */}
           </View>
         )}
       </View>

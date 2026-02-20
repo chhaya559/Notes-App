@@ -32,10 +32,9 @@ const styles = (Colors: ThemeColors) =>
       marginLeft: 20,
       fontSize: 12,
       padding: 5,
-      width: "a",
       alignSelf: "flex-start",
       borderRadius: 10,
-      color: "#ff0000ff",
+      color: Colors.danger,
     },
   });
 

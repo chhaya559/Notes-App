@@ -26,11 +26,14 @@ export const DarkColors = {
   divider: "#1E2432",
 
   // Icons
-  buttonIcon: "#F1F5F9",
-  icon: "#F1F5F9",
-  mutedIcon: "#919193ff",
-  iconSoftBg: "#1F2433",
-
+  // buttonIcon: "#F1F5F9",
+  // icon: "#F1F5F9",
+  // mutedIcon: "#919193ff",
+  // iconSoftBg: "#1F2433",
+  buttonIcon: "#EDE9FF", // Soft lavender white
+  icon: "#D6D9FF", // Subtle purple-tinted icon
+  mutedIcon: "#7C82B9", // Muted indigo-gray
+  iconSoftBg: "#232754", // Deep indigo surface
   // Swipe Actions
 
   swipeLockBg: "#2B2F66",

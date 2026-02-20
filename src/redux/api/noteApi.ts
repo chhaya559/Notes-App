@@ -3,7 +3,7 @@ import { RootState } from "../store/index";
 
 export const noteApi = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://uninitiated-jerrold-coverable.ngrok-free.dev/api",
+    baseUrl: "https://cloudnotes.clashhub.online/api",
     prepareHeaders: (headers, { getState }) => {
       const token = (getState() as RootState).auth.token;
 
@@ -82,12 +82,12 @@ export const noteApi = createApi({
     }),
     noteLock: builder.mutation<
       any,
-      { id: string; isPasswordProtected: boolean }
+      { id: string; isPasswordProtected: boolean; password?: string }
     >({
-      query: ({ id, isPasswordProtected }) => ({
+      query: ({ id, isPasswordProtected, password }) => ({
         url: `Notes/${id}/lock`,
         method: "POST",
-        body: { isPasswordProtected },
+        body: { isPasswordProtected, password },
       }),
       invalidatesTags: ["Notes"],
     }),
@@ -157,6 +157,13 @@ export const noteApi = createApi({
         body,
       }),
     }),
+    RemoveLock: builder.mutation({
+      query: ({ id }) => ({
+        url: `/Notes/${id}/unlock-protection`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Notes"],
+    }),
     removeFile: builder.mutation({
       query: ({ id, fileUrl }) => ({
         url: `/Notes/${id}/files`,
@@ -191,4 +198,5 @@ export const {
   useUploadFileMutation,
   useRemoveFileMutation,
   useDeleteNotificationMutation,
+  useRemoveLockMutation,
 } = noteApi;

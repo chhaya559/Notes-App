@@ -297,7 +297,12 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           style={dynamicStyles.google}
           onPress={handleGoogleSignin}
         >
-          <AntDesign name="google" size={20} color={Colors.icon} />
+          <AntDesign
+            name="google"
+            size={20}
+            color={Colors.icon}
+            style={{ verticalAlign: "middle" }}
+          />
           <Text style={dynamicStyles.googleText}>
             {isGoogleLoading ? "Signing up..." : "Sign up with Google"}
           </Text>

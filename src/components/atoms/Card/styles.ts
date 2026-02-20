@@ -9,13 +9,15 @@ const styles = (Colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       backgroundColor: Colors.surface,
-      padding: 12,
+      paddingLeft: 10,
+      paddingTop: 5,
+      paddingBottom: 5,
       marginBottom: 10,
       borderRadius: 16,
       height: 90,
       width: screenWidth - 30,
       alignSelf: "center",
-      gap: 8,
+      gap: 6,
       // paddingLeft: 20,
       overflow: "hidden",
       borderWidth: 1,
@@ -106,37 +108,31 @@ const styles = (Colors: ThemeColors) =>
       fontSize: 18,
       color: Colors.textSecondary,
     },
-    icon: {
-      // backgroundColor: "#adadadff",
-      //borderRadius: 25,
-      //padding: 6,
+
+    swipeAction: {
+      flexDirection: "row",
+      gap: 10,
+      height: 80,
+      marginVertical: 5,
+      overflow: "hidden",
+      alignItems: "center",
+    },
+    deleteBg: {
+      width: 70,
+      padding: 17,
+      alignItems: "center",
+      backgroundColor: Colors.swipeDeleteBg,
+      borderRadius: 10,
+      height: 80,
     },
 
-    delete: {
-      backgroundColor: Colors.swipeDeleteBg,
-      padding: 15,
-      marginHorizontal: 10,
-      marginVertical: 7,
-      borderRadius: 20,
-      height: 80,
-      width: 60,
-      // position: "absolute",
-    },
-    lock: {
+    lockBg: {
+      width: 70,
+      padding: 17,
+      alignItems: "center",
       backgroundColor: Colors.swipeLockBg,
-      padding: 15,
-      marginHorizontal: 10,
-      marginVertical: 7,
-      borderRadius: 20,
+      borderRadius: 10,
       height: 80,
-      width: 60,
-    },
-    deleteIcon: {
-      top: 5,
-      right: 5,
-    },
-    swipe: {
-      flexDirection: "row",
     },
   });
 export default styles;

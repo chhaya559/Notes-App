@@ -9,7 +9,11 @@ import Toast from "react-native-toast-message";
 import { RootStackParamList } from "src/navigation/types";
 import { NotesSchema } from "src/validations/NotesPassword";
 import styles from "./styles";
-import { useSearchNotesQuery, useUpdateMutation } from "@redux/api/noteApi";
+import {
+  useNoteLockMutation,
+  useSearchNotesQuery,
+  useUpdateMutation,
+} from "@redux/api/noteApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setCommonPasswordSet } from "@redux/slice/authSlice";
 import { db } from "src/db/notes";
@@ -31,6 +35,7 @@ export default function NotesPassword({
 }: Readonly<NotesPasswordProps>) {
   const [updateNote, { isLoading }] = useUpdateMutation();
   const [resetNotesApi] = useResetNotesPasswordMutation();
+  const [lockApi] = useNoteLockMutation();
   const hasCommonPassword = useSelector(
     (state: RootState) => state.auth.isCommonPasswordSet,
   );
@@ -54,7 +59,7 @@ export default function NotesPassword({
   }, [url]);
   const dispatch = useDispatch();
 
-  const noteID = route?.params?.id;
+  const noteID = route?.params?.noteID;
   const title = route?.params?.title ?? "";
   const content = route?.params?.content ?? "";
 
@@ -70,11 +75,9 @@ export default function NotesPassword({
           navigation.goBack();
         }
       } else {
-        console.log("fjhfj");
-        const response = await updateNote({
+        console.log(noteID, data.password, "freugfherikg");
+        const response = await lockApi({
           id: noteID,
-          title,
-          content,
           isPasswordProtected: true,
           password: data.password,
         }).unwrap();

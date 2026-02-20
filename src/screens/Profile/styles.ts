@@ -139,10 +139,10 @@ const styles = (Colors: ThemeColors) =>
     optionText: {
       fontWeight: "600",
       fontSize: 16,
-      color: Colors.textPrimary,
+      color: Colors.primary,
     },
     optionsContainer: {
-      backgroundColor: Colors.primary,
+      backgroundColor: Colors.primarySoft,
       borderRadius: 20,
     },
   });

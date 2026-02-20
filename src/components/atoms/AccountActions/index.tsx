@@ -80,81 +80,100 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
       </TouchableOpacity>
       <View style={dynamicStyles.line} />
       {!isGoogle && (
-        <TouchableOpacity
-          style={dynamicStyles.wrapper}
-          onPress={() => navigation.navigate("ResetPassword")}
-        >
-          <View style={dynamicStyles.wrap}>
-            <Pressable style={dynamicStyles.iconWrap}>
-              <MaterialIcons
-                name="password"
-                size={20}
-                color={Colors.icon}
-                style={{ padding: 3 }}
-              />
-            </Pressable>
-            <Text style={dynamicStyles.text}>Change Password</Text>
-          </View>
+        <>
           <TouchableOpacity
-            style={dynamicStyles.actionIcon}
+            style={dynamicStyles.wrapper}
             onPress={() => navigation.navigate("ResetPassword")}
           >
-            <SimpleLineIcons name="arrow-right" color={Colors.icon} size={18} />
+            <View style={dynamicStyles.wrap}>
+              <Pressable style={dynamicStyles.iconWrap}>
+                <MaterialIcons
+                  name="password"
+                  size={20}
+                  color={Colors.icon}
+                  style={{ padding: 3 }}
+                />
+              </Pressable>
+              <Text style={dynamicStyles.text}>Change Password</Text>
+            </View>
+            <TouchableOpacity
+              style={dynamicStyles.actionIcon}
+              onPress={() => navigation.navigate("ResetPassword")}
+            >
+              <SimpleLineIcons
+                name="arrow-right"
+                color={Colors.icon}
+                size={18}
+              />
+            </TouchableOpacity>
           </TouchableOpacity>
-        </TouchableOpacity>
+          <View style={dynamicStyles.line} />
+        </>
       )}
-      <View style={dynamicStyles.line} />
-      <TouchableOpacity
-        style={dynamicStyles.wrapper}
-        onPress={() => navigation.navigate("ChangeNotePassword")}
-      >
-        <View style={dynamicStyles.wrap}>
-          <Pressable style={dynamicStyles.iconWrap}>
-            <MaterialIcons
-              name="password"
-              size={20}
-              style={{ padding: 3 }}
-              color={Colors.icon}
-            />
-          </Pressable>
-          <Text style={dynamicStyles.text}>Change Notes Password</Text>
-        </View>
-        <TouchableOpacity
-          style={dynamicStyles.actionIcon}
-          onPress={() => navigation.navigate("ChangeNotePassword")}
-        >
-          <SimpleLineIcons name="arrow-right" size={18} color={Colors.icon} />
-        </TouchableOpacity>
-      </TouchableOpacity>
-
-      <View style={dynamicStyles.line} />
       {hasCommonPassword && (
-        <TouchableOpacity
-          style={dynamicStyles.wrapper}
-          onPress={() =>
-            navigation.navigate("ForgotPassword", { name: "notes" })
-          }
-        >
-          <View style={dynamicStyles.wrap}>
-            <Pressable style={dynamicStyles.iconWrap}>
-              <MaterialIcons
-                name="password"
-                size={20}
-                style={{ padding: 3 }}
+        <>
+          <TouchableOpacity
+            style={dynamicStyles.wrapper}
+            onPress={() => navigation.navigate("ChangeNotePassword")}
+          >
+            <View style={dynamicStyles.wrap}>
+              <Pressable style={dynamicStyles.iconWrap}>
+                <MaterialIcons
+                  name="password"
+                  size={20}
+                  style={{ padding: 3 }}
+                  color={Colors.icon}
+                />
+              </Pressable>
+              <Text style={dynamicStyles.text}>Change Notes Password</Text>
+            </View>
+            <TouchableOpacity
+              style={dynamicStyles.actionIcon}
+              onPress={() => navigation.navigate("ChangeNotePassword")}
+            >
+              <SimpleLineIcons
+                name="arrow-right"
+                size={18}
                 color={Colors.icon}
               />
-            </Pressable>
-            <Text style={dynamicStyles.text}>Reset Notes Password</Text>
-          </View>
-          <TouchableOpacity
-            style={dynamicStyles.actionIcon}
-            onPress={() => navigation.navigate("ForgotPassword")}
-          >
-            <SimpleLineIcons name="arrow-right" size={18} color={Colors.icon} />
+            </TouchableOpacity>
           </TouchableOpacity>
-        </TouchableOpacity>
+          <View style={dynamicStyles.line} />
+        </>
       )}
-      <View style={dynamicStyles.line} />
+      {hasCommonPassword && (
+        <>
+          <TouchableOpacity
+            style={dynamicStyles.wrapper}
+            onPress={() =>
+              navigation.navigate("ForgotPassword", { name: "notes" })
+            }
+          >
+            <View style={dynamicStyles.wrap}>
+              <Pressable style={dynamicStyles.iconWrap}>
+                <MaterialIcons
+                  name="password"
+                  size={20}
+                  style={{ padding: 3 }}
+                  color={Colors.icon}
+                />
+              </Pressable>
+              <Text style={dynamicStyles.text}>Reset Notes Password</Text>
+            </View>
+            <TouchableOpacity
+              style={dynamicStyles.actionIcon}
+              onPress={() => navigation.navigate("ForgotPassword")}
+            >
+              <SimpleLineIcons
+                name="arrow-right"
+                size={18}
+                color={Colors.icon}
+              />
+            </TouchableOpacity>
+          </TouchableOpacity>
+          <View style={dynamicStyles.line} />
+        </>
+      )}
       <TouchableOpacity style={dynamicStyles.wrapper} onPress={confirmDelete}>
         <View style={dynamicStyles.wrap}>
           <Pressable style={dynamicStyles.iconWrap}>

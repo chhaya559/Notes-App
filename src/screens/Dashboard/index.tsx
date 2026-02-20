@@ -199,7 +199,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     },
   });
   //search
-  const debouncedSearch = useDebounce(searchText, 200);
+  const debouncedSearch = useDebounce(searchText.trim(), 200);
 
   const { data: SearchedNotes } = useSearchNotesQuery(debouncedSearch, {
     skip: debouncedSearch.trim().length === 0,
@@ -211,7 +211,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     ? (SearchedNotes?.data ?? [])
     : (allNotes ?? []);
 
-  console.log(displayNotes, "displaynotes");
   return (
     <View style={dynamicStyles.container}>
       <View style={dynamicStyles.static}>
@@ -231,13 +230,13 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             placeholder="Search notes..."
             placeholderTextColor={Colors.textMuted}
             style={dynamicStyles.search}
-            value={searchText.trim()}
+            value={searchText}
             onChangeText={setSearchText}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             autoCorrect={false}
-            cursorColor="#5757f8"
-            selectionColor="#5757f8"
+            cursorColor={Colors.primary}
+            selectionColor={Colors.primary}
           />
           {searchText && (
             <TouchableOpacity onPress={clearSearchText}>
@@ -263,11 +262,12 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         contentContainerStyle={{ paddingBottom: 120 }}
         renderItem={({ item }) => (
           <Card
+            key={item.id}
             id={item.id}
             title={item.title}
             content={item.content}
             updatedAt={item.updatedAt}
-            isPasswordProtected={item.isPasswordProtected && !isNotesUnlocked}
+            isPasswordProtected={item.isPasswordProtected}
             isReminderSet={item.isReminderSet}
             isLocked={item.isLocked}
           />
@@ -288,7 +288,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             return (
               <View style={dynamicStyles.emptyContainer}>
                 <Text style={dynamicStyles.emptyText}>
-                  No results for “{debouncedSearch}”
+                  No results for “{debouncedSearch.trim()}”
                 </Text>
                 <Text style={dynamicStyles.emptySecondaryText}>
                   Try a different keyword

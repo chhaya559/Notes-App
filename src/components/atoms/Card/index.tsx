@@ -20,6 +20,7 @@ import { setNotesUnlocked, lockNotes } from "@redux/slice/authSlice";
 import {
   useDeleteMutation,
   useNoteLockMutation,
+  useRemoveLockMutation,
   useSaveNoteMutation,
   useUnlockNoteMutation,
 } from "@redux/api/noteApi";
@@ -45,8 +46,6 @@ function formatDate(dateString: string) {
     day: "2-digit",
     month: "short",
     year: "numeric",
-    // hour: "numeric",
-    // minute: "numeric",
   });
 }
 
@@ -60,6 +59,7 @@ export default function Card(props: any) {
   const { isConnected } = useNetInfo();
   const [deleteApi] = useDeleteMutation();
   const [lockApi] = useNoteLockMutation();
+  const [removeLockApi] = useRemoveLockMutation();
   const notesUnlockUntil = useSelector(
     (state: RootState) => state.auth.notesUnlockUntil,
   );
@@ -155,16 +155,61 @@ export default function Card(props: any) {
 
     navigation.navigate("CreateNote", { id: props.id });
   }
-  const [saveApi] = useSaveNoteMutation();
+
+  const hasCommonPassword = useSelector(
+    (state: RootState) => state.auth.isCommonPasswordSet,
+  );
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: scale.value }],
     };
   });
-  async function unLockNote() {}
+  async function unLockNote() {
+    try {
+      const response = await removeLockApi({
+        id: String(props.id),
+      }).unwrap();
+
+      console.log(response);
+      if (response.success) {
+        Toast.show({
+          text1: "Note Lock Removed",
+        });
+        swipeRef.current?.close();
+      }
+    } catch (error: any) {
+      if (error.data.message) {
+        Toast.show({
+          text2: error?.data?.message,
+        });
+      } else {
+        Toast.show({ text1: "Failed to remove lock from note" });
+      }
+      console.log(error);
+    }
+  }
   async function lockNote() {
     try {
+      if (!hasCommonPassword) {
+        Alert.alert(
+          "Set Notes Password",
+          "Set notes password first to protect your notes.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Set Password",
+              style: "destructive",
+              onPress: () =>
+                navigation.navigate("NotesPassword", {
+                  noteID: props.id,
+                }),
+            },
+          ],
+          { cancelable: true },
+        );
+        return;
+      }
       const response = await lockApi({
         id: String(props.id),
         isPasswordProtected: true,
@@ -178,7 +223,13 @@ export default function Card(props: any) {
         swipeRef.current?.close();
       }
     } catch (error: any) {
-      Toast.show({ text1: "Failed to lock note" });
+      if (error.data.message) {
+        Toast.show({
+          text2: error?.data?.message,
+        });
+      } else {
+        Toast.show({ text1: "Failed to lock note" });
+      }
       console.log(error);
     }
   }
@@ -207,61 +258,35 @@ export default function Card(props: any) {
   ) {
     const animatedStyle = useAnimatedStyle(() => {
       return {
-        translateX: translation.value + 50,
+        translateX: translation.value + 150,
       };
     });
 
     return (
-      <View style={dynamicStyles.swipe}>
-        <Reanimated.View style={[dynamicStyles.delete, animatedStyle]}>
-          <TouchableOpacity onPress={confirmDelete}>
-            <MaterialIcons
-              name="delete-outline"
-              size={38}
-              color={Colors.swipeDeleteIcon}
-              style={dynamicStyles.deleteIcon}
-            />
+      <Reanimated.View style={[dynamicStyles.swipeAction, animatedStyle]}>
+        <TouchableOpacity
+          onPress={confirmDelete}
+          style={dynamicStyles.deleteBg}
+        >
+          <MaterialIcons
+            name="delete-outline"
+            size={38}
+            color={Colors.swipeDeleteIcon}
+          />
+        </TouchableOpacity>
+        {props.isPasswordProtected ? (
+          <TouchableOpacity onPress={unLockNote} style={dynamicStyles.lockBg}>
+            <Entypo name="lock-open" size={38} color={Colors.swipeLockIcon} />
           </TouchableOpacity>
-        </Reanimated.View>
-      </View>
+        ) : (
+          <TouchableOpacity onPress={lockNote} style={dynamicStyles.lockBg}>
+            <Entypo name="lock" size={38} color={Colors.swipeLockIcon} />
+          </TouchableOpacity>
+        )}
+      </Reanimated.View>
     );
   }
-  function LeftAction(
-    progress: SharedValue<number>,
-    translation: SharedValue<number>,
-  ) {
-    const animatedStyle = useAnimatedStyle(() => {
-      return {
-        translateX: translation.value + 70,
-      };
-    });
 
-    return (
-      <View style={dynamicStyles.swipe}>
-        <Reanimated.View style={[dynamicStyles.lock, animatedStyle]}>
-          {props.isPasswordProtected ? (
-            <TouchableOpacity onPress={unLockNote}>
-              <Entypo
-                name="lock-open"
-                size={38}
-                color={Colors.swipeLockIcon}
-                style={dynamicStyles.deleteIcon}
-              />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity onPress={lockNote}>
-              <Entypo
-                name="lock"
-                size={38}
-                color={Colors.swipeLockIcon}
-                style={dynamicStyles.deleteIcon}
-              />
-            </TouchableOpacity>
-          )}
-        </Reanimated.View>
-      </View>
-    );
-  }
   const firstLine = props.content
     ?.split(/\r?\n|<br\s*\/?>/)[0]
     ?.substring(0, 40);
@@ -329,7 +354,6 @@ export default function Card(props: any) {
         <ReanimatedSwipeable
           enableTrackpadTwoFingerGesture
           renderRightActions={RightAction}
-          renderLeftActions={LeftAction}
           rightThreshold={10}
           ref={swipeRef}
         >
@@ -364,12 +388,12 @@ export default function Card(props: any) {
 
               <View style={dynamicStyles.iconsWrap}>
                 {props.isPasswordProtected ? (
-                  <Pressable style={dynamicStyles.icon}>
+                  <Pressable>
                     <Entypo name="lock" size={24} color={Colors.icon} />
                   </Pressable>
                 ) : null}
                 {props.isReminderSet ? (
-                  <Pressable style={dynamicStyles.icon}>
+                  <Pressable>
                     <Feather name="clock" size={24} color={Colors.icon} />
                   </Pressable>
                 ) : null}

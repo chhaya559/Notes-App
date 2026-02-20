@@ -24,9 +24,7 @@ export type RootStackParamList = {
   EditProfile: undefined;
   GuestConversion: undefined;
   NotesPassword: {
-    id: string;
-    title?: string;
-    content?: string;
+    noteID: string;
   };
   ChangeNotePassword: undefined;
 

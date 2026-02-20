@@ -16,14 +16,13 @@ import Reanimated, {
   SharedValue,
   useAnimatedStyle,
 } from "react-native-reanimated";
-import { cosineDistance } from "drizzle-orm";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
 export default function Notifications() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  const { data, isLoading, isFetching, refetch } = useGetNotificationsQuery(
+  const { data, isFetching, refetch } = useGetNotificationsQuery(
     { pageNumber: page, pageSize },
     {
       refetchOnFocus: true,
@@ -118,7 +117,7 @@ export default function Notifications() {
           <MaterialIcons
             name="delete-outline"
             size={38}
-            color="#5757f8"
+            color={Colors.swipeDeleteIcon}
             style={dynamicStyles.delete}
           />
         </TouchableOpacity>
@@ -127,10 +126,47 @@ export default function Notifications() {
   }
   const { dynamicStyles } = useStyles(styles);
   const { Colors } = useTheme();
+  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const filteredNotifications =
+    filter === "all"
+      ? allNotifications
+      : allNotifications.filter((item) => !item.isRead);
   return (
     <View style={dynamicStyles.container}>
+      {allNotifications.length > 0 && (
+        <View style={dynamicStyles.buttons}>
+          <TouchableOpacity
+            style={dynamicStyles.touchable}
+            onPress={() => setFilter("all")}
+          >
+            <Text style={dynamicStyles.text}>All</Text>
+          </TouchableOpacity>
+
+          <View style={dynamicStyles.line} />
+
+          <TouchableOpacity
+            style={dynamicStyles.touchable}
+            onPress={() => setFilter("unread")}
+          >
+            <Text style={dynamicStyles.text}>Unread</Text>
+          </TouchableOpacity>
+
+          <View style={dynamicStyles.line} />
+
+          <TouchableOpacity style={dynamicStyles.touchable} onPress={readAll}>
+            <Text style={dynamicStyles.text}>Read All</Text>
+          </TouchableOpacity>
+
+          <View style={dynamicStyles.line} />
+
+          <TouchableOpacity style={dynamicStyles.touchable} onPress={clearAll}>
+            <Text style={dynamicStyles.text}>Clear All</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <FlatList
-        data={allNotifications}
+        data={filteredNotifications}
         bounces={false}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
@@ -189,26 +225,6 @@ export default function Notifications() {
           //  )
         }
       />
-
-      {allNotifications.length > 0 && (
-        <View style={dynamicStyles.buttons}>
-          <TouchableOpacity style={dynamicStyles.pressable} onPress={readAll}>
-            <Text
-              style={{ color: Colors.icon, fontSize: 16, textAlign: "center" }}
-            >
-              Read All
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={dynamicStyles.pressable} onPress={clearAll}>
-            <Text
-              style={{ color: Colors.icon, fontSize: 16, textAlign: "center" }}
-            >
-              Clear All
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
       <Modal
         isVisible={showDetailedNotification}
