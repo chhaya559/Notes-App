@@ -12,6 +12,7 @@ const styles = (Colors: ThemeColors) =>
       fontSize: 30,
       fontWeight: "bold",
       textAlign: "center",
+      marginTop: 30,
       color: Colors.textPrimary,
     },
     text: {
@@ -19,12 +20,18 @@ const styles = (Colors: ThemeColors) =>
       fontWeight: "700",
       color: Colors.textSecondary,
       marginTop: 10,
-      marginBottom: 7,
+      marginBottom: 10,
       textAlign: "center",
     },
     innerContainer: {
       alignItems: "center",
       margin: 10,
+    },
+    forgot: {
+      textAlign: "right",
+      marginRight: 20,
+      margin: 10,
+      color: Colors.textSecondary,
     },
     pressable: {
       backgroundColor: Colors.primary,
@@ -32,10 +39,14 @@ const styles = (Colors: ThemeColors) =>
       margin: 15,
       borderRadius: 15,
       alignContent: "center",
+      marginTop: 20,
+      marginBottom: 20,
     },
-
+    inputContainer: {
+      marginTop: 40,
+    },
     pressableText: {
-      color: Colors.textPrimary,
+      color: Colors.textOnPrimary,
       fontWeight: "700",
       fontSize: 18,
       textAlign: "center",
@@ -44,6 +55,8 @@ const styles = (Colors: ThemeColors) =>
       flexDirection: "row",
       alignItems: "center",
       margin: 5,
+      marginTop: 10,
+      marginBottom: 10,
     },
     continueText: {
       textAlign: "center",
@@ -61,7 +74,8 @@ const styles = (Colors: ThemeColors) =>
       margin: 15,
       borderRadius: 15,
       borderWidth: 1,
-      backgroundColor: Colors.primary,
+      borderColor: Colors.border,
+      backgroundColor: Colors.surface,
       alignContent: "center",
       flexDirection: "row",
       justifyContent: "center",

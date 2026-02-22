@@ -95,7 +95,7 @@ const styles = (Colors: ThemeColors) =>
     },
 
     registerText: {
-      color: Colors.buttonText,
+      color: Colors.textOnPrimary,
       textAlign: "center",
       fontSize: 16,
       fontWeight: "600",

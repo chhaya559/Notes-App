@@ -300,7 +300,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           <AntDesign
             name="google"
             size={20}
-            color={Colors.icon}
+            color={Colors.textPrimary}
             style={{ verticalAlign: "middle" }}
           />
           <Text style={dynamicStyles.googleText}>

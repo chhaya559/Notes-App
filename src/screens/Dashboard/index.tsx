@@ -9,11 +9,19 @@ import {
   View,
 } from "react-native";
 import styles from "./styles";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import {
+  Ionicons,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@redux/store";
-import { useGetQuery, useSearchNotesQuery } from "@redux/api/noteApi";
+import {
+  useGetQuery,
+  useSearchNotesQuery,
+  useUpdateMutation,
+} from "@redux/api/noteApi";
 import Card from "@components/atoms/Card";
 import { db } from "src/db/notes";
 import { notesTable } from "src/db/schema";
@@ -27,7 +35,6 @@ import { useFocusEffect } from "@react-navigation/native";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
 import { LinearGradient } from "expo-linear-gradient";
-import GradientText from "@components/atoms/GradientText";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
 type Note = {
@@ -49,6 +56,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const { isConnected } = useNetInfo();
   const [page, setPage] = useState(1);
   const { dynamicStyles } = useStyles(styles);
+  const [editApi] = useUpdateMutation();
   const { Colors, darkMode } = useTheme();
   const isNotesUnlocked = useSelector(
     (state: RootState) => state.auth.isNotesUnlocked,
@@ -95,6 +103,39 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
 
     return () => clearTimeout(timer);
   }, [notesUnlockUntil]);
+
+  const syncPendingNotes = async () => {
+    if (!isConnected || !userId) return;
+
+    const pendingNotes = await db
+      .select()
+      .from(notesTable)
+      .where(eq(notesTable.syncStatus, "pending"));
+
+    for (const note of pendingNotes) {
+      try {
+        await editApi({
+          id: note.id,
+          title: note.title,
+          content: note.content,
+          filePaths: note.filePaths ? JSON.parse(note.filePaths) : [],
+        }).unwrap();
+
+        await db
+          .update(notesTable)
+          .set({ syncStatus: "synced" })
+          .where(eq(notesTable.id, note.id));
+      } catch (e) {
+        console.log("sync failed");
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (isConnected) {
+      syncPendingNotes();
+    }
+  }, [isConnected]);
 
   useEffect(() => {
     if (!data?.data) return;
@@ -225,10 +266,10 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         <View
           style={[dynamicStyles.SearchBar, isFocused && dynamicStyles.focus]}
         >
-          <Ionicons name="search" color={Colors.mutedIcon} size={22} />
+          <Ionicons name="search" color={Colors.iconPrimary} size={22} />
           <TextInput
             placeholder="Search notes..."
-            placeholderTextColor={Colors.textMuted}
+            placeholderTextColor={Colors.placeholder}
             style={dynamicStyles.search}
             value={searchText}
             onChangeText={setSearchText}
@@ -240,7 +281,11 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
           />
           {searchText && (
             <TouchableOpacity onPress={clearSearchText}>
-              <MaterialIcons name="clear" size={24} color={Colors.mutedIcon} />
+              <MaterialIcons
+                name="clear"
+                size={24}
+                color={Colors.iconPrimary}
+              />
             </TouchableOpacity>
           )}
         </View>
@@ -299,7 +344,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
 
           return (
             <View style={dynamicStyles.emptyContainer}>
-              <Image
+              {/* <Image
                 source={
                   darkMode
                     ? require("../../../assets/dark.png")
@@ -312,6 +357,12 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
                   alignSelf: "center",
                 }}
                 resizeMode="contain"
+              /> */}
+              <MaterialCommunityIcons
+                name="note-multiple-outline"
+                size={60}
+                color={Colors.iconPrimary}
+                style={{ alignSelf: "center", paddingBottom: 10 }}
               />
               <Text style={dynamicStyles.emptyText}>No notes yet</Text>
               <Text style={dynamicStyles.emptySecondaryText}>
@@ -327,7 +378,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         style={dynamicStyles.add}
         onPress={() => navigation.navigate("CreateNote" as never)}
       >
-        <Ionicons name="add-circle" size={60} color={Colors.primary} />
+        <Ionicons name="add-circle" size={60} color={Colors.gradientStart} />
       </TouchableOpacity>
     </View>
   );

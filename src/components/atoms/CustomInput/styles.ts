@@ -14,14 +14,15 @@ const styles = (Colors: ThemeColors) =>
       color: Colors.textPrimary,
     },
     input: {
-      borderWidth: 2,
-      borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: Colors.inputBorder,
       padding: 12,
       borderRadius: 10,
       color: Colors.textPrimary,
+      backgroundColor: Colors.inputBackground,
     },
     focused: {
-      borderColor: Colors.primaryPressed,
+      borderColor: Colors.inputFocusBorder,
       borderWidth: 2,
     },
     passwordWrapper: {

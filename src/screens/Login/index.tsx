@@ -247,7 +247,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
         style={dynamicStyles.google}
         onPress={handleGoogleSignin}
       >
-        <AntDesign name="google" size={20} color={Colors.icon} />
+        <AntDesign name="google" size={20} color={Colors.textPrimary} />
         <Text style={dynamicStyles.googleText}>
           {isGoogleLoading ? "Sigining you in" : "Sign in with Google"}
         </Text>

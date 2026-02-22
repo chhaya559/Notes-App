@@ -18,13 +18,13 @@ const styles = (Colors: ThemeColors) =>
       paddingLeft: 10,
     },
     staticText: {
-      color: Colors.textPrimary,
+      color: Colors.textSecondary,
       fontSize: 32,
       fontWeight: "700",
       includeFontPadding: true,
     },
     staticSecondaryText: {
-      color: Colors.textPrimary,
+      color: Colors.textSecondary,
       fontSize: 16,
       paddingTop: 10,
     },
@@ -43,7 +43,8 @@ const styles = (Colors: ThemeColors) =>
       paddingHorizontal: 14,
       borderRadius: 25,
       backgroundColor: Colors.surface,
-      paddingVertical: 12,
+      paddingVertical: 3,
+      borderColor : Colors.borderLight,
     },
 
     focus: {
@@ -54,10 +55,10 @@ const styles = (Colors: ThemeColors) =>
     add: {
       position: "absolute",
 
-      bottom: 40,
+      bottom: 20,
       //left: 20,
       right: 15,
-      elevation: 6,
+      
     },
     image: {
       height: 26,
@@ -75,12 +76,12 @@ const styles = (Colors: ThemeColors) =>
     emptySecondaryText: {
       textAlign: "center",
       margin: 10,
-      color: Colors.textPrimary,
+      color: Colors.textSecondary,
     },
     emptyContainer: {
       flex: 1,
       alignSelf: "center",
-      backgroundColor: Colors.emptyContainer,
+      backgroundColor: Colors.surfaceAccent,
       height: screenHeight * 0.4,
       width: screenWidth * 0.8,
       verticalAlign: "middle",

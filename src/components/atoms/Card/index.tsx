@@ -368,6 +368,7 @@ export default function Card(props: any) {
               onPressOut={() => {
                 scale.value = withSpring(1);
               }}
+              
             >
               <Text style={dynamicStyles.heading}>
                 {props.title.length > 20
@@ -389,12 +390,12 @@ export default function Card(props: any) {
               <View style={dynamicStyles.iconsWrap}>
                 {props.isPasswordProtected ? (
                   <Pressable>
-                    <Entypo name="lock" size={24} color={Colors.icon} />
+                    <Entypo name="lock" size={24} color={Colors.iconPrimary} />
                   </Pressable>
                 ) : null}
                 {props.isReminderSet ? (
                   <Pressable>
-                    <Feather name="clock" size={24} color={Colors.icon} />
+                    <Feather name="clock" size={24} color={Colors.iconSecondary} />
                   </Pressable>
                 ) : null}
               </View>

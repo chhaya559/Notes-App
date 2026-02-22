@@ -25,7 +25,7 @@ const styles = (Colors: ThemeColors) =>
     title: {
       fontSize: 20,
       margin: 10,
-      borderColor: Colors.primaryBorder,
+      borderColor: Colors.inputBorder,
       borderBottomWidth: 1,
       color: Colors.textPrimary,
     },
@@ -82,7 +82,7 @@ const styles = (Colors: ThemeColors) =>
     options: {
       flexDirection: "row",
       justifyContent: "space-around",
-      paddingBottom: 25,
+      // paddingBottom: 25,
       //elevation: 5,
     },
     optionButton: {
@@ -91,7 +91,7 @@ const styles = (Colors: ThemeColors) =>
       borderRadius: 25,
     },
     optionIcon: {
-      color: Colors.icon,
+      color: Colors.iconPrimary,
       padding: 5,
     },
     headerMenu: {
@@ -135,7 +135,7 @@ const styles = (Colors: ThemeColors) =>
       position: "absolute",
       right: 4,
       top: 5,
-      backgroundColor: Colors.mutedIcon,
+      backgroundColor: Colors.iconPrimary,
       padding: 3,
       borderRadius: 10,
     },
@@ -144,11 +144,13 @@ const styles = (Colors: ThemeColors) =>
       color: Colors.textSecondary,
     },
     fileContainer: {
+      width: 80,
+      alignItems: "center",
+      marginRight: 10,
       paddingLeft: 20,
       paddingRight: 20,
       paddingTop: 10,
       paddingBottom: 10,
-      marginRight: 10,
       borderRadius: 10,
       backgroundColor: Colors.primaryPressed,
     },

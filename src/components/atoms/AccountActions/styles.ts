@@ -5,7 +5,7 @@ const styles = (Colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       margin: 30,
-      backgroundColor: Colors.surfaceSoft,
+      backgroundColor: Colors.surface,
       borderRadius: 20,
       padding: 20,
     },
@@ -21,7 +21,7 @@ const styles = (Colors: ThemeColors) =>
       alignItems: "center",
     },
     iconWrap: {
-      backgroundColor: Colors.mutedIcon,
+      backgroundColor: Colors.iconSoftBg,
       borderRadius: 25,
       padding: 4,
     },
@@ -33,10 +33,10 @@ const styles = (Colors: ThemeColors) =>
     },
     line: {
       height: 1,
-      backgroundColor: Colors.textSecondary,
+      backgroundColor: Colors.borderLight,
     },
     actionIcon: {
-      backgroundColor: Colors.mutedIcon,
+      backgroundColor: Colors.iconSoftBg,
       borderRadius: 25,
       padding: 8,
     },

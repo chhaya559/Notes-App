@@ -1,59 +1,112 @@
 export const DarkColors = {
-  // Background Layers
+  // =========================
+  // BACKGROUND SYSTEM
+  // =========================
 
-  background: "#0B101B",
-  surface: "#151821",
-  surfaceSoft: "#1C2130",
-  emptyContainer: "#1E2046",
+  background: "#0F172A", // main background (rich dark blue, not pure black)
+  backgroundSecondary: "#111827", // greeting area support
 
-  // Primary Brand
+  surface: "#1E293B", // cards
+  surfaceHover: "#263449",
+  surfaceSoft: "#172036",
+  surfaceAccent: "#1A2140",
 
-  primary: "#8B80FF",
-  primarySoft: "#2A2F5A",
-  primaryPressed: "#968eeeff",
-  primaryBorder: "#3C3F73",
+  // =========================
+  // BRAND SYSTEM
+  // =========================
 
-  // Text Hierarchy
-  textPrimary: "#F8FAFC",
-  textSecondary: "#CBD5E1",
-  textMuted: "#64748B",
-  placeholder: "#6B7280",
-  buttonText: "#F8FAFC",
+  primary: "#818CF8", // lighter indigo for dark mode
+  primaryHover: "#6366F1",
+  primaryPressed: "#4F46E5",
 
-  // Borders & Dividers
+  primarySoft: "#1A2140",
+  primaryBorder: "#3730A3",
 
-  border: "#262A31",
-  divider: "#1E2432",
+  gradientStart: "#6366F1",
+  gradientEnd: "#8B5CF6",
 
-  // Icons
-  // buttonIcon: "#F1F5F9",
-  // icon: "#F1F5F9",
-  // mutedIcon: "#919193ff",
-  // iconSoftBg: "#1F2433",
-  buttonIcon: "#EDE9FF", // Soft lavender white
-  icon: "#D6D9FF", // Subtle purple-tinted icon
-  mutedIcon: "#7C82B9", // Muted indigo-gray
-  iconSoftBg: "#232754", // Deep indigo surface
-  // Swipe Actions
+  // =========================
+  // TEXT SYSTEM
+  // =========================
 
-  swipeLockBg: "#2B2F66",
-  swipeLockIcon: "#8B80FF",
+  textPrimary: "#F1F5F9", // main white
+  textSecondary: "#CBD5F1",
+  textMuted: "#94A3B8",
 
-  swipeDeleteBg: "#3A1F25",
-  swipeDeleteIcon: "#F87171",
+  textOnPrimary: "#FFFFFF",
 
-  // Status
+  // =========================
+  // BORDER SYSTEM
+  // =========================
 
-  success: "#34D399",
-  warning: "#FBBF24",
-  danger: "#F87171",
+  borderLight: "#334155",
+  border: "#475569",
 
-  // Shadows
+  divider: "#1E293B",
 
-  shadowLight: "rgba(139,128,255,0.15)",
-  shadowMedium: "rgba(139,128,255,0.25)",
+  // =========================
+  // ICON SYSTEM
+  // =========================
 
-  primaryGradient: ["#8B80FF", "#6C63FF"],
+  iconPrimary: "#818CF8",
+
+  iconSecondary: "#CBD5F1",
+
+  iconMuted: "#64748B",
+
+  iconOnPrimary: "#FFFFFF",
+
+  iconSoftBg: "#1A2140",
+
+  // =========================
+  // FAB
+  // =========================
+
+  fab: "#6366F1",
+
+  fabIcon: "#FFFFFF",
+
+  // =========================
+  // INPUT
+  // =========================
+
+  inputBackground: "#1E293B",
+
+  inputBorder: "#334155",
+
+  inputFocusBorder: "#818CF8",
+
+  placeholder: "#64748B",
+
+  // =========================
+  // STATUS
+  // =========================
+
+  success: "#22C55E",
+
+  warning: "#F59E0B",
+
+  danger: "#EF4444",
+
+  successSoft: "#052E1A",
+
+  dangerSoft: "#3F1D1D",
+
+  // =========================
+  // SPECIAL
+  // =========================
+
+  lockBg: "#1A2140",
+
+  deleteBg: "#3F1D1D",
+
+  // =========================
+  // SHADOW
+  // =========================
+
+  shadowPrimary: "rgba(99,102,241,0.35)",
+
+  shadowSoft: "rgba(0,0,0,0.35)",
 };
 
 export type DarkColorType = typeof DarkColors;

@@ -127,40 +127,117 @@ export default function Notifications() {
   const { dynamicStyles } = useStyles(styles);
   const { Colors } = useTheme();
   const [filter, setFilter] = useState<"all" | "unread">("all");
+
+  const [activeAction, setActiveAction] = useState<"" | "readAll" | "clearAll">(
+    "",
+  );
+
   const filteredNotifications =
     filter === "all"
       ? allNotifications
       : allNotifications.filter((item) => !item.isRead);
+
   return (
     <View style={dynamicStyles.container}>
       {allNotifications.length > 0 && (
         <View style={dynamicStyles.buttons}>
+          {/* ALL FILTER */}
           <TouchableOpacity
-            style={dynamicStyles.touchable}
-            onPress={() => setFilter("all")}
+            style={[
+              dynamicStyles.touchable,
+              filter === "all" && dynamicStyles.activeTouchable,
+            ]}
+            onPress={() => {
+              setFilter("all");
+              setActiveAction(""); // reset action
+            }}
           >
-            <Text style={dynamicStyles.text}>All</Text>
+            <Text
+              style={[
+                dynamicStyles.text,
+                filter === "all" && dynamicStyles.activeText,
+              ]}
+            >
+              All
+            </Text>
           </TouchableOpacity>
 
           <View style={dynamicStyles.line} />
 
+          {/* UNREAD FILTER */}
           <TouchableOpacity
-            style={dynamicStyles.touchable}
-            onPress={() => setFilter("unread")}
+            style={[
+              dynamicStyles.touchable,
+              filter === "unread" && dynamicStyles.activeTouchable,
+            ]}
+            onPress={() => {
+              setFilter("unread");
+              setActiveAction(""); // reset action
+            }}
           >
-            <Text style={dynamicStyles.text}>Unread</Text>
+            <Text
+              style={[
+                dynamicStyles.text,
+                filter === "unread" && dynamicStyles.activeText,
+              ]}
+            >
+              Unread
+            </Text>
           </TouchableOpacity>
 
           <View style={dynamicStyles.line} />
 
-          <TouchableOpacity style={dynamicStyles.touchable} onPress={readAll}>
-            <Text style={dynamicStyles.text}>Read All</Text>
+          {/* READ ALL ACTION */}
+          <TouchableOpacity
+            style={[
+              dynamicStyles.touchable,
+              activeAction === "readAll" && dynamicStyles.activeTouchable,
+            ]}
+            onPress={() => {
+              readAll();
+              setActiveAction("readAll");
+
+              // optional reset after 1.5 sec
+              setTimeout(() => {
+                setActiveAction("");
+              }, 1500);
+            }}
+          >
+            <Text
+              style={[
+                dynamicStyles.text,
+                activeAction === "readAll" && dynamicStyles.activeText,
+              ]}
+            >
+              Read All
+            </Text>
           </TouchableOpacity>
 
           <View style={dynamicStyles.line} />
 
-          <TouchableOpacity style={dynamicStyles.touchable} onPress={clearAll}>
-            <Text style={dynamicStyles.text}>Clear All</Text>
+          {/* CLEAR ALL ACTION */}
+          <TouchableOpacity
+            style={[
+              dynamicStyles.touchable,
+              activeAction === "clearAll" && dynamicStyles.activeTouchable,
+            ]}
+            onPress={() => {
+              clearAll();
+              setActiveAction("clearAll");
+
+              setTimeout(() => {
+                setActiveAction("");
+              }, 1500);
+            }}
+          >
+            <Text
+              style={[
+                dynamicStyles.text,
+                activeAction === "clearAll" && dynamicStyles.activeText,
+              ]}
+            >
+              Clear All
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -187,7 +264,7 @@ export default function Notifications() {
                 <Entypo
                   name="dot-single"
                   size={26}
-                  color={Colors.icon}
+                  color={Colors.primary}
                   style={{ position: "absolute", right: 5, top: 7 }}
                 />
               )}

@@ -308,7 +308,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         </Pressable>
 
         <Pressable style={dynamicStyles.pressable} onPress={confirmLogout}>
-          <AntDesign name="logout" size={18} color={Colors.buttonIcon} />
+          <AntDesign name="logout" size={18} color={Colors.textOnPrimary} />
           <Text style={dynamicStyles.registerText}>Logout</Text>
         </Pressable>
       </View>
@@ -336,7 +336,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
             <MaterialIcons
               name="edit"
               size={24}
-              color={Colors.icon}
+              color={Colors.iconPrimary}
               onPress={() => bottomSheetRef?.current?.open()}
             />
           </TouchableOpacity>
@@ -352,7 +352,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         style={[dynamicStyles.pressable, dynamicStyles.logout]}
         onPress={confirmLogout}
       >
-        <AntDesign name="logout" size={18} color={Colors.buttonIcon} />
+        <AntDesign name="logout" size={18} color={Colors.textOnPrimary} />
         <Text style={dynamicStyles.registerText}>Logout</Text>
       </TouchableOpacity>
       <RBSheet
@@ -377,7 +377,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
               style={dynamicStyles.optionsStyle}
               onPress={pickImage}
             >
-              <Ionicons name="images" size={24} color={Colors.icon} />
+              <Ionicons name="images" size={24} color={Colors.iconPrimary} />
 
               <Text style={dynamicStyles.optionText}>Choose from Gallery</Text>
             </TouchableOpacity>
@@ -386,7 +386,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
               style={dynamicStyles.optionsStyle}
               onPress={openCamera}
             >
-              <Entypo name="camera" size={24} color={Colors.icon} />
+              <Entypo name="camera" size={24} color={Colors.iconPrimary} />
               <Text style={dynamicStyles.optionText}>Take Photo</Text>
             </TouchableOpacity>
             <View style={dynamicStyles.line} />
@@ -395,7 +395,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
               style={dynamicStyles.optionsStyle}
               onPress={deleteProfile}
             >
-              <AntDesign name="delete" size={24} color={Colors.icon} />
+              <AntDesign name="delete" size={24} color={Colors.iconPrimary} />
               <Text style={dynamicStyles.optionText}>Remove Current Photo</Text>
             </TouchableOpacity>
           </View>
@@ -404,7 +404,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
             style={dynamicStyles.close}
             onPress={() => bottomSheetRef?.current?.close()}
           >
-            <EvilIcons name="close-o" size={28} color={Colors.icon} />
+            <EvilIcons name="close-o" size={28} color={Colors.iconSecondary} />
           </TouchableOpacity>
         </View>
       </RBSheet>

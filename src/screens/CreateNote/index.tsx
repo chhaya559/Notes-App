@@ -18,6 +18,7 @@ import {
   FlatList,
   Linking,
   AppState,
+  Keyboard,
 } from "react-native";
 import styles from "./style";
 import {
@@ -62,6 +63,7 @@ import useDebounce from "src/debounce/debounce";
 import FileViewer from "react-native-file-viewer";
 import useTheme from "@hooks/useTheme";
 import useStyles from "@hooks/useStyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type CreateNoteProps = NativeStackScreenProps<RootStackParamList, "CreateNote">;
 
@@ -86,6 +88,7 @@ export default function CreateNote({
   );
   const [hasNotePassword, setHasNotePassword] = useState(hasNotePasswordStore);
   const appState = useRef(AppState.currentState);
+
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextState) => {
       if (isSavedRef.current) {
@@ -105,9 +108,15 @@ export default function CreateNote({
   }, []);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+    const unsubscribe = navigation.addListener("beforeRemove", () => {
       if (isSavedRef.current) return;
-      console.log("Before remove going back");
+
+      const isEmpty =
+        !notesRef.current?.title?.trim() &&
+        !notesRef.current?.content?.replace(/<(.|\n)*?>/g, "").trim();
+
+      if (isEmpty) return;
+
       handleSave(false);
     });
 
@@ -211,15 +220,59 @@ export default function CreateNote({
   const [existingFiles, setExistingFiles] = useState<string[]>([]);
   const [files, setFiles] = useState<DocumentPickerResponse[]>([]);
 
+  // async function pickFile() {
+  //   try {
+  //     const result = await pick({
+  //       allowMultiSelection: true,
+  //       allowVirtualFiles: true,
+  //     });
+  //     setFiles((prev) => [...prev, ...result]);
+  //     if (isConnected && noteId) {
+  //       const uploadedPaths = await uploadFilesToBackend(result);
+
+  //       setExistingFiles((prev) => [...prev, ...uploadedPaths]);
+
+  //       await saveToLocalDB("synced", [...existingFiles, ...uploadedPaths]);
+  //     }
+  //   } catch (error) {
+  //     console.log("Error uploading file", error);
+  //   }
+  // }
+
   async function pickFile() {
     try {
       const result = await pick({
         allowMultiSelection: true,
         allowVirtualFiles: true,
       });
+
       setFiles((prev) => [...prev, ...result]);
+
+      let uploadedPaths: string[] = [];
+
+      if (isConnected) {
+        uploadedPaths = await uploadFilesToBackend(result);
+      }
+
+      const updatedPaths = [...existingFiles, ...uploadedPaths];
+
+      setExistingFiles(updatedPaths);
+
+      await saveToLocalDB(isConnected ? "synced" : "pending", updatedPaths);
+
+      if (isConnected && noteId) {
+        await editApi({
+          id: noteId,
+          title: notesRef.current?.title ?? "",
+          content: notesRef.current?.content ?? "",
+          isPasswordProtected: notesRef.current?.isPasswordProtected,
+          isLocked: notesRef.current?.isLocked,
+          isReminderSet: isReminder,
+          filePaths: updatedPaths,
+        }).unwrap();
+      }
     } catch (error) {
-      console.log("Error uploading file", error);
+      console.log(error);
     }
   }
 
@@ -279,13 +332,8 @@ export default function CreateNote({
         }
       }
       console.log("heyy");
-      let filePaths: string[] = [];
 
-      if (isNetConnected && files?.length > 0) {
-        filePaths = await uploadFilesToBackend(files);
-        console.log(filePaths, "fugfr");
-      }
-      console.log("heyy2");
+      const filePaths = existingFiles;
       const localId = await saveToLocalDB(
         isNetConnected ? "synced" : "pending",
         filePaths,
@@ -440,7 +488,7 @@ export default function CreateNote({
             <Entypo
               name="check"
               size={30}
-              color={Colors.icon}
+              color={Colors.iconPrimary}
               style={dynamicStyles.headerButton}
             />
           </TouchableOpacity>
@@ -473,11 +521,31 @@ export default function CreateNote({
   }, []);
 
   const richText = useRef<RichEditor | null>(null);
+  const insets = useSafeAreaInsets();
+
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener("keyboardDidShow", (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  });
 
   return (
     <KeyboardAvoidingView
-      style={[dynamicStyles.all]}
-      // behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={[
+        dynamicStyles.all,
+        {
+          flex: 1,
+        },
+      ]}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={[dynamicStyles.container]}>
         <TextInput
@@ -499,6 +567,7 @@ export default function CreateNote({
           }
           contentContainerStyle={{
             flexGrow: 1,
+            paddingBottom: keyboardHeight + 20,
           }}
         >
           <View style={[dynamicStyles.editorContainer]}>
@@ -526,26 +595,73 @@ export default function CreateNote({
               keyExtractor={(item, index) => index.toString()}
               horizontal
               bounces={false}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => openFile(item)}
-                  activeOpacity={0.7}
-                  style={dynamicStyles.fileContainer}
-                >
-                  <Text style={{ color: Colors.textSecondary }}>
-                    {item.name}
-                  </Text>
-                  <Text style={dynamicStyles.imageSize}>
-                    {((item.size ?? 0) / 1024).toFixed(1)} KB
-                  </Text>
+              // renderItem={({ item }) => (
+              //   <TouchableOpacity
+              //     onPress={() => openFile(item)}
+              //     activeOpacity={0.7}
+              //     style={dynamicStyles.fileContainer}
+              //   >
+              //     <Text style={{ color: Colors.textSecondary }}>
+              //       {item.name}
+              //     </Text>
+              //     <Text style={dynamicStyles.imageSize}>
+              //       {((item.size ?? 0) / 1024).toFixed(1)} KB
+              //     </Text>
+              //     <TouchableOpacity
+              //       style={dynamicStyles.close}
+              //       onPress={() => removeFile(item)}
+              //     >
+              //       <AntDesign
+              //         name="close"
+              //         size={12}
+              //         color={Colors.iconMuted}
+              //       />
+              //     </TouchableOpacity>
+              //   </TouchableOpacity>
+              // )}
+              renderItem={({ item }) => {
+                const isImage = item.type?.startsWith("image");
+
+                return (
                   <TouchableOpacity
-                    style={dynamicStyles.close}
-                    onPress={() => removeFile(item)}
+                    onPress={() => openFile(item)}
+                    style={dynamicStyles.fileContainer}
                   >
-                    <AntDesign name="close" size={12} color={Colors.icon} />
+                    {isImage ? (
+                      <Image
+                        source={{ uri: item.uri }}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 6,
+                          marginBottom: 4,
+                        }}
+                      />
+                    ) : (
+                      <MaterialCommunityIcons
+                        name="file-document-outline"
+                        size={40}
+                        color={Colors.iconPrimary}
+                      />
+                    )}
+
+                    <Text style={{ color: Colors.textSecondary }}>
+                      {item.name}
+                    </Text>
+
+                    <Text style={dynamicStyles.imageSize}>
+                      {((item.size ?? 0) / 1024).toFixed(1)} KB
+                    </Text>
+
+                    <TouchableOpacity
+                      style={dynamicStyles.close}
+                      onPress={() => removeFile(item)}
+                    >
+                      <AntDesign name="close" size={12} />
+                    </TouchableOpacity>
                   </TouchableOpacity>
-                </TouchableOpacity>
-              )}
+                );
+              }}
             />
           ) : (
             existingFiles.length > 0 && (
@@ -553,29 +669,57 @@ export default function CreateNote({
                 data={existingFiles}
                 keyExtractor={(item, index) => `${item}-${index}`}
                 horizontal
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (item.match(/\.(jpg|jpeg|png|webp)$/)) {
-                        setPreviewImage(item);
-                      } else {
-                        Linking.openURL(item);
-                      }
-                    }}
-                    style={dynamicStyles.existingFile}
-                  >
-                    <Text>{item.split("/").pop()}</Text>
-                    <Text style={{ fontSize: 10, color: Colors.textMuted }}>
-                      Saved file
-                    </Text>
+                renderItem={({ item }) => {
+                  const isImage = item.match(/\.(jpg|jpeg|png|webp)$/);
+
+                  return (
                     <TouchableOpacity
-                      style={dynamicStyles.close}
-                      onPress={() => DeleteFilefromNote(item)}
+                      onPress={() => {
+                        if (isImage) {
+                          setPreviewImage(item);
+                        } else {
+                          Linking.openURL(item);
+                        }
+                      }}
+                      style={dynamicStyles.existingFile}
                     >
-                      <AntDesign name="close" size={16} color={Colors.icon} />
+                      {isImage ? (
+                        <Image
+                          source={{ uri: item }}
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 6,
+                            marginBottom: 4,
+                          }}
+                        />
+                      ) : (
+                        <MaterialCommunityIcons
+                          name="file-document-outline"
+                          size={40}
+                          color={Colors.iconPrimary}
+                        />
+                      )}
+
+                      <Text>{item.split("/").pop()}</Text>
+
+                      <Text style={{ fontSize: 10, color: Colors.textMuted }}>
+                        Saved file
+                      </Text>
+
+                      <TouchableOpacity
+                        style={dynamicStyles.close}
+                        onPress={() => DeleteFilefromNote(item)}
+                      >
+                        <AntDesign
+                          name="close"
+                          size={16}
+                          color={Colors.iconMuted}
+                        />
+                      </TouchableOpacity>
                     </TouchableOpacity>
-                  </TouchableOpacity>
-                )}
+                  );
+                }}
               />
             )
           )}
@@ -610,7 +754,18 @@ export default function CreateNote({
         )}
 
         {activeOption == "text" && (
-          <View style={dynamicStyles.modal}>
+          <View
+            style={[
+              dynamicStyles.modal,
+              {
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: keyboardHeight,
+                backgroundColor: Colors.surface,
+              },
+            ]}
+          >
             <RichToolbar
               editor={richText}
               actions={[
@@ -679,7 +834,22 @@ export default function CreateNote({
 
         {/* Options bottom  */}
         {activeOption == "text" ? null : (
-          <View style={dynamicStyles.options}>
+          <View
+            style={[
+              dynamicStyles.options,
+              {
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: keyboardHeight > 0 ? keyboardHeight : 0,
+                backgroundColor: Colors.surface,
+                paddingBottom: 10,
+                paddingTop: 10,
+                zIndex: 100,
+                elevation: 100,
+              },
+            ]}
+          >
             <TouchableOpacity
               onPress={() => handleToggle("text")}
               style={dynamicStyles.optionButton}
@@ -712,7 +882,7 @@ export default function CreateNote({
                 generateSummary();
                 handleToggle("summary");
               }}
-              disabled={!isEditMode}
+              disabled={!isEditMode || isGuest}
             >
               <Ionicons
                 name="sparkles-outline"
@@ -728,7 +898,7 @@ export default function CreateNote({
               onPress={() => {
                 handleToggle("reminder");
               }}
-              disabled={isGuest && !isEditMode}
+              disabled={isGuest || !isEditMode}
             >
               <Ionicons
                 style={dynamicStyles.optionIcon}
@@ -742,7 +912,7 @@ export default function CreateNote({
                 { opacity: isEditMode ? 1 : 0.5 },
               ]}
               onPress={() => alertDelete()}
-              disabled={isGuest && !isEditMode}
+              disabled={isGuest || !isEditMode}
             >
               <MaterialIcons
                 name="delete-outline"

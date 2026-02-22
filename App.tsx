@@ -10,7 +10,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { Provider } from "react-redux";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { StatusBar } from "expo-status-bar";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { PersistGate } from "redux-persist/integration/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import useTheme from "@hooks/useTheme";
@@ -52,22 +52,24 @@ export default function App() {
 }
 
 function MainApp() {
-  const { darkMode } = useTheme();
+  const { darkMode, Colors } = useTheme();
 
   return (
-    <SafeAreaProvider>
-      <KeyboardProvider>
-        {/* <SafeAreaView
-              style={{ flex: 1, backgroundColor: "#f5f5f5" }}
-              edges={["bottom"]}
-            > */}
-        <GestureHandlerRootView>
-          <RootNavigator />
-        </GestureHandlerRootView>
-        <StatusBar style={darkMode ? "light" : "dark"} />
-        <Toast />
-        {/* </SafeAreaView> */}
-      </KeyboardProvider>
+    <SafeAreaProvider style={{ flex: 1, backgroundColor: Colors.background }}>
+      <GestureHandlerRootView
+        style={{ flex: 1, backgroundColor: Colors.background }}
+      >
+        <KeyboardProvider>
+          <SafeAreaView
+            style={{ flex: 1, backgroundColor: Colors.background }}
+            edges={["bottom"]}
+          >
+            <RootNavigator />
+            <StatusBar style={darkMode ? "light" : "dark"} />
+            <Toast />
+          </SafeAreaView>
+        </KeyboardProvider>
+      </GestureHandlerRootView>
     </SafeAreaProvider>
   );
 }

@@ -29,10 +29,10 @@ export default function Onboarding({ navigation }: Readonly<OnboardingProps>) {
   return (
     <View style={dynamicStyles.outerContainer}>
       <View style={dynamicStyles.container}>
-        {/* <Image
-          source={require("../../../assets/notes.png")}
+        <Image
+          source={require("../../../assets/logo.png")}
           style={dynamicStyles.image}
-        /> */}
+        />
         <Text style={dynamicStyles.name}>NoteSmart</Text>
         <Text style={dynamicStyles.text}>
           Your intelligent note-taking companion

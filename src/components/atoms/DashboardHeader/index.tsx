@@ -49,7 +49,7 @@ export default function DashboardHeader() {
       <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
         <Ionicons
           name="notifications-circle-outline"
-          color={Colors.icon}
+          color={Colors.iconPrimary}
           size={30}
         />
 
@@ -64,9 +64,9 @@ export default function DashboardHeader() {
 
       <TouchableOpacity onPress={toggleTheme}>
         {darkMode ? (
-          <Entypo name="light-up" size={24} color={Colors.icon} />
+          <Entypo name="light-up" size={24} color={Colors.iconPrimary} />
         ) : (
-          <MaterialIcons name="dark-mode" size={26} color={Colors.icon} />
+          <MaterialIcons name="dark-mode" size={26} color={Colors.iconPrimary} />
         )}
       </TouchableOpacity>
 

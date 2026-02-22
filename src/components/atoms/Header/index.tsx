@@ -33,7 +33,7 @@ export default function Header({
                 <Ionicons
                   name="arrow-back-outline"
                   size={26}
-                  color={Colors.icon}
+                  color={Colors.iconPrimary}
                   style={{ padding: 5 }}
                 />
               </TouchableOpacity>

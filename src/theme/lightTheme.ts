@@ -1,58 +1,98 @@
 export const LightColors = {
-  // Background Layer
+  // =========================
+  // BACKGROUND SYSTEM
+  // =========================
 
-  background: "#e6eaf4ff", // Soft cool gray background
-  surface: "#FFFFFF", // Main card surface
-  surfaceSoft: "#FAFBFF", // Slightly tinted container
-  emptyContainer: "#f5f5f5", // Subtle lavender tint
+  background: "#F8FAFF",          // main app background (clean, premium)
+  backgroundSecondary: "#EEF2FF", // greeting area gradient support
+  surface: "#FFFFFF",             // cards, sheets
+  surfaceHover: "#F1F5FF",       // pressed card
+  surfaceSoft: "#F8FAFC",        // subtle containers
+  surfaceAccent: "#EEF2FF",      // highlighted container
 
-  // Primary Brand
+  // =========================
+  // BRAND SYSTEM
+  // =========================
 
-  primary: "#6C63FF", // Slightly deeper than dark primary
-  primarySoft: "#E9E7FF", // Soft brand background
-  primaryPressed: "#5A52E0", // Darker press feedback
-  primaryBorder: "#D9D6FF", // Soft border tint
+  primary: "#6366F1",             // main brand (modern indigo)
+  primaryHover: "#5855EB",
+  primaryPressed: "#4F46E5",
 
-  // Text Hierarchy
+  primarySoft: "#EEF2FF",        // soft bg
+  primaryBorder: "#C7D2FE",
 
-  textPrimary: "#0F172A", // Deep slate (better than pure black)
-  textSecondary: "#475569", // Cool gray
-  textMuted: "#94A3B8", // Muted text
-  placeholder: "#9CA3AF", // Input placeholder
-  buttonText: "#FFFFFF", // White on primary buttons
+  gradientStart: "#6366F1",      // FAB / Hero gradient
+  gradientEnd: "#8B5CF6",
 
-  // Borders & Dividers
+  // =========================
+  // TEXT SYSTEM
+  // =========================
 
-  border: "#b6b6b7ff", // Soft gray border
-  divider: "#ECEFF5", // Subtle divider
+  textPrimary: "#0F172A",
+  textSecondary: "#475569",
+  textMuted: "#94A3B8",
+  textOnPrimary: "#FFFFFF",
 
-  // Icons
+  // =========================
+  // BORDER SYSTEM
+  // =========================
 
-  buttonIcon: "#FFFFFF", // Keep white on primary button
-  icon: "#3f4494ff", // Soft indigo (brand-aligned)
-  mutedIcon: "#9AA1D3", // Light indigo-gray
-  iconSoftBg: "#E8EBFF", // Very soft lavender bg
+  borderLight: "#E2E8F0",
+  border: "#CBD5E1",
+  divider: "#EEF2F7",
 
-  // Swipe Actions
+  // =========================
+  // ICON SYSTEM
+  // =========================
 
-  swipeLockBg: "#c5d1f9ff", // Light indigo background
-  swipeLockIcon: "#6C63FF",
+  iconPrimary: "#6366F1",
+  iconSecondary: "#64748B",
+  iconMuted: "#94A3B8",
 
-  swipeDeleteBg: "#FEE2E2", // Light red background
-  swipeDeleteIcon: "#DC2626",
+  iconOnPrimary: "#FFFFFF",
 
-  // Status
+  iconSoftBg: "#EEF2FF",
+
+  // =========================
+  // FAB
+  // =========================
+
+  fab: "#6366F1",
+  fabIcon: "#FFFFFF",
+
+  // =========================
+  // INPUT
+  // =========================
+
+  inputBackground: "#FFFFFF",
+  inputBorder: "#CBD5E1",
+  inputFocusBorder: "#6366F1",
+  placeholder: "#94A3B8",
+
+  // =========================
+  // STATUS
+  // =========================
 
   success: "#10B981",
   warning: "#F59E0B",
   danger: "#EF4444",
 
-  // Shadows
+  successSoft: "#ECFDF5",
+  dangerSoft: "#FEF2F2",
 
-  shadowLight: "rgba(108,99,255,0.08)",
-  shadowMedium: "rgba(108,99,255,0.15)",
+  // =========================
+  // SPECIAL
+  // =========================
 
-  primaryGradient: ["#8B80FF", "#6C63FF"],
+  lockBg: "#EEF2FF",
+  deleteBg: "#FEF2F2",
+
+  // =========================
+  // SHADOW
+  // =========================
+
+  shadowPrimary: "rgba(99,102,241,0.18)",
+  shadowSoft: "rgba(15,23,42,0.06)",
 };
 
 export type DefaultColorType = typeof LightColors;

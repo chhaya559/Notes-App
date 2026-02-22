@@ -66,7 +66,7 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
               name="edit"
               size={20}
               style={{ padding: 3 }}
-              color={Colors.icon}
+              color={Colors.iconPrimary}
             />
           </Pressable>
           <Text style={dynamicStyles.text}>Edit Profile Info</Text>
@@ -75,7 +75,7 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
           style={dynamicStyles.actionIcon}
           onPress={() => navigation.navigate("EditProfile")}
         >
-          <SimpleLineIcons name="arrow-right" size={18} color={Colors.icon} />
+          <SimpleLineIcons name="arrow-right" size={18} color={Colors.iconPrimary} />
         </TouchableOpacity>
       </TouchableOpacity>
       <View style={dynamicStyles.line} />
@@ -90,7 +90,7 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
                 <MaterialIcons
                   name="password"
                   size={20}
-                  color={Colors.icon}
+                  color={Colors.iconPrimary}
                   style={{ padding: 3 }}
                 />
               </Pressable>
@@ -102,7 +102,7 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
             >
               <SimpleLineIcons
                 name="arrow-right"
-                color={Colors.icon}
+                color={Colors.iconPrimary}
                 size={18}
               />
             </TouchableOpacity>
@@ -122,7 +122,7 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
                   name="password"
                   size={20}
                   style={{ padding: 3 }}
-                  color={Colors.icon}
+                  color={Colors.iconPrimary}
                 />
               </Pressable>
               <Text style={dynamicStyles.text}>Change Notes Password</Text>
@@ -134,7 +134,7 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
               <SimpleLineIcons
                 name="arrow-right"
                 size={18}
-                color={Colors.icon}
+                color={Colors.iconPrimary}
               />
             </TouchableOpacity>
           </TouchableOpacity>
@@ -155,7 +155,7 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
                   name="password"
                   size={20}
                   style={{ padding: 3 }}
-                  color={Colors.icon}
+                  color={Colors.iconPrimary}
                 />
               </Pressable>
               <Text style={dynamicStyles.text}>Reset Notes Password</Text>
@@ -167,7 +167,7 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
               <SimpleLineIcons
                 name="arrow-right"
                 size={18}
-                color={Colors.icon}
+                color={Colors.iconPrimary}
               />
             </TouchableOpacity>
           </TouchableOpacity>
@@ -181,7 +181,7 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
               name="delete"
               size={20}
               style={{ padding: 3 }}
-              color={Colors.icon}
+              color={Colors.iconPrimary}
             />
           </Pressable>
           <Text style={dynamicStyles.text}>Delete Account</Text>
@@ -190,7 +190,7 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
           style={dynamicStyles.actionIcon}
           onPress={confirmDelete}
         >
-          <SimpleLineIcons name="arrow-right" size={18} color={Colors.icon} />
+          <SimpleLineIcons name="arrow-right" size={18} color={Colors.iconPrimary} />
         </TouchableOpacity>
       </TouchableOpacity>
     </View>

@@ -11,8 +11,8 @@ const styles = (Colors: ThemeColors) =>
       // borderWidth: 10,
     },
     image: {
-      height: 120,
-      width: 120,
+      height: 150,
+      width: 150,
       marginTop: 50,
       borderRadius: 20,
     },
@@ -32,11 +32,12 @@ const styles = (Colors: ThemeColors) =>
       marginBottom: 10,
       borderRadius: 10,
       padding: 15,
-      borderColor: Colors.primary,
+      borderColor: Colors.primaryBorder,
       borderWidth: 1,
+      backgroundColor: Colors.surface,
     },
     guestText: {
-      color: Colors.textPrimary,
+      color: Colors.primary,
       fontSize: 20,
       textAlign: "center",
       alignItems: "center",
@@ -44,15 +45,16 @@ const styles = (Colors: ThemeColors) =>
     create: {
       marginBottom: 10,
       borderWidth: 1,
-      borderColor: Colors.primary,
+      backgroundColor: Colors.surface,
       borderRadius: 10,
       padding: 15,
       alignItems: "center",
+      borderColor: Colors.primaryBorder,
     },
     createText: {
       fontSize: 20,
       textAlign: "center",
-      color: Colors.textPrimary,
+      color: Colors.primary,
     },
     signin: {
       marginBottom: 10,
@@ -65,7 +67,7 @@ const styles = (Colors: ThemeColors) =>
     signinText: {
       fontSize: 20,
       textAlign: "center",
-      color: Colors.textPrimary,
+      color: Colors.textOnPrimary,
     },
     innerContainer: {
       marginTop: 50,
@@ -85,9 +87,9 @@ const styles = (Colors: ThemeColors) =>
       color: Colors.textSecondary,
     },
     ai: {
-      backgroundColor: Colors.primaryPressed,
+      backgroundColor: Colors.primary,
       padding: 15,
-      color: Colors.textPrimary,
+      color: Colors.textOnPrimary,
       borderRadius: 20,
       fontSize: 20,
       marginTop: 20,

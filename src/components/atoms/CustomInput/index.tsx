@@ -55,7 +55,7 @@ export default function CustomInput({
             <Ionicons
               name={isVisible ? "eye" : "eye-off"}
               size={22}
-              color={Colors.icon}
+              color={Colors.iconPrimary}
             />
           </Pressable>
         )}
