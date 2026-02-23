@@ -12,7 +12,7 @@ const styles = (Colors: ThemeColors) =>
       alignItems: "center",
       margin: 15,
       marginTop: 5,
-      marginBottom: 5,
+      paddingBottom: 40,
     },
     headingContainer: {
       alignItems: "center",

@@ -16,14 +16,14 @@ const styles = (Colors: ThemeColors) =>
     },
     line: {
       height: 1,
-      borderColor: Colors.mutedIcon,
+      borderColor: Colors.border,
       width: "100%",
       borderWidth: 1,
       borderStyle: "dashed",
     },
     headingText: {
       textAlign: "center",
-      color: Colors.textPrimary,
+      color: Colors.primary,
       fontWeight: "bold",
       fontSize: 20,
       verticalAlign: "middle",
@@ -48,7 +48,7 @@ const styles = (Colors: ThemeColors) =>
       padding: 4,
     },
     setText: {
-      color: Colors.textPrimary,
+      color: Colors.textOnPrimary,
       fontSize: 18,
       fontWeight: "400",
       padding: 10,
@@ -79,7 +79,7 @@ const styles = (Colors: ThemeColors) =>
       color: Colors.textPrimary,
     },
     iconBackground: {
-      backgroundColor: Colors.mutedIcon,
+      backgroundColor: Colors.iconSoftBg,
       padding: 3,
       borderRadius: 25,
     },

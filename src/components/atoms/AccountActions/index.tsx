@@ -9,6 +9,7 @@ import { logout } from "@redux/slice/authSlice";
 import Toast from "react-native-toast-message";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 type props = {
   hasCommonPassword: boolean;
@@ -39,6 +40,9 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
     try {
       const response = await deleteApi(" ").unwrap();
       dispatch(logout());
+      if (isGoogle) {
+        GoogleSignin.signOut();
+      }
       if (response.success) {
         Toast.show({
           text1: "Account Deleted Successfully!",
@@ -75,7 +79,11 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
           style={dynamicStyles.actionIcon}
           onPress={() => navigation.navigate("EditProfile")}
         >
-          <SimpleLineIcons name="arrow-right" size={18} color={Colors.iconPrimary} />
+          <SimpleLineIcons
+            name="arrow-right"
+            size={18}
+            color={Colors.iconPrimary}
+          />
         </TouchableOpacity>
       </TouchableOpacity>
       <View style={dynamicStyles.line} />
@@ -190,7 +198,11 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
           style={dynamicStyles.actionIcon}
           onPress={confirmDelete}
         >
-          <SimpleLineIcons name="arrow-right" size={18} color={Colors.iconPrimary} />
+          <SimpleLineIcons
+            name="arrow-right"
+            size={18}
+            color={Colors.iconPrimary}
+          />
         </TouchableOpacity>
       </TouchableOpacity>
     </View>

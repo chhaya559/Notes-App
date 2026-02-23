@@ -43,8 +43,8 @@ const styles = (Colors: ThemeColors) =>
       paddingHorizontal: 14,
       borderRadius: 25,
       backgroundColor: Colors.surface,
-      paddingVertical: 3,
-      borderColor : Colors.borderLight,
+      paddingVertical: 7,
+      borderColor: Colors.borderLight,
     },
 
     focus: {
@@ -58,7 +58,6 @@ const styles = (Colors: ThemeColors) =>
       bottom: 20,
       //left: 20,
       right: 15,
-      
     },
     image: {
       height: 26,

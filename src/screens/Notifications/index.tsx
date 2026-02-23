@@ -117,7 +117,7 @@ export default function Notifications() {
           <MaterialIcons
             name="delete-outline"
             size={38}
-            color={Colors.swipeDeleteIcon}
+            color={Colors.swipeDeleteBg}
             style={dynamicStyles.delete}
           />
         </TouchableOpacity>
@@ -172,7 +172,7 @@ export default function Notifications() {
             ]}
             onPress={() => {
               setFilter("unread");
-              setActiveAction(""); // reset action
+              setActiveAction("");
             }}
           >
             <Text
@@ -292,7 +292,7 @@ export default function Notifications() {
             <Ionicons
               name="notifications-off-circle"
               size={200}
-              color={Colors.icon}
+              color={Colors.iconPrimary}
             />
             <Text style={dynamicStyles.noText}>No notifications</Text>
             <Text style={dynamicStyles.emptyMessage}>

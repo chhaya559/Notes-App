@@ -1,6 +1,6 @@
 import { sqliteTable, int, text } from "drizzle-orm/sqlite-core";
 
-export type SyncStatus = "pending" | "synced";
+export type SyncStatus = "pending" | "synced" | "pending_delete";
 export const notesTable = sqliteTable("notes_table", {
   id: text("id").primaryKey(),
   userId: text().notNull(),

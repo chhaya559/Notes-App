@@ -58,6 +58,7 @@ const styles = (Colors: ThemeColors) =>
       borderRadius: 12,
       paddingVertical: 6,
       paddingHorizontal: 4,
+      marginBottom: 15,
     },
     text: {
       color: Colors.textSecondary,

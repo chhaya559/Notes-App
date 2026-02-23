@@ -152,14 +152,14 @@ const styles = (Colors: ThemeColors) =>
       paddingTop: 10,
       paddingBottom: 10,
       borderRadius: 10,
-      backgroundColor: Colors.primaryPressed,
+      // backgroundColor: Colors.primaryPressed,
     },
     existingFile: {
       padding: 8,
       marginRight: 10,
       borderRadius: 8,
-      backgroundColor: Colors.primaryPressed,
-      height: 50,
+      // backgroundColor: Colors.primaryPressed,
+      height: 120,
     },
   });
 

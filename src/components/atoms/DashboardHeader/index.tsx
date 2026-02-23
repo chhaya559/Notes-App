@@ -7,7 +7,6 @@ import messaging from "@react-native-firebase/messaging";
 import { useGetNotificationsCountQuery } from "@redux/api/noteApi";
 import { RootState } from "@redux/store";
 import { useSelector } from "react-redux";
-import { THEME } from "@theme/constants";
 import useTheme from "@hooks/useTheme";
 import useStyles from "@hooks/useStyles";
 
@@ -66,7 +65,11 @@ export default function DashboardHeader() {
         {darkMode ? (
           <Entypo name="light-up" size={24} color={Colors.iconPrimary} />
         ) : (
-          <MaterialIcons name="dark-mode" size={26} color={Colors.iconPrimary} />
+          <MaterialIcons
+            name="dark-mode"
+            size={26}
+            color={Colors.iconPrimary}
+          />
         )}
       </TouchableOpacity>
 

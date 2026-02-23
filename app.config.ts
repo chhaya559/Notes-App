@@ -12,11 +12,11 @@ const config: ExpoConfig = {
   scheme: "notesapp",
   version: packageJson.version,
   orientation: "portrait",
-  icon: "./assets/icon.png",
+  icon: "./assets/logo.png",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
   splash: {
-    image: "./assets/splash-icon.png",
+    image: "./assets/logo.png",
     resizeMode: "contain",
     backgroundColor: "#ffffff",
   },

@@ -1,6 +1,7 @@
 import {
   ActivityIndicator,
   Pressable,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -26,21 +27,23 @@ export default function Summary({ onClose, id, data }: Readonly<props>) {
             name="sparkles-outline"
             size={26}
             style={{ alignItems: "center" }}
-            color={Colors.icon}
+            color={Colors.iconPrimary}
           />
         </Pressable>
         <Text style={dynamicStyles.heading}>AI Generated Summary</Text>
       </View>
-      {data == null && <ActivityIndicator size="large" color={Colors.icon} />}
-      <View style={dynamicStyles.content}>
+      {data == null && (
+        <ActivityIndicator size="large" color={Colors.iconPrimary} />
+      )}
+      <ScrollView style={dynamicStyles.content}>
         <Text style={dynamicStyles.contentText}>{data}</Text>
-      </View>
+      </ScrollView>
       <TouchableOpacity style={dynamicStyles.close}>
         <AntDesign
           name="close"
           size={22}
           onPress={onClose}
-          color={Colors.icon}
+          color={Colors.iconPrimary}
         />
       </TouchableOpacity>
     </View>

@@ -14,7 +14,7 @@ import {
   GoogleSignin,
   isSuccessResponse,
 } from "@react-native-google-signin/google-signin";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
@@ -33,10 +33,11 @@ import { AntDesign } from "@expo/vector-icons";
 import messaging from "@react-native-firebase/messaging";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
+import { useNetInfo } from "@react-native-community/netinfo";
+import { text } from "drizzle-orm/gel-core";
 
 type LoginProps = NativeStackScreenProps<RootStackParamList, "Login">;
 export default function Login({ navigation }: Readonly<LoginProps>) {
-  const [isVisible, setIsVisible] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const [loginapi, { isLoading }] = useLoginMutation();
   const [googleApi, { isLoading: isGoogleLoading }] = useGoogleMutation();
@@ -95,9 +96,17 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     });
   }, []);
+  const { isConnected } = useNetInfo();
+
   async function handleGoogleSignin() {
     try {
       await GoogleSignin.hasPlayServices();
+      console.log(isConnected, "connection");
+      if (!isConnected) {
+        Toast.show({
+          text1: "You appear to be offline. Please try again!",
+        });
+      }
       const userInfo = await GoogleSignin.signIn();
       if (!isSuccessResponse(userInfo)) {
         Alert.alert("Google Sign-In failed");
@@ -132,9 +141,18 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       requestUserPermission();
     } catch (error: any) {
       console.log("Google Sign-In Error:", error);
-      Toast.show({
-        text1: "Google login failed",
-      });
+      const errorText = String(error);
+
+      if (errorText.includes("NETWORK_ERROR")) {
+        Toast.show({
+          text1: "No internet connection",
+          text2: "Please check your network",
+        });
+      } else {
+        Toast.show({
+          text1: "Google login failed",
+        });
+      }
     }
   }
   async function handleLogin(data: any) {
@@ -169,6 +187,10 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       if (error?.data?.message) {
         Toast.show({
           text1: error?.data?.message,
+        });
+      } else if (error.error.includes("TypeError: Network request failed")) {
+        Toast.show({
+          text1: "Connection lost. Please try again",
         });
       } else {
         Toast.show({

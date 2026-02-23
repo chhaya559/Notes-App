@@ -22,9 +22,9 @@ const styles = (Colors: ThemeColors) =>
       overflow: "hidden",
       borderWidth: 1,
       borderColor: Colors.border,
-      shadowColor : Colors.shadowSoft,
-      elevation : 2,
-      shadowOpacity : 0.2
+      shadowColor: Colors.shadowSoft,
+      elevation: 2,
+      shadowOpacity: 0.2,
     },
     heading: {
       fontSize: 18,
@@ -74,7 +74,7 @@ const styles = (Colors: ThemeColors) =>
       padding: 10,
     },
     pressableText: {
-      color: Colors.textPrimary,
+      color: Colors.textOnPrimary,
       padding: 7,
       fontSize: 18,
       textAlign: "center",

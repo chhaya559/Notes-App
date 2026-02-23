@@ -109,7 +109,11 @@ export default function Reminder({
         <KeyboardAwareScrollView bounces={false}>
           <View style={dynamicStyles.headingContainer}>
             <View style={dynamicStyles.iconBackground}>
-              <Ionicons color={Colors.icon} size={24} name="notifications" />
+              <Ionicons
+                color={Colors.iconPrimary}
+                size={24}
+                name="notifications"
+              />
             </View>
             <Text style={dynamicStyles.headingText}>Set Reminder</Text>
           </View>
@@ -201,7 +205,7 @@ export default function Reminder({
           )}
 
           <TouchableOpacity style={dynamicStyles.close} onPress={onClose}>
-            <AntDesign name="close" size={22} color={Colors.icon} />
+            <AntDesign name="close" size={22} color={Colors.iconPrimary} />
           </TouchableOpacity>
         </KeyboardAwareScrollView>
       </View>

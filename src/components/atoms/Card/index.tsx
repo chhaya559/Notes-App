@@ -115,7 +115,11 @@ export default function Card(props: any) {
 
       setShowLockedModal(false);
 
-      navigation.navigate("CreateNote", { id: props.id });
+      navigation.navigate("CreateNote", {
+        id: props.id,
+        title: props.title,
+        content: props.content,
+      });
     } catch (error) {
       Toast.show({
         text1: error?.data?.message,
@@ -125,22 +129,37 @@ export default function Card(props: any) {
 
   async function handleDelete() {
     try {
-      await db
-        .delete(notesTable)
-        .where(
-          and(eq(notesTable.id, props.id), eq(notesTable?.userId, userId)),
-        );
-      if (isConnected) {
+      if (!userId) return;
+
+      if (!isConnected) {
+        // Mark as pending delete
+        await db
+          .update(notesTable)
+          .set({
+            syncStatus: "pending_delete",
+          })
+          .where(
+            and(eq(notesTable.id, props.id), eq(notesTable.userId, userId)),
+          );
+
+        Toast.show({
+          text1: "Deleted (Offline)",
+        });
+      } else {
         await deleteApi({ id: props.id }).unwrap();
+
+        await db
+          .delete(notesTable)
+          .where(
+            and(eq(notesTable.id, props.id), eq(notesTable.userId, userId)),
+          );
+
+        Toast.show({
+          text1: "Deleted",
+        });
       }
-      Toast.show({
-        text1: "Deleted",
-      });
     } catch (error) {
       console.log("Delete error:", error);
-      Toast.show({
-        text1: "Not able to delete this",
-      });
     }
   }
 
@@ -271,16 +290,16 @@ export default function Card(props: any) {
           <MaterialIcons
             name="delete-outline"
             size={38}
-            color={Colors.swipeDeleteIcon}
+            color={Colors.danger}
           />
         </TouchableOpacity>
         {props.isPasswordProtected ? (
           <TouchableOpacity onPress={unLockNote} style={dynamicStyles.lockBg}>
-            <Entypo name="lock-open" size={38} color={Colors.swipeLockIcon} />
+            <Entypo name="lock-open" size={38} color={Colors.iconPrimary} />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity onPress={lockNote} style={dynamicStyles.lockBg}>
-            <Entypo name="lock" size={38} color={Colors.swipeLockIcon} />
+            <Entypo name="lock" size={38} color={Colors.iconPrimary} />
           </TouchableOpacity>
         )}
       </Reanimated.View>
@@ -305,7 +324,7 @@ export default function Card(props: any) {
               <AntDesign
                 name="close"
                 size={24}
-                color={Colors.icon}
+                color={Colors.iconPrimary}
                 style={dynamicStyles.close}
                 onPress={() => setShowLockedModal(false)}
               />
@@ -368,7 +387,6 @@ export default function Card(props: any) {
               onPressOut={() => {
                 scale.value = withSpring(1);
               }}
-              
             >
               <Text style={dynamicStyles.heading}>
                 {props.title.length > 20
@@ -395,7 +413,11 @@ export default function Card(props: any) {
                 ) : null}
                 {props.isReminderSet ? (
                   <Pressable>
-                    <Feather name="clock" size={24} color={Colors.iconSecondary} />
+                    <Feather
+                      name="clock"
+                      size={24}
+                      color={Colors.iconSecondary}
+                    />
                   </Pressable>
                 ) : null}
               </View>

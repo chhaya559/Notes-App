@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-  useLayoutEffect,
-} from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   TextInput,
   View,
@@ -113,7 +107,7 @@ export default function CreateNote({
 
       const isEmpty =
         !notesRef.current?.title?.trim() &&
-        !notesRef.current?.content?.replace(/<(.|\n)*?>/g, "").trim();
+        !notesRef.current?.content?.replaceAll(/<(.|\n)*?>/g, "").trim();
 
       if (isEmpty) return;
 
@@ -149,8 +143,8 @@ export default function CreateNote({
 
   const [notes, setNotes] = useState({
     id: "",
-    title: "",
-    content: "",
+    title: route?.params?.title,
+    content: route?.params?.content,
     isPasswordProtected: false,
     isReminderSet: null,
     isLocked: false,
@@ -220,25 +214,6 @@ export default function CreateNote({
   const [existingFiles, setExistingFiles] = useState<string[]>([]);
   const [files, setFiles] = useState<DocumentPickerResponse[]>([]);
 
-  // async function pickFile() {
-  //   try {
-  //     const result = await pick({
-  //       allowMultiSelection: true,
-  //       allowVirtualFiles: true,
-  //     });
-  //     setFiles((prev) => [...prev, ...result]);
-  //     if (isConnected && noteId) {
-  //       const uploadedPaths = await uploadFilesToBackend(result);
-
-  //       setExistingFiles((prev) => [...prev, ...uploadedPaths]);
-
-  //       await saveToLocalDB("synced", [...existingFiles, ...uploadedPaths]);
-  //     }
-  //   } catch (error) {
-  //     console.log("Error uploading file", error);
-  //   }
-  // }
-
   async function pickFile() {
     try {
       const result = await pick({
@@ -296,6 +271,33 @@ export default function CreateNote({
     }
   }
 
+  // async function uploadFilesToBackend(files: DocumentPickerResponse[]) {
+  //   try {
+  //     const uploadedPaths: string[] = [];
+
+  //     for (const file of files) {
+  //       const formData = new FormData();
+
+  //       formData.append("file", {
+  //         uri: file.uri,
+  //         type: file.type ?? "application/octet-stream",
+  //         name: file.name ?? "file",
+  //       } as any);
+
+  //       const response = await uploadApi(formData).unwrap();
+  //       console.log(response.data.path, "ygjhligkhjluk");
+  //       uploadedPaths.push(response.data.path);
+  //     }
+
+  //     return uploadedPaths;
+  //   } catch (error) {
+  //     Toast.show({
+  //       text1: error?.data?.message,
+  //     });
+  //     removeFile(response.data);
+  //   }
+  // }
+
   async function uploadFilesToBackend(files: DocumentPickerResponse[]) {
     const uploadedPaths: string[] = [];
 
@@ -308,18 +310,25 @@ export default function CreateNote({
         name: file.name ?? "file",
       } as any);
 
-      const response = await uploadApi(formData).unwrap();
-      console.log(response.data.path, "ygjhligkhjluk");
-      uploadedPaths.push(response.data.path);
+      try {
+        const response = await uploadApi(formData).unwrap();
+
+        uploadedPaths.push(response.data.path);
+      } catch (err: any) {
+        Toast.show({
+          text1: err?.data?.message || "File not supported",
+        });
+        continue;
+      }
     }
 
     return uploadedPaths;
   }
 
   async function handleSave(navigate = true) {
+    if (isSavedRef.current && navigate) return;
     let isNetConnected = isConnected === true || isConnected === null;
     try {
-      console.log("hello");
       if (navigate) {
         if (!notes.title && !notes.content) {
           Toast.show({
@@ -341,8 +350,7 @@ export default function CreateNote({
       if (!localNoteId) {
         setLocalNoteId(localId);
       }
-      console.log("heyy3");
-      console.log(isNetConnected, "connected");
+
       if (isNetConnected) {
         const payload = {
           id: localId,
@@ -353,8 +361,7 @@ export default function CreateNote({
           isReminderSet: isReminder,
           filePaths: filePaths ?? [],
         };
-        console.log("saved", payload);
-        if (isEditMode) {
+        if (isEditMode || noteId) {
           await editApi(payload).unwrap();
         } else {
           const res = await saveApi(payload).unwrap();
@@ -362,7 +369,10 @@ export default function CreateNote({
         }
       }
       isSavedRef.current = true;
-      if (navigate) navigation.goBack();
+      if (navigate) {
+        isSavedRef.current = true;
+        navigation.goBack();
+      }
     } catch (error: any) {
       if (error?.data?.errors?.length) {
         Toast.show({
@@ -379,31 +389,63 @@ export default function CreateNote({
     }
   }
 
-  async function handleDelete(navigate = true) {
+  // async function handleDelete(navigate = true) {
+  //   try {
+  //     if (!noteId) {
+  //       Toast.show({
+  //         text1: "Empty note can’t be deleted",
+  //       });
+  //       return;
+  //     }
+  //     if (!userId) throw new Error("userID is not correct");
+  //     await db
+  //       .delete(notesTable)
+  //       .where(and(eq(notesTable.id, noteId), eq(notesTable.userId, userId)));
+  //     console.log("note deleted from local db");
+  //     isDeletingRef.current = true;
+  //     if (isConnected) {
+  //       await deleteApi({ id: noteId }).unwrap();
+  //     }
+  //     Toast.show({
+  //       text1: "Deleted",
+  //     });
+  //     if (navigate) navigation.goBack();
+  //   } catch (error) {
+  //     console.log("Delete error:", error);
+  //     Toast.show({
+  //       text1: "Not able to delete this",
+  //     });
+  //   }
+  // }
+  async function handleDelete() {
     try {
-      if (!noteId) {
+      if (!userId) return;
+
+      if (!isConnected) {
+        // Mark as pending delete
+        await db
+          .update(notesTable)
+          .set({
+            syncStatus: "pending_delete",
+          })
+          .where(and(eq(notesTable.id, noteId), eq(notesTable.userId, userId)));
+
         Toast.show({
-          text1: "Empty note can’t be deleted",
+          text1: "Deleted (Offline)",
         });
-        return;
+      } else {
+        await deleteApi({ id: String(noteId) }).unwrap();
+
+        await db
+          .delete(notesTable)
+          .where(and(eq(notesTable.id, noteId), eq(notesTable.userId, userId)));
+
+        Toast.show({
+          text1: "Deleted",
+        });
       }
-      if (!userId) throw new Error("userID is not correct");
-      await db
-        .delete(notesTable)
-        .where(and(eq(notesTable.id, noteId), eq(notesTable.userId, userId)));
-      isDeletingRef.current = true;
-      if (isConnected) {
-        await deleteApi({ id: noteId }).unwrap();
-      }
-      Toast.show({
-        text1: "Deleted",
-      });
-      if (navigate) navigation.goBack();
     } catch (error) {
       console.log("Delete error:", error);
-      Toast.show({
-        text1: "Not able to delete this",
-      });
     }
   }
 
@@ -458,7 +500,7 @@ export default function CreateNote({
           filePaths: JSON.stringify(filePaths),
         },
       });
-
+    console.log("Note saved in local db");
     return id;
   }
 
@@ -687,21 +729,22 @@ export default function CreateNote({
                         <Image
                           source={{ uri: item }}
                           style={{
-                            width: 40,
-                            height: 40,
+                            width: 80,
+                            height: 80,
                             borderRadius: 6,
-                            marginBottom: 4,
+                            marginBottom: 6,
                           }}
                         />
                       ) : (
-                        <MaterialCommunityIcons
-                          name="file-document-outline"
-                          size={40}
-                          color={Colors.iconPrimary}
-                        />
+                        <>
+                          <MaterialCommunityIcons
+                            name="file-document-outline"
+                            size={40}
+                            color={Colors.iconPrimary}
+                          />
+                          <Text>{item.split("/").pop()}</Text>
+                        </>
                       )}
-
-                      <Text>{item.split("/").pop()}</Text>
 
                       <Text style={{ fontSize: 10, color: Colors.textMuted }}>
                         Saved file
@@ -733,7 +776,7 @@ export default function CreateNote({
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0,0,0,0.9)",
+              // backgroundColor: "rgba(0,0,0,0.9)",
               justifyContent: "center",
               alignItems: "center",
               zIndex: 100,
@@ -743,7 +786,7 @@ export default function CreateNote({
               style={{ position: "absolute", top: 40, right: 20 }}
               onPress={() => setPreviewImage(null)}
             >
-              <AntDesign name="close" size={28} color={Colors.icon} />
+              <AntDesign name="close" size={28} color={Colors.iconPrimary} />
             </TouchableOpacity>
 
             <Image

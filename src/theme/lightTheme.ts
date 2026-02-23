@@ -3,25 +3,25 @@ export const LightColors = {
   // BACKGROUND SYSTEM
   // =========================
 
-  background: "#F8FAFF",          // main app background (clean, premium)
+  background: "#F8FAFF", // main app background (clean, premium)
   backgroundSecondary: "#EEF2FF", // greeting area gradient support
-  surface: "#FFFFFF",             // cards, sheets
-  surfaceHover: "#F1F5FF",       // pressed card
-  surfaceSoft: "#F8FAFC",        // subtle containers
-  surfaceAccent: "#EEF2FF",      // highlighted container
+  surface: "#FFFFFF", // cards, sheets
+  surfaceHover: "#F1F5FF", // pressed card
+  surfaceSoft: "#F8FAFC", // subtle containers
+  surfaceAccent: "#EEF2FF", // highlighted container
 
   // =========================
   // BRAND SYSTEM
   // =========================
 
-  primary: "#6366F1",             // main brand (modern indigo)
+  primary: "#6366F1", // main brand (modern indigo)
   primaryHover: "#5855EB",
   primaryPressed: "#4F46E5",
 
-  primarySoft: "#EEF2FF",        // soft bg
+  primarySoft: "#EEF2FF", // soft bg
   primaryBorder: "#C7D2FE",
 
-  gradientStart: "#6366F1",      // FAB / Hero gradient
+  gradientStart: "#6366F1", // FAB / Hero gradient
   gradientEnd: "#8B5CF6",
 
   // =========================
@@ -40,6 +40,7 @@ export const LightColors = {
   borderLight: "#E2E8F0",
   border: "#CBD5E1",
   divider: "#EEF2F7",
+  profile: "#ffffffff",
 
   // =========================
   // ICON SYSTEM
@@ -68,7 +69,8 @@ export const LightColors = {
   inputBorder: "#CBD5E1",
   inputFocusBorder: "#6366F1",
   placeholder: "#94A3B8",
-
+  swipeLockBg: "#c2c8ffff",
+  swipeDeleteBg: "#ffb6b6ff",
   // =========================
   // STATUS
   // =========================

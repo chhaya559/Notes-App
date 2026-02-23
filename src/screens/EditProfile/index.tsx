@@ -56,7 +56,6 @@ export default function EditProfile({
             username: data.username,
           }),
         );
-        dispatch(setProfileCompleted());
         Toast.show({
           text1: "Profile updated successfully!",
         });

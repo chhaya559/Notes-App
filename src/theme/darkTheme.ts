@@ -10,7 +10,7 @@ export const DarkColors = {
   surfaceHover: "#263449",
   surfaceSoft: "#172036",
   surfaceAccent: "#1A2140",
-
+  profile: "#dde0e4ff",
   // =========================
   // BRAND SYSTEM
   // =========================
@@ -18,7 +18,8 @@ export const DarkColors = {
   primary: "#818CF8", // lighter indigo for dark mode
   primaryHover: "#6366F1",
   primaryPressed: "#4F46E5",
-
+  swipeLockBg: "#b9c0ffff",
+  swipeDeleteBg: "#ffbcbcff",
   primarySoft: "#1A2140",
   primaryBorder: "#3730A3",
 

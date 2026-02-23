@@ -31,6 +31,7 @@ import { AntDesign } from "@expo/vector-icons";
 import messaging from "@react-native-firebase/messaging";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
+import { useNetInfo } from "@react-native-community/netinfo";
 type RegisterProps = NativeStackScreenProps<RootStackParamList, "Register">;
 export default function Register({ navigation }: Readonly<RegisterProps>) {
   const dispatch = useDispatch();
@@ -135,13 +136,28 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
       requestUserPermission();
     } catch (error: any) {
       console.log("Google Sign-In Error:", error);
-      Toast.show({
-        text1: "Google login failed",
-      });
+      const errorText = String(error);
+
+      if (errorText.includes("NETWORK_ERROR")) {
+        Toast.show({
+          text1: "No internet connection",
+          text2: "Please check your network",
+        });
+      } else {
+        Toast.show({
+          text1: "Google signup failed",
+        });
+      }
     }
   }
+  const { isConnected } = useNetInfo();
 
   async function handleSignup(data: any) {
+    if (!isConnected) {
+      Toast.show({
+        text1: "No Internet Connected",
+      });
+    }
     try {
       const response = await registerApi({
         firstName: data.firstName,

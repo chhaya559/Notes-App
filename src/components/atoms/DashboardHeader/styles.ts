@@ -19,7 +19,7 @@ const styles = (Colors: ThemeColors) =>
       height: 30,
       width: 30,
       borderRadius: 50,
-      backgroundColor: "#fff",
+      backgroundColor: Colors.textOnPrimary,
     },
 
     image: {
