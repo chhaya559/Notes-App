@@ -194,8 +194,27 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     const localNotes = await db.select().from(notesTable);
 
     const pending = await pendingDb.select().from(pendingNotes);
-    console.log(pending, "lekhvlwkefchsdk");
-    setAllNotes([...localNotes, ...pending]);
+
+    const pendingMap = new Map();
+
+    pending.forEach((note) => {
+      pendingMap.set(note.id, note);
+    });
+
+    const merged = localNotes.map((note) => {
+      if (pendingMap.has(note.id)) {
+        return pendingMap.get(note.id);
+      }
+      return note;
+    });
+
+    pending.forEach((note) => {
+      if (!localNotes.find((n) => n.id === note.id)) {
+        merged.push(note);
+      }
+    });
+
+    setAllNotes(merged);
   }
   //header
   useEffect(() => {
