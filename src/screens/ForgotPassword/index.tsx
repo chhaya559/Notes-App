@@ -37,7 +37,8 @@ export default function ForgotPassword({
     },
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const isNotesReset = Boolean(route?.params?.name);
+
+  const isNotesReset = route?.params?.name === "notes";
   console.log(isNotesReset, "resetrest");
   const [forgotapi] = useForgotpasswordMutation();
   const [forgotNotesApi] = useForgotNotesPasswordMutation();
@@ -104,7 +105,7 @@ export default function ForgotPassword({
             <MaterialCommunityIcons
               name="email-open"
               size={42}
-              color={Colors.icon}
+              color={Colors.iconPrimary}
             />
           </View>
           <Text style={dynamicStyles.modalHeading}>Reset your Password</Text>

@@ -31,7 +31,7 @@ import {
   useDeleteUserMutation,
   useProfileImageMutation,
 } from "@redux/api/authApi";
-import { db } from "src/db/notes";
+import { db, pendingDb } from "src/db/notes";
 import { notesTable } from "src/db/schema";
 import AccountActions from "@components/atoms/AccountActions";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
@@ -39,6 +39,7 @@ import { useEffect, useRef, useState } from "react";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import useTheme from "@hooks/useTheme";
 import useStyles from "@hooks/useStyles";
+import { pendingNotes } from "src/db/pendingNotes/schema";
 
 type ProfileProps = NativeStackScreenProps<RootStackParamList, "Profile">;
 
@@ -67,6 +68,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   async function handleLogout() {
     try {
       await db.delete(notesTable);
+      await pendingDb.delete(pendingNotes);
       GoogleSignin.signOut();
       dispatch(logout());
     } catch (error) {

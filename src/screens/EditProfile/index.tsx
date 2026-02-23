@@ -23,6 +23,7 @@ export default function EditProfile({
   navigation,
 }: Readonly<EditProfileProps>) {
   const username = useSelector((state: RootState) => state.auth.username);
+  console.log(username, "userbaneysbrhj");
   const firstName = useSelector((state: RootState) => state.auth.firstName);
   const lastName = useSelector((state: RootState) => state.auth.lastName);
   const [editApi] = useEditUserMutation();

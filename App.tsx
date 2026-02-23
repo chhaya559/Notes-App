@@ -14,6 +14,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { PersistGate } from "redux-persist/integration/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import useTheme from "@hooks/useTheme";
+import { createTable } from "src/db/createTable";
 
 SplashScreen.preventAutoHideAsync();
 interface ExtendedText extends Text {

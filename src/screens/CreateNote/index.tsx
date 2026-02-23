@@ -24,7 +24,6 @@ import {
   useAiSummaryMutation,
   useDeleteMutation,
   useGetNoteByIdQuery,
-  useNoteLockMutation,
   useRemoveFileMutation,
   useSaveNoteMutation,
   useUpdateMutation,
@@ -34,12 +33,11 @@ import { DocumentPickerResponse, pick } from "@react-native-documents/picker";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 import { useNetInfo } from "@react-native-community/netinfo";
-import { createTable } from "src/db/createTable";
 import { v4 as uuidv4 } from "uuid";
 import "react-native-get-random-values";
-import { notesTable, SyncStatus } from "src/db/schema";
+import { notesTable } from "src/db/schema";
 import Toast from "react-native-toast-message";
-import { db } from "src/db/notes";
+import { db, pendingDb } from "src/db/notes";
 import { useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import { and, eq } from "drizzle-orm";
@@ -58,6 +56,7 @@ import FileViewer from "react-native-file-viewer";
 import useTheme from "@hooks/useTheme";
 import useStyles from "@hooks/useStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { pendingNotes } from "src/db/pendingNotes/schema";
 
 type CreateNoteProps = NativeStackScreenProps<RootStackParamList, "CreateNote">;
 
@@ -97,7 +96,6 @@ export default function CreateNote({
 
     return () => {
       subscription.remove();
-      // handleSave(false);
     };
   }, []);
 
@@ -122,8 +120,6 @@ export default function CreateNote({
       setHasNotePassword(hasNotePasswordStore);
     }, [hasNotePasswordStore]),
   );
-  const [lockNote] = useNoteLockMutation();
-  const [noteBackground, setNoteBackground] = useState<string>(Colors.surface);
   const { isConnected } = useNetInfo();
 
   const [activeOption, setActiveOption] = useState<
@@ -152,7 +148,6 @@ export default function CreateNote({
   const [localNoteId, setLocalNoteId] = useState<string | null>(
     route?.params?.id ?? null,
   );
-  // const noteId = localNoteId;
   const [noteId, setNoteId] = useState(localNoteId);
   const { data: NotesData, refetch } = useGetNoteByIdQuery(
     { id: String(noteId) },
@@ -233,8 +228,6 @@ export default function CreateNote({
 
       setExistingFiles(updatedPaths);
 
-      await saveToLocalDB(isConnected ? "synced" : "pending", updatedPaths);
-
       if (isConnected && noteId) {
         await editApi({
           id: noteId,
@@ -271,33 +264,6 @@ export default function CreateNote({
     }
   }
 
-  // async function uploadFilesToBackend(files: DocumentPickerResponse[]) {
-  //   try {
-  //     const uploadedPaths: string[] = [];
-
-  //     for (const file of files) {
-  //       const formData = new FormData();
-
-  //       formData.append("file", {
-  //         uri: file.uri,
-  //         type: file.type ?? "application/octet-stream",
-  //         name: file.name ?? "file",
-  //       } as any);
-
-  //       const response = await uploadApi(formData).unwrap();
-  //       console.log(response.data.path, "ygjhligkhjluk");
-  //       uploadedPaths.push(response.data.path);
-  //     }
-
-  //     return uploadedPaths;
-  //   } catch (error) {
-  //     Toast.show({
-  //       text1: error?.data?.message,
-  //     });
-  //     removeFile(response.data);
-  //   }
-  // }
-
   async function uploadFilesToBackend(files: DocumentPickerResponse[]) {
     const uploadedPaths: string[] = [];
 
@@ -326,8 +292,6 @@ export default function CreateNote({
   }
 
   async function handleSave(navigate = true) {
-    if (isSavedRef.current && navigate) return;
-    let isNetConnected = isConnected === true || isConnected === null;
     try {
       if (navigate) {
         if (!notes.title && !notes.content) {
@@ -343,29 +307,34 @@ export default function CreateNote({
       console.log("heyy");
 
       const filePaths = existingFiles;
-      const localId = await saveToLocalDB(
-        isNetConnected ? "synced" : "pending",
-        filePaths,
-      );
+      const id = noteId ?? uuidv4();
+
       if (!localNoteId) {
-        setLocalNoteId(localId);
+        setLocalNoteId(id);
       }
 
-      if (isNetConnected) {
-        const payload = {
-          id: localId,
-          title: notesRef.current?.title ?? "",
-          content: notesRef.current?.content ?? "",
-          isPasswordProtected: notesRef.current?.isPasswordProtected,
-          isLocked: notesRef.current?.isLocked,
-          isReminderSet: isReminder,
-          filePaths: filePaths ?? [],
-        };
-        if (isEditMode || noteId) {
+      const payload = {
+        id: id,
+        title: notesRef.current?.title ?? "",
+        content: notesRef.current?.content ?? "",
+        isPasswordProtected: notesRef.current?.isPasswordProtected,
+        isLocked: notesRef.current?.isLocked,
+        isReminderSet: isReminder,
+        filePaths: filePaths ?? [],
+      };
+      if (isEditMode || noteId) {
+        if (isConnected) {
           await editApi(payload).unwrap();
         } else {
+          saveToPendingDB(filePaths, 2);
+        }
+      } else {
+        if (isConnected) {
           const res = await saveApi(payload).unwrap();
           setNoteId(res?.data?.id);
+          console.log(res?.data?.id);
+        } else {
+          saveToPendingDB(filePaths, 1);
         }
       }
       isSavedRef.current = true;
@@ -389,63 +358,32 @@ export default function CreateNote({
     }
   }
 
-  // async function handleDelete(navigate = true) {
-  //   try {
-  //     if (!noteId) {
-  //       Toast.show({
-  //         text1: "Empty note can’t be deleted",
-  //       });
-  //       return;
-  //     }
-  //     if (!userId) throw new Error("userID is not correct");
-  //     await db
-  //       .delete(notesTable)
-  //       .where(and(eq(notesTable.id, noteId), eq(notesTable.userId, userId)));
-  //     console.log("note deleted from local db");
-  //     isDeletingRef.current = true;
-  //     if (isConnected) {
-  //       await deleteApi({ id: noteId }).unwrap();
-  //     }
-  //     Toast.show({
-  //       text1: "Deleted",
-  //     });
-  //     if (navigate) navigation.goBack();
-  //   } catch (error) {
-  //     console.log("Delete error:", error);
-  //     Toast.show({
-  //       text1: "Not able to delete this",
-  //     });
-  //   }
-  // }
-  async function handleDelete() {
+  async function handleDelete(navigate = true) {
     try {
-      if (!userId) return;
-
-      if (!isConnected) {
-        // Mark as pending delete
-        await db
-          .update(notesTable)
-          .set({
-            syncStatus: "pending_delete",
-          })
-          .where(and(eq(notesTable.id, noteId), eq(notesTable.userId, userId)));
-
+      if (!noteId) {
         Toast.show({
-          text1: "Deleted (Offline)",
+          text1: "Empty note can’t be deleted",
         });
-      } else {
-        await deleteApi({ id: String(noteId) }).unwrap();
-
-        await db
-          .delete(notesTable)
-          .where(and(eq(notesTable.id, noteId), eq(notesTable.userId, userId)));
-
-        Toast.show({
-          text1: "Deleted",
-        });
+        return;
       }
+      if (!userId) throw new Error("userID is not correct");
+      await db
+        .delete(notesTable)
+        .where(and(eq(notesTable.id, noteId), eq(notesTable.userId, userId)));
+      console.log("note deleted from local db");
+      isDeletingRef.current = true;
+      if (isConnected) {
+        await deleteApi({ id: noteId }).unwrap();
+      }
+      Toast.show({
+        text1: "Deleted",
+      });
+      if (navigate) navigation.goBack();
     } catch (error) {
       console.log("Delete error:", error);
+      Toast.show({
+        text1: "Not able to delete this",
+      });
     }
   }
 
@@ -465,43 +403,37 @@ export default function CreateNote({
     );
   }
 
-  async function saveToLocalDB(status: SyncStatus, filePaths: string[] = []) {
-    await createTable();
-    if (!userId) {
-      throw new Error("userId is required to create a note");
-    }
-
+  async function saveToPendingDB(filePaths: string[] = [], status: number) {
     const id = noteId ?? uuidv4();
 
-    await db
-      .insert(notesTable)
+    console.log("inside pending");
+
+    await pendingDb
+      .insert(pendingNotes)
       .values({
         id,
         userId,
         title: notes.title,
         content: notes.content,
         updatedAt: new Date().toISOString(),
-        isPasswordProtected: notes.isPasswordProtected ? 1 : 0,
-        isLocked: notes.isLocked ? 1 : 0,
-        isReminderSet: isReminder ? 1 : 0,
-        syncStatus: status,
         filePaths: JSON.stringify(filePaths),
+        syncStatus: status,
       })
       .onConflictDoUpdate({
-        target: notesTable.id,
+        target: pendingNotes.id,
         set: {
           title: notes.title,
           content: notes.content,
           updatedAt: new Date().toISOString(),
-          isPasswordProtected: notes.isPasswordProtected ? 1 : 0,
-          isReminderSet: isReminder ? 1 : 0,
           syncStatus: status,
-          isLocked: notes.isLocked ? 1 : 0,
           filePaths: JSON.stringify(filePaths),
         },
       });
-    console.log("Note saved in local db");
-    return id;
+
+    console.log("saved to pending notes");
+
+    const data = await pendingDb.select().from(pendingNotes);
+    console.log("Pending notes:", data);
   }
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -537,7 +469,7 @@ export default function CreateNote({
         </View>
       ),
     });
-  }, [navigation, noteBackground, handleSave]);
+  }, [navigation, handleSave]);
 
   const debouncedNotes = useDebounce(
     {
@@ -829,7 +761,7 @@ export default function CreateNote({
               onPress={() => setActiveOption(null)}
               style={{
                 alignSelf: "center",
-                backgroundColor: Colors.mutedIcon,
+                // backgroundColor: Colors.mutedIcon,
                 borderRadius: 25,
                 padding: 2,
               }}

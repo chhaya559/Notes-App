@@ -121,13 +121,15 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       }
 
       const response = await googleApi({ idToken }).unwrap();
-      console.log("response", response);
+      console.log("responsefromgooglr", response.data);
 
       dispatch(
         google({
           token: response.data.token,
           email: userInfo.data.user.email,
-          firstName: userInfo.data.user.name,
+          firstName: response.data.firstName ?? userInfo.data.user.name,
+          lastName: response.data.lastName ?? null,
+          username: response.data.userName,
           profileImageUrl: userInfo.data.user.photo,
           isCommonPasswordSet: response.data.isCommonPasswordSet,
           isNotesUnlocked: response.data.isNotesUnlocked,

@@ -18,7 +18,10 @@ export async function createTable() {
       backgroundColor TEXT,
       filePaths TEXT,
       isLocked INTEGER DEFAULT 0,
-      isLockedByTime INTEGER DEFAULT 0
+      isLockedByTime INTEGER DEFAULT 0,
+      isDeleted INTEGER DEFAULT 0
     );
   `);
 }
+
+console.log("Local DB table created");

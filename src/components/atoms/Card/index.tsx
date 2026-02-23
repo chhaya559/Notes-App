@@ -131,28 +131,18 @@ export default function Card(props: any) {
     try {
       if (!userId) return;
 
-      if (!isConnected) {
-        // Mark as pending delete
+      if (isConnected) {
+        await deleteApi({ id: props.id }).unwrap();
+
+        await db.delete(notesTable).where(eq(notesTable.id, props.id));
+      } else {
         await db
           .update(notesTable)
           .set({
-            syncStatus: "pending_delete",
+            syncStatus: "pending",
+            isDeleted: 1,
           })
-          .where(
-            and(eq(notesTable.id, props.id), eq(notesTable.userId, userId)),
-          );
-
-        Toast.show({
-          text1: "Deleted (Offline)",
-        });
-      } else {
-        await deleteApi({ id: props.id }).unwrap();
-
-        await db
-          .delete(notesTable)
-          .where(
-            and(eq(notesTable.id, props.id), eq(notesTable.userId, userId)),
-          );
+          .where(and(eq(notesTable.id, props.id)));
 
         Toast.show({
           text1: "Deleted",

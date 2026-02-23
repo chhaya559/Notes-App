@@ -17,4 +17,5 @@ export const notesTable = sqliteTable("notes_table", {
     .notNull()
     .default("pending"),
   filePaths: text("filePaths"),
+  isDeleted: int("isDeleted").default(0),
 });

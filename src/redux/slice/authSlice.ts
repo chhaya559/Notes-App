@@ -109,8 +109,10 @@ const authSlice = createSlice({
         email: string;
         firstName: string | null;
         profileImageUrl: string | null;
+        username: string | null;
         isCommonPasswordSet: boolean;
         isNotesUnlocked: boolean;
+        lastName: string | null;
       }>,
     ) => {
       state.token = action.payload.token;
@@ -120,6 +122,8 @@ const authSlice = createSlice({
       state.isNotesUnlocked = action.payload.isNotesUnlocked;
       state.profileImageUrl = action.payload.profileImageUrl;
       state.isGoogle = true;
+      state.username = action.payload.username;
+      state.lastName = action.payload.lastName;
     },
     guest: (
       state,

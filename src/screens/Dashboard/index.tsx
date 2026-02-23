@@ -19,11 +19,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import {
   useGetQuery,
+  useSaveNoteMutation,
   useSearchNotesQuery,
   useUpdateMutation,
 } from "@redux/api/noteApi";
 import Card from "@components/atoms/Card";
-import { db } from "src/db/notes";
+import { db, pendingDb } from "src/db/notes";
 import { notesTable } from "src/db/schema";
 import { createTable } from "src/db/createTable";
 import { eq } from "drizzle-orm";
@@ -31,25 +32,18 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useNetInfo } from "@react-native-community/netinfo";
 import useDebounce from "src/debounce/debounce";
 import { lockNotes } from "@redux/slice/authSlice";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useRoute } from "@react-navigation/native";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
 import { LinearGradient } from "expo-linear-gradient";
+import { createPendingTable } from "src/db/pendingNotes/pendingTable";
+import { pendingNotes } from "src/db/pendingNotes/schema";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
-type Note = {
-  id: string;
-  title: string | null;
-  content: string | null;
-  updatedAt: string;
-  isPasswordProtected: number;
-  isLocked: number;
-  isReminderSet: number;
-  filePaths?: string[] | [];
-};
+
 export function Dashboard({ navigation }: Readonly<DashboardProps>) {
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [allNotes, setAllNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<any[]>([]);
+  const [allNotes, setAllNotes] = useState<any[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const [searchText, setSearchText] = useState("");
   const userId = useSelector((state: RootState) => state.auth.token);
@@ -57,6 +51,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [page, setPage] = useState(1);
   const { dynamicStyles } = useStyles(styles);
   const [editApi] = useUpdateMutation();
+  const [saveApi] = useSaveNoteMutation();
   const { Colors, darkMode } = useTheme();
   const isNotesUnlocked = useSelector(
     (state: RootState) => state.auth.isNotesUnlocked,
@@ -65,6 +60,10 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   function clearSearchText() {
     setSearchText("");
   }
+  useEffect(() => {
+    createTable();
+    createPendingTable();
+  }, []);
 
   const { data, refetch, isFetching } = useGetQuery<any>(
     {
@@ -76,6 +75,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       refetchOnMountOrArgChange: true,
     },
   );
+
   const notesUnlockUntil = useSelector(
     (state: RootState) => state.auth.notesUnlockUntil,
   );
@@ -87,6 +87,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   };
 
   const dispatch = useDispatch();
+
   useEffect(() => {
     if (!notesUnlockUntil) return;
 
@@ -104,91 +105,74 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     return () => clearTimeout(timer);
   }, [notesUnlockUntil]);
 
-  const syncPendingNotes = async () => {
-    if (!isConnected || !userId) return;
-
-    const pendingNotes = await db
-      .select()
-      .from(notesTable)
-      .where(eq(notesTable.syncStatus, "pending"));
-
-    for (const note of pendingNotes) {
-      try {
-        await editApi({
-          id: note.id,
-          title: note.title,
-          content: note.content,
-          filePaths: note.filePaths ? JSON.parse(note.filePaths) : [],
-        }).unwrap();
-
-        await db
-          .update(notesTable)
-          .set({ syncStatus: "synced" })
-          .where(eq(notesTable.id, note.id));
-      } catch (e) {
-        console.log("sync failed");
-      }
-    }
-  };
-
   useEffect(() => {
     if (isConnected) {
-      syncPendingNotes();
+      syncOnlineFlow();
+    } else {
+      showNotesFromCombinedDB();
     }
-  }, [isConnected]);
+  }, [data, isConnected, page]);
 
-  useEffect(() => {
+  async function syncOnlineFlow() {
+    await syncPendingNotesToBackend();
+
+    await moveDataToLocalDB();
+
+    const localNotes = await db.select().from(notesTable);
+
+    setAllNotes(localNotes);
+  }
+
+  async function syncPendingNotesToBackend() {
+    const notesToSendBackend = await pendingDb.select().from(pendingNotes);
+
+    if (!notesToSendBackend.length) return;
+
+    for (const note of notesToSendBackend) {
+      try {
+        if (note.syncStatus === 1) {
+          await saveApi({
+            title: note.title,
+            content: note.content,
+            updatedAt: note.updatedAt,
+            filePaths: note.filePaths,
+          }).unwrap();
+        }
+
+        if (note.syncStatus === 2) {
+          await editApi({
+            id: note.id,
+            title: note.title,
+            content: note.content,
+            updatedAt: note.updatedAt,
+            filePaths: note.filePaths,
+          }).unwrap();
+        }
+
+        await pendingDb
+          .delete(pendingNotes)
+          .where(eq(pendingNotes.id, note.id));
+      } catch (e) {
+        console.log("Sync failed", e);
+      }
+    }
+  }
+
+  async function moveDataToLocalDB() {
     if (!data?.data) return;
 
-    if (page === 1) {
-      setAllNotes(data.data);
-    } else {
-      setAllNotes((prev) => [...prev, ...data.data]);
-    }
-  }, [data]);
-
-  const loadNotes = useCallback(async () => {
-    if (!userId) return;
-
-    const notesFromDB = await db
-      .select()
-      .from(notesTable)
-      .where(eq(notesTable.userId, userId));
-
-    setNotes(
-      notesFromDB.map((n) => ({
-        ...n,
-        title: n.title ?? "",
-        content: n.content ?? "",
-        updatedAt: n.updatedAt ?? new Date().toISOString(),
-        isPasswordProtected: n.isPasswordProtected ? 1 : 0,
-        isReminderSet: n.isReminderSet ? 1 : 0,
-        isLocked: n.isLocked ? 1 : 0,
-        filePaths: n.filePaths ? JSON.parse(n.filePaths) : [],
-      })),
-    );
-  }, [userId]);
-
-  const syncNotes = useCallback(async () => {
-    if (!data?.data || !userId) return;
-
-    if (page === 1) {
-      await db.delete(notesTable).where(eq(notesTable.userId, userId));
-    }
     for (const note of data.data) {
       await db
         .insert(notesTable)
         .values({
           id: note.id,
-          userId,
           title: note.title,
           content: note.content,
           updatedAt: note.updatedAt,
-          isPasswordProtected: note.isPasswordProtected ? 1 : 0,
-          isLocked: note.isLocked ? 1 : 0,
-          isReminderSet: note.isReminderSet ? 1 : 0,
-          syncStatus: "synced",
-          filePaths: note.filePaths ? JSON.stringify(note.filePaths) : null,
+          filePaths: note.filePaths,
+          userId: userId,
+          isPasswordProtected: note.isPasswordProtected,
+          isReminderSet: note.isReminderSet,
         })
         .onConflictDoUpdate({
           target: notesTable.id,
@@ -196,49 +180,31 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             title: note.title,
             content: note.content,
             updatedAt: note.updatedAt,
-            syncStatus: "synced",
-            filePaths: note.filePaths ? JSON.stringify(note.filePaths) : null,
-            isPasswordProtected: note.isPasswordProtected ? 1 : 0,
-            isLocked: note.isLocked ? 1 : 0,
-            isReminderSet: note.isReminderSet ? 1 : 0,
+            filePaths: note.filePaths,
           },
         });
     }
-  }, [data, userId]);
 
-  useEffect(() => {
-    async function create() {
-      await createTable();
-    }
-    create();
-  }, []);
+    const localNotes = await db.select().from(notesTable);
 
-  useEffect(() => {
-    if (!isConnected || !userId) return;
+    setAllNotes(localNotes);
+  }
 
-    async function run() {
-      await syncNotes();
-      await loadNotes();
-    }
+  async function showNotesFromCombinedDB() {
+    const localNotes = await db.select().from(notesTable);
 
-    run();
-  }, [data, isConnected, userId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (userId) {
-        setPage(1);
-        refetch();
-      }
-    }, [userId]),
-  );
-
+    const pending = await pendingDb.select().from(pendingNotes);
+    console.log(pending, "lekhvlwkefchsdk");
+    setAllNotes([...localNotes, ...pending]);
+  }
   //header
-  navigation.setOptions({
-    headerStyle: {
-      backgroundColor: darkMode ? Colors.background : Colors.background,
-    },
-  });
+  useEffect(() => {
+    navigation.setOptions({
+      headerStyle: {
+        backgroundColor: Colors.background,
+      },
+    });
+  }, [Colors.background]);
   //search
   const debouncedSearch = useDebounce(searchText.trim(), 200);
 
