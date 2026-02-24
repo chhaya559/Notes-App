@@ -25,6 +25,7 @@ import {
 import Card from "@components/atoms/Card";
 import { db, pendingDb } from "src/db/notes";
 import { notesTable } from "src/db/schema";
+import { getLocalNotesPaginated } from "src/db/queries";
 import { createTable } from "src/db/createTable";
 import { eq } from "drizzle-orm";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -110,11 +111,12 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     }, [data, isConnected, page]),
   );
 
-  function syncOnlineFlow() {
-    syncPendingNotesToBackend();
-    console.log("mving to local");
-    moveDataToLocalDB();
-    console.log("heyyy");
+  async function syncOnlineFlow() {
+    await syncPendingNotesToBackend();
+
+    await fetchBackendAndStoreLocal();
+
+    await loadLocalNotes();
   }
 
   async function syncPendingNotesToBackend() {
@@ -159,23 +161,27 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
 
     await showNotesFromCombinedDB();
   }
-  async function moveDataToLocalDB() {
+
+  async function loadLocalNotes() {
+    const notes = await getLocalNotesPaginated(userId, page);
+
+    setAllNotes(notes);
+  }
+
+  async function fetchBackendAndStoreLocal() {
     if (!data?.data) return;
 
     for (const note of data.data) {
-      console.log(note, "notenotenotneonteo");
-
       await db
         .insert(notesTable)
         .values({
           id: note.id,
+          userId,
           title: note.title,
           content: note.content,
           updatedAt: note.updatedAt,
           filePaths: JSON.stringify(note.filePaths ?? []),
-          userId: userId,
-          isPasswordProtected: note.isPasswordProtected,
-          isReminderSet: note.isReminderSet,
+          syncStatus: "synced",
         })
         .onConflictDoUpdate({
           target: notesTable.id,
@@ -184,39 +190,32 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             content: note.content,
             updatedAt: note.updatedAt,
             filePaths: JSON.stringify(note.filePaths ?? []),
+            syncStatus: "synced",
           },
         });
     }
-
-    const localNotes = await db.select().from(notesTable);
-    console.log(localNotes, "locallocallocal");
-
-    setAllNotes(localNotes);
   }
+
   async function showNotesFromCombinedDB() {
-    const localNotes = await db.select().from(notesTable);
-    console.log("locallocallocalaco", localNotes);
+    const local = await getLocalNotesPaginated(userId, page);
+
     const pending = await pendingDb.select().from(pendingNotes);
-    console.log("pendingpendingpenidng", pending);
 
     const pendingMap = new Map();
     const deletedSet = new Set();
 
     pending.forEach((note) => {
-      if (note.syncStatus === 3) {
-        deletedSet.add(note.id);
-      } else {
-        pendingMap.set(note.id, note);
-      }
+      if (note.syncStatus === 3) deletedSet.add(note.id);
+      else pendingMap.set(note.id, note);
     });
 
-    const merged = localNotes
-      .filter((note) => !deletedSet.has(note.id))
-      .map((note) => pendingMap.get(note.id) || note);
+    const merged = local
+      .filter((n) => !deletedSet.has(n.id))
+      .map((n) => pendingMap.get(n.id) || n);
 
     pending.forEach((note) => {
-      if (note.syncStatus !== 3 && !localNotes.find((n) => n.id === note.id)) {
-        merged.push(note);
+      if (!local.find((n) => n.id === note.id) && note.syncStatus !== 3) {
+        merged.unshift(note);
       }
     });
 

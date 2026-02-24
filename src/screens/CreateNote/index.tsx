@@ -146,6 +146,26 @@ export default function CreateNote({
     { skip: !noteId, refetchOnFocus: true },
   );
   useEffect(() => {
+    async function loadFilesFromLocal() {
+      if (!noteId) return;
+
+      const local = await db
+        .select()
+        .from(notesTable)
+        .where(eq(notesTable.id, noteId));
+
+      if (local.length > 0) {
+        const filePaths = JSON.parse(local[0].filePaths || "[]");
+
+        setExistingFiles(filePaths);
+      }
+    }
+
+    if (!isConnected) {
+      loadFilesFromLocal();
+    }
+  }, [noteId, isConnected]);
+  useEffect(() => {
     if (fileUploading) {
       console.log("dkeohfalfnakl");
     }
@@ -327,7 +347,18 @@ export default function CreateNote({
           saveToPendingDB(2, filePaths);
         }
       } else if (isConnected) {
+        //const res = await saveApi(payload).unwrap();
         const res = await saveApi(payload).unwrap();
+
+        await db.insert(notesTable).values({
+          id: res.data.id,
+          userId,
+          title: payload.title,
+          content: payload.content,
+          updatedAt: new Date().toISOString(),
+          filePaths: JSON.stringify(payload.filePaths),
+          syncStatus: "synced",
+        });
         setNoteId(res?.data?.id);
         console.log(res?.data?.id);
       } else {
@@ -444,6 +475,16 @@ export default function CreateNote({
       });
 
     console.log("Pending notes saved");
+
+    await db.insert(notesTable).values({
+      id,
+      userId,
+      title,
+      content,
+      updatedAt: new Date().toISOString(),
+      filePaths: JSON.stringify(filePaths),
+      syncStatus: "pending",
+    });
   }
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -597,10 +638,9 @@ export default function CreateNote({
                         <Image
                           source={{ uri: item.uri }}
                           style={{
-                            width: 60,
-                            height: 60,
-                            borderRadius: 6,
-                            marginBottom: 4,
+                            width: 120,
+                            height: 120,
+                            borderRadius: 8,
                           }}
                         />
                         {/* <Text style={{ color: Colors.textSecondary }}>
@@ -658,8 +698,8 @@ export default function CreateNote({
                         <Image
                           source={{ uri: item }}
                           style={{
-                            width: 80,
-                            height: 80,
+                            width: 120,
+                            height: 120,
                             borderRadius: 6,
                             marginBottom: 6,
                           }}
