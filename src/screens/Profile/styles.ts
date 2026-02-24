@@ -97,8 +97,8 @@ const styles = (Colors: ThemeColors) =>
     registerText: {
       color: Colors.textOnPrimary,
       textAlign: "center",
-      fontSize: 16,
-      fontWeight: "600",
+      fontSize: 18,
+      fontWeight: "700",
     },
     logout: {
       flexDirection: "row",

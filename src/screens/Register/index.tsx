@@ -1,6 +1,7 @@
 import CustomInput from "@components/atoms/CustomInput";
 import {
   Alert,
+  Image,
   PermissionsAndroid,
   Platform,
   Text,
@@ -313,11 +314,9 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           style={dynamicStyles.google}
           onPress={handleGoogleSignin}
         >
-          <AntDesign
-            name="google"
-            size={20}
-            color={Colors.textPrimary}
-            style={{ verticalAlign: "middle" }}
+          <Image
+            source={require("../../../assets/google.png")}
+            style={{ height: 22, width: 22, alignSelf: "center" }}
           />
           <Text style={dynamicStyles.googleText}>
             {isGoogleLoading ? "Signing up..." : "Sign up with Google"}

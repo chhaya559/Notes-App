@@ -5,6 +5,7 @@ import {
   Pressable,
   Alert,
   useWindowDimensions,
+  ScrollView,
 } from "react-native";
 import styles from "./styles";
 import { AntDesign, Entypo, Feather, MaterialIcons } from "@expo/vector-icons";
@@ -21,25 +22,23 @@ import {
   useDeleteMutation,
   useNoteLockMutation,
   useRemoveLockMutation,
-  useSaveNoteMutation,
   useUnlockNoteMutation,
 } from "@redux/api/noteApi";
-import { db } from "src/db/notes";
-import Reanimated, {
-  SharedValue,
+import { db, pendingDb } from "src/db/notes";
+import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import Animated from "react-native-reanimated";
 import ReanimatedSwipeable, {
   SwipeableMethods,
 } from "react-native-gesture-handler/ReanimatedSwipeable";
 import { notesTable } from "src/db/schema";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { useNetInfo } from "@react-native-community/netinfo";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
+import { pendingNotes } from "src/db/pendingNotes/schema";
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString(undefined, {
@@ -95,7 +94,8 @@ export default function Card(props: any) {
     }, remaining);
 
     return () => clearTimeout(timer);
-  }, [notesUnlockUntil]);
+  }, [notesUnlockUntil, dispatch]);
+  //},[notesUnlockUntil, dispatch]);
 
   async function handleUnlock() {
     if (!unlockValue.password || !unlockValue.unlockMinutes) {
@@ -127,27 +127,74 @@ export default function Card(props: any) {
     }
   }
 
+  // async function handleDelete() {
+  //   try {
+  //     if (!userId) return;
+
+  //     if (isConnected) {
+  //       await deleteApi({ id: props.id }).unwrap();
+
+  //       await db.delete(notesTable).where(eq(notesTable.id, props.id));
+  //     } else {
+  //       await pendingDb
+  //         .insert(pendingNotes)
+  //         .values({
+  //           id: props.id,
+  //           userId,
+  //           title: props.title,
+  //           content: props.content,
+  //           syncStatus: 3,
+  //         })
+  //         .onConflictDoUpdate({
+  //           target: pendingNotes.id,
+  //           set: {
+  //             title: props.title,
+  //             content: props.content,
+  //             syncStatus: 3,
+  //           },
+  //         });
+
+  //       Toast.show({
+  //         text1: "Deleted",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.log("Delete error:", error);
+  //   }
+  // }
   async function handleDelete() {
     try {
       if (!userId) return;
-
       if (isConnected) {
         await deleteApi({ id: props.id }).unwrap();
-
         await db.delete(notesTable).where(eq(notesTable.id, props.id));
       } else {
-        await db
-          .update(notesTable)
-          .set({
-            syncStatus: "pending",
-            isDeleted: 1,
+        await pendingDb
+          .insert(pendingNotes)
+          .values({
+            id: props.id,
+            userId,
+            syncStatus: 3,
           })
-          .where(and(eq(notesTable.id, props.id)));
-
-        Toast.show({
-          text1: "Deleted",
-        });
+          .onConflictDoUpdate({
+            target: pendingNotes.id,
+            set: {
+              syncStatus: 3,
+            },
+          });
+        console.log(
+          "pendingdelete",
+          await pendingDb.select().from(pendingNotes),
+        );
+        await db.delete(notesTable).where(eq(notesTable.id, props.id));
+        console.log("notes in local", await db.select().from(notesTable));
       }
+      if (props.onDeleteSuccess) {
+        await props.onDeleteSuccess();
+      }
+
+      Toast.show({ text1: "Note Deleted" });
+      // Toast.show({ text1: "Deleted" });
     } catch (error) {
       console.log("Delete error:", error);
     }
@@ -162,7 +209,12 @@ export default function Card(props: any) {
       return;
     }
 
-    navigation.navigate("CreateNote", { id: props.id });
+    navigation.navigate("CreateNote", {
+      id: props.id,
+      title: props.title,
+      content: props.content,
+      filePaths: props.filePaths,
+    });
   }
 
   const hasCommonPassword = useSelector(
@@ -191,6 +243,7 @@ export default function Card(props: any) {
       if (error.data.message) {
         Toast.show({
           text2: error?.data?.message,
+          position: "top",
         });
       } else {
         Toast.show({ text1: "Failed to remove lock from note" });
@@ -272,7 +325,7 @@ export default function Card(props: any) {
     });
 
     return (
-      <Reanimated.View style={[dynamicStyles.swipeAction, animatedStyle]}>
+      <Animated.View style={[dynamicStyles.swipeAction, animatedStyle]}>
         <TouchableOpacity
           onPress={confirmDelete}
           style={dynamicStyles.deleteBg}
@@ -292,7 +345,7 @@ export default function Card(props: any) {
             <Entypo name="lock" size={38} color={Colors.iconPrimary} />
           </TouchableOpacity>
         )}
-      </Reanimated.View>
+      </Animated.View>
     );
   }
 
@@ -307,8 +360,8 @@ export default function Card(props: any) {
   return (
     <>
       {showLockedModal && (
-        <Modal isVisible backdropOpacity={0.5} style={dynamicStyles.modal}>
-          <View>
+        <Modal isVisible backdropOpacity={0.2} style={dynamicStyles.modal}>
+          <ScrollView>
             <Text style={dynamicStyles.unlockHeading}>Unlock Notes</Text>
             <TouchableOpacity>
               <AntDesign
@@ -329,7 +382,7 @@ export default function Card(props: any) {
               isPassword
             />
 
-            <Text style={dynamicStyles.timeText}>Unlock for</Text>
+            <Text style={dynamicStyles.timeText}>Unlock for minutes</Text>
 
             <View style={dynamicStyles.counter}>
               {[5, 10, 20, 30, 50].map((min) => (
@@ -344,7 +397,15 @@ export default function Card(props: any) {
                     setUnlockValue((p) => ({ ...p, unlockMinutes: min }))
                   }
                 >
-                  <Text style={dynamicStyles.time}>{min}</Text>
+                  <Text
+                    style={[
+                      dynamicStyles.time,
+                      unlockValue.unlockMinutes === min &&
+                        dynamicStyles.textActive,
+                    ]}
+                  >
+                    {min}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -355,7 +416,7 @@ export default function Card(props: any) {
             >
               <Text style={dynamicStyles.pressableText}>Unlock</Text>
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         </Modal>
       )}
 

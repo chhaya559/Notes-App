@@ -1,19 +1,14 @@
 import CustomInput from "@components/atoms/CustomInput";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import style from "@screens/GuestConversion/styles";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity } from "react-native";
 import Toast from "react-native-toast-message";
 import { RootStackParamList } from "src/navigation/types";
 import { NotesSchema } from "src/validations/NotesPassword";
 import styles from "./styles";
-import {
-  useNoteLockMutation,
-  useSearchNotesQuery,
-  useUpdateMutation,
-} from "@redux/api/noteApi";
+import { useNoteLockMutation, useUpdateMutation } from "@redux/api/noteApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setCommonPasswordSet } from "@redux/slice/authSlice";
 import { db } from "src/db/notes";

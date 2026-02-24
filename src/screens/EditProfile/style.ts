@@ -28,9 +28,10 @@ const styles = (Colors: ThemeColors) =>
       marginTop: 25,
     },
     pressableText: {
-      fontSize: 16,
-      color: Colors.textPrimary,
+      fontSize: 18,
+      color: Colors.textOnPrimary,
       textAlign: "center",
+      fontWeight: "700",
     },
     error: {
       textAlign: "left",

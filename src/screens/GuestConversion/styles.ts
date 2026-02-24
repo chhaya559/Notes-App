@@ -27,9 +27,10 @@ const style = (Colors: ThemeColors) =>
       borderRadius: 10,
     },
     pressableText: {
-      color: Colors.textPrimary,
+      color: Colors.textOnPrimary,
       textAlign: "center",
       fontSize: 18,
+      fontWeight: "700",
     },
     error: {
       textAlign: "left",

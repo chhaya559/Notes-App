@@ -1,6 +1,6 @@
 import * as yup from "yup";
 export const changeNotePasswordSchema = yup.object({
-  currentPassword: yup.string().required("This is a required field"),
+  currentPassword: yup.string().required("Current Password is required "),
   password: yup
     .string()
     .required("Password is required")

@@ -7,15 +7,12 @@ import { guest } from "@redux/slice/authSlice";
 import { useGuestMutation } from "@redux/api/authApi";
 import { AppDispatch } from "@redux/store";
 import useStyles from "@hooks/useStyles";
-import useTheme from "@hooks/useTheme";
-import { useState } from "react";
 import { useNetInfo } from "@react-native-community/netinfo";
 import Toast from "react-native-toast-message";
 type OnboardingProps = NativeStackScreenProps<RootStackParamList, "Onboarding">;
 export default function Onboarding({ navigation }: Readonly<OnboardingProps>) {
   const dispatch = useDispatch<AppDispatch>();
   const [guestApi, { isLoading }] = useGuestMutation();
-  const { Colors } = useTheme();
   const { isConnected } = useNetInfo();
   async function handleGuestLogin() {
     if (!isConnected) {

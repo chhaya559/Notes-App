@@ -10,9 +10,10 @@ const styles = (Colors: ThemeColors) =>
       margin: 15,
     },
     pressableText: {
-      color: Colors.textPrimary,
+      color: Colors.textOnPrimary,
       textAlign: "center",
       fontSize: 18,
+      fontWeight: "700",
     },
     container: {
       flexDirection: "column",

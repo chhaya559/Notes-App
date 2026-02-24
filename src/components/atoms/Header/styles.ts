@@ -7,9 +7,9 @@ const styles = (Colors: ThemeColors) =>
       backgroundColor: Colors.background,
       flexDirection: "row",
       paddingTop: 50,
-      justifyContent: "space-between",
       padding: 15,
       paddingBottom: 0,
+      justifyContent: "space-between",
     },
     left: {
       flexDirection: "row",
@@ -17,11 +17,13 @@ const styles = (Colors: ThemeColors) =>
     },
     right: {},
     title: {
-      fontSize: 24,
+      fontSize: 22,
       fontWeight: "bold",
-      marginLeft: -35,
+
       paddingTop: 5,
       color: Colors.textPrimary,
+      textAlign: "center",
+      marginLeft: -30,
     },
     headerButton: {
       backgroundColor: Colors.iconSoftBg,

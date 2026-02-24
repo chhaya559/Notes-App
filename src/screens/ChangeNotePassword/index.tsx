@@ -1,10 +1,8 @@
 import CustomInput from "@components/atoms/CustomInput";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import style from "@screens/GuestConversion/styles";
-import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity } from "react-native";
 import Toast from "react-native-toast-message";
 import { RootStackParamList } from "src/navigation/types";
 import styles from "../NotesPassword/styles";
@@ -130,7 +128,7 @@ export default function ChangeNotePassword({
         style={dynamicStyles.pressable}
       >
         <Text style={dynamicStyles.pressableText}>
-          {isLoading ? "Changing password..." : "Change password"}
+          {isLoading ? "Updating password..." : "Update password"}
         </Text>
       </TouchableOpacity>
     </KeyboardAwareScrollView>

@@ -16,6 +16,7 @@ export type RootStackParamList = {
     isPasswordProtected?: boolean;
     reminder?: string | null;
     unlockUntil?: any;
+    filePaths?: any;
   };
 
   ChangePassword: undefined;

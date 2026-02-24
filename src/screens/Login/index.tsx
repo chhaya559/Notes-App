@@ -1,6 +1,7 @@
 import CustomInput from "@components/atoms/CustomInput";
 import {
   Alert,
+  Image,
   PermissionsAndroid,
   Platform,
   Pressable,
@@ -29,12 +30,10 @@ import { login, google } from "@redux/slice/authSlice";
 import { loginSchema } from "src/validations/loginSchema";
 import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { AntDesign } from "@expo/vector-icons";
 import messaging from "@react-native-firebase/messaging";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
 import { useNetInfo } from "@react-native-community/netinfo";
-import { text } from "drizzle-orm/gel-core";
 
 type LoginProps = NativeStackScreenProps<RootStackParamList, "Login">;
 export default function Login({ navigation }: Readonly<LoginProps>) {
@@ -271,7 +270,11 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
         style={dynamicStyles.google}
         onPress={handleGoogleSignin}
       >
-        <AntDesign name="google" size={20} color={Colors.textPrimary} />
+        {/* <AntDesign name="google" size={20} color={Colors.textPrimary} /> */}
+        <Image
+          source={require("../../../assets/google.png")}
+          style={{ height: 22, width: 22, alignSelf: "center" }}
+        />
         <Text style={dynamicStyles.googleText}>
           {isGoogleLoading ? "Sigining you in" : "Sign in with Google"}
         </Text>

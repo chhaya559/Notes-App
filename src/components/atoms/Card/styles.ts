@@ -77,6 +77,7 @@ const styles = (Colors: ThemeColors) =>
       color: Colors.textOnPrimary,
       padding: 7,
       fontSize: 18,
+      fontWeight: "700",
       textAlign: "center",
     },
     close: {
@@ -98,6 +99,11 @@ const styles = (Colors: ThemeColors) =>
     },
     time: {
       color: Colors.textPrimary,
+      padding: 7,
+      fontSize: 22,
+    },
+    textActive: {
+      color: Colors.textOnPrimary,
       padding: 7,
       fontSize: 22,
     },

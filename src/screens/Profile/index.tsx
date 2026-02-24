@@ -53,6 +53,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
     (state: RootState) => state.auth.profileImageUrl,
   );
   const [image, setImage] = useState(profileImage);
+  console.log(image, "gg");
   useEffect(() => {
     setImage(profileImage);
   }, [profileImage, image]);
@@ -284,6 +285,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       }
     }
   }
+
   const { dynamicStyles } = useStyles(styles);
   if (!username) {
     return (

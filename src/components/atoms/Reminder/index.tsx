@@ -1,6 +1,6 @@
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import styles from "./styles";
-import { AntDesign, EvilIcons, Ionicons } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import DatePicker from "react-native-date-picker";
 import { useEffect, useState } from "react";
 import Modal from "react-native-modal";
@@ -104,7 +104,7 @@ export default function Reminder({
   }
   const { Colors } = useTheme();
   return (
-    <Modal isVisible={true}>
+    <Modal isVisible={true} onBackdropPress={onClose} backdropOpacity={0.3}>
       <View style={dynamicStyles.container}>
         <KeyboardAwareScrollView bounces={false}>
           <View style={dynamicStyles.headingContainer}>
@@ -136,7 +136,7 @@ export default function Reminder({
           )}
 
           <View style={dynamicStyles.contentView}>
-            <Text style={dynamicStyles.textInput}>Name*</Text>
+            <Text style={dynamicStyles.textInput}>Title*</Text>
             <TextInput
               value={name}
               placeholder="Name of Reminder"
@@ -150,7 +150,7 @@ export default function Reminder({
               style={dynamicStyles.input}
               placeholderTextColor={Colors.placeholder}
               value={description}
-              placeholder="Description for your reminder"
+              placeholder="Description of Reminder"
               onChangeText={setDescription}
             />
 

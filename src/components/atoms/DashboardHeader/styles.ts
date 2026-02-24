@@ -62,7 +62,6 @@ const styles = (Colors: ThemeColors) =>
       borderRadius: 12,
       height: 500,
       backgroundColor: "#fefeffff",
-      shadowColor: "#5757f8",
       shadowOpacity: 0.7,
     },
 

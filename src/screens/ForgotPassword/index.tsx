@@ -1,10 +1,10 @@
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import styles from "./styles";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import CustomInput from "@components/atoms/CustomInput";
 import { forgotSchema } from "src/validations/forgotSchema";
-import { Entypo, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Entypo, MaterialCommunityIcons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 import {
@@ -39,6 +39,7 @@ export default function ForgotPassword({
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const isNotesReset = route?.params?.name === "notes";
+  console.log(route?.params?.name);
   console.log(isNotesReset, "resetrest");
   const [forgotapi] = useForgotpasswordMutation();
   const [forgotNotesApi] = useForgotNotesPasswordMutation();
@@ -94,7 +95,7 @@ export default function ForgotPassword({
     return () => {
       clearTimeout(timer);
     };
-  }, [isModalVisible]);
+  }, [isModalVisible, navigation]);
   const { dynamicStyles } = useStyles(styles);
   const { Colors } = useTheme();
   return (
@@ -124,7 +125,7 @@ export default function ForgotPassword({
           style={dynamicStyles.cross}
           onPress={() => setIsModalVisible(false)}
         >
-          <Entypo name="cross" size={26} color={Colors.icon} />
+          <Entypo name="cross" size={26} color={Colors.iconPrimary} />
         </TouchableOpacity>
       </Modal>
       <KeyboardAwareScrollView style={dynamicStyles.container}>
@@ -138,7 +139,7 @@ export default function ForgotPassword({
           render={({ field: { onChange, value, onBlur } }) => (
             <CustomInput
               text="Email address*"
-              placeholder="Emaill"
+              placeholder="Email"
               color={Colors.placeholder}
               value={value}
               onChangeText={onChange}

@@ -31,7 +31,7 @@ const styles = (Colors: ThemeColors) =>
       alignContent: "center",
     },
     pressableText: {
-      color: Colors.textPrimary,
+      color: Colors.textOnPrimary,
       fontWeight: "700",
       fontSize: 18,
       textAlign: "center",

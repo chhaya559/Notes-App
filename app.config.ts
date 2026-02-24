@@ -44,10 +44,10 @@ const config: ExpoConfig = {
     },
   },
   android: {
-    adaptiveIcon: {
-      foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#ffffff",
-    },
+    // adaptiveIcon: {
+    //   foregroundImage: "./assets/adaptive-icon.png",
+    //   backgroundColor: "#ffffff",
+    // },
     package: BUNDLE_IDENTIFIER,
     googleServicesFile: "./google-services.json",
     permissions: [

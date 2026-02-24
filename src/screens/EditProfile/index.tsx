@@ -2,7 +2,7 @@ import CustomInput from "@components/atoms/CustomInput";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { AppDispatch, RootState } from "@redux/store";
 import { Controller, useForm } from "react-hook-form";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { EditSchema } from "src/validations/EditProfile";
 import styles from "./style";
@@ -26,7 +26,7 @@ export default function EditProfile({
   console.log(username, "userbaneysbrhj");
   const firstName = useSelector((state: RootState) => state.auth.firstName);
   const lastName = useSelector((state: RootState) => state.auth.lastName);
-  const [editApi] = useEditUserMutation();
+  const [editApi, { isLoading }] = useEditUserMutation();
   const dispatch = useDispatch<AppDispatch>();
   const {
     control,
@@ -136,7 +136,9 @@ export default function EditProfile({
         style={dynamicStyles.pressable}
         onPress={handleSubmit(handle)}
       >
-        <Text style={dynamicStyles.pressableText}>Update Profile</Text>
+        <Text style={dynamicStyles.pressableText}>
+          {isLoading ? "Updating Profile..." : "Update Profile"}
+        </Text>
       </TouchableOpacity>
     </KeyboardAwareScrollView>
   );

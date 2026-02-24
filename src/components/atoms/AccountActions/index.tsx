@@ -170,7 +170,9 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
             </View>
             <TouchableOpacity
               style={dynamicStyles.actionIcon}
-              onPress={() => navigation.navigate("ForgotPassword")}
+              onPress={() =>
+                navigation.navigate("ForgotPassword", { name: "notes" })
+              }
             >
               <SimpleLineIcons
                 name="arrow-right"

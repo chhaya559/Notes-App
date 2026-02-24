@@ -15,15 +15,16 @@ const styles = (Colors: ThemeColors) =>
       marginBottom: 20,
     },
     pressable: {
-      backgroundColor: "#5757f8",
+      backgroundColor: Colors.primary,
       margin: 15,
       borderRadius: 10,
       padding: 12,
     },
     updateText: {
-      color: "#fff",
+      color: Colors.textOnPrimary,
       textAlign: "center",
-      fontSize: 20,
+      fontSize: 18,
+      fontWeight: "700",
     },
     error: {
       textAlign: "left",

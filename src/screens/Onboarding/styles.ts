@@ -38,7 +38,8 @@ const styles = (Colors: ThemeColors) =>
     },
     guestText: {
       color: Colors.primary,
-      fontSize: 20,
+      fontWeight: "700",
+      fontSize: 18,
       textAlign: "center",
       alignItems: "center",
     },
@@ -52,9 +53,10 @@ const styles = (Colors: ThemeColors) =>
       borderColor: Colors.primaryBorder,
     },
     createText: {
-      fontSize: 20,
+      fontSize: 18,
       textAlign: "center",
       color: Colors.primary,
+      fontWeight: "700",
     },
     signin: {
       marginBottom: 10,
@@ -65,9 +67,10 @@ const styles = (Colors: ThemeColors) =>
       width: "100%",
     },
     signinText: {
-      fontSize: 20,
+      fontSize: 18,
       textAlign: "center",
       color: Colors.textOnPrimary,
+      fontWeight: "700",
     },
     innerContainer: {
       marginTop: 50,

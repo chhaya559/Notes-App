@@ -134,6 +134,9 @@ const RootNavigator = () => {
               <Stack.Screen
                 name={ROUTES.FORGOTPASSWORD}
                 component={ForgotPassword}
+                // options={() => ({
+                //   title: "Change Notes Password",
+                // })}
               />
             </Stack.Group>
           </Stack.Navigator>

@@ -1,8 +1,6 @@
 import {
   ActivityIndicator,
   FlatList,
-  Image,
-  RefreshControl,
   Text,
   TextInput,
   TouchableOpacity,
@@ -18,6 +16,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import {
+  useDeleteMutation,
   useGetQuery,
   useSaveNoteMutation,
   useSearchNotesQuery,
@@ -32,17 +31,15 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useNetInfo } from "@react-native-community/netinfo";
 import useDebounce from "src/debounce/debounce";
 import { lockNotes } from "@redux/slice/authSlice";
-import { useFocusEffect, useRoute } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
-import { LinearGradient } from "expo-linear-gradient";
 import { createPendingTable } from "src/db/pendingNotes/pendingTable";
 import { pendingNotes } from "src/db/pendingNotes/schema";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
 
 export function Dashboard({ navigation }: Readonly<DashboardProps>) {
-  const [notes, setNotes] = useState<any[]>([]);
   const [allNotes, setAllNotes] = useState<any[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -52,10 +49,8 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const { dynamicStyles } = useStyles(styles);
   const [editApi] = useUpdateMutation();
   const [saveApi] = useSaveNoteMutation();
-  const { Colors, darkMode } = useTheme();
-  const isNotesUnlocked = useSelector(
-    (state: RootState) => state.auth.isNotesUnlocked,
-  );
+  const [deleteApi] = useDeleteMutation();
+  const { Colors } = useTheme();
 
   function clearSearchText() {
     setSearchText("");
@@ -65,7 +60,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     createPendingTable();
   }, []);
 
-  const { data, refetch, isFetching } = useGetQuery<any>(
+  const { data, isFetching } = useGetQuery<any>(
     {
       pageSize: 10,
       pageNumber: page,
@@ -105,22 +100,21 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     return () => clearTimeout(timer);
   }, [notesUnlockUntil]);
 
-  useEffect(() => {
-    if (isConnected) {
-      syncOnlineFlow();
-    } else {
-      showNotesFromCombinedDB();
-    }
-  }, [data, isConnected, page]);
+  useFocusEffect(
+    useCallback(() => {
+      if (isConnected) {
+        syncOnlineFlow();
+      } else {
+        showNotesFromCombinedDB();
+      }
+    }, [data, isConnected, page]),
+  );
 
-  async function syncOnlineFlow() {
-    await syncPendingNotesToBackend();
-
-    await moveDataToLocalDB();
-
-    const localNotes = await db.select().from(notesTable);
-
-    setAllNotes(localNotes);
+  function syncOnlineFlow() {
+    syncPendingNotesToBackend();
+    console.log("mving to local");
+    moveDataToLocalDB();
+    console.log("heyyy");
   }
 
   async function syncPendingNotesToBackend() {
@@ -134,19 +128,25 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
           await saveApi({
             title: note.title,
             content: note.content,
-            updatedAt: note.updatedAt,
-            filePaths: note.filePaths,
+            filePaths: JSON.parse(note.filePaths || "[]"),
           }).unwrap();
         }
 
         if (note.syncStatus === 2) {
-          await editApi({
+          console.log("note to edit", note);
+          const res = await editApi({
             id: note.id,
             title: note.title,
             content: note.content,
-            updatedAt: note.updatedAt,
-            filePaths: note.filePaths,
+            filePaths: JSON.parse(note.filePaths || "[]"),
           }).unwrap();
+          console.log(res, "editediteditedit");
+        }
+
+        if (note.syncStatus === 3) {
+          const res = await deleteApi({ id: note.id }).unwrap();
+          console.log(res, "resresres");
+          await db.delete(notesTable).where(eq(notesTable.id, note.id));
         }
 
         await pendingDb
@@ -156,12 +156,15 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         console.log("Sync failed", e);
       }
     }
-  }
 
+    await showNotesFromCombinedDB();
+  }
   async function moveDataToLocalDB() {
     if (!data?.data) return;
 
     for (const note of data.data) {
+      console.log(note, "notenotenotneonteo");
+
       await db
         .insert(notesTable)
         .values({
@@ -169,7 +172,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
           title: note.title,
           content: note.content,
           updatedAt: note.updatedAt,
-          filePaths: note.filePaths,
+          filePaths: JSON.stringify(note.filePaths ?? []),
           userId: userId,
           isPasswordProtected: note.isPasswordProtected,
           isReminderSet: note.isReminderSet,
@@ -180,43 +183,46 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             title: note.title,
             content: note.content,
             updatedAt: note.updatedAt,
-            filePaths: note.filePaths,
+            filePaths: JSON.stringify(note.filePaths ?? []),
           },
         });
     }
 
     const localNotes = await db.select().from(notesTable);
+    console.log(localNotes, "locallocallocal");
 
     setAllNotes(localNotes);
   }
-
   async function showNotesFromCombinedDB() {
     const localNotes = await db.select().from(notesTable);
-
+    console.log("locallocallocalaco", localNotes);
     const pending = await pendingDb.select().from(pendingNotes);
+    console.log("pendingpendingpenidng", pending);
 
     const pendingMap = new Map();
+    const deletedSet = new Set();
 
     pending.forEach((note) => {
-      pendingMap.set(note.id, note);
-    });
-
-    const merged = localNotes.map((note) => {
-      if (pendingMap.has(note.id)) {
-        return pendingMap.get(note.id);
+      if (note.syncStatus === 3) {
+        deletedSet.add(note.id);
+      } else {
+        pendingMap.set(note.id, note);
       }
-      return note;
     });
 
+    const merged = localNotes
+      .filter((note) => !deletedSet.has(note.id))
+      .map((note) => pendingMap.get(note.id) || note);
+
     pending.forEach((note) => {
-      if (!localNotes.find((n) => n.id === note.id)) {
+      if (note.syncStatus !== 3 && !localNotes.find((n) => n.id === note.id)) {
         merged.push(note);
       }
     });
 
     setAllNotes(merged);
   }
-  //header
+
   useEffect(() => {
     navigation.setOptions({
       headerStyle: {
@@ -236,7 +242,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const displayNotes = isSearching
     ? (SearchedNotes?.data ?? [])
     : (allNotes ?? []);
-
   return (
     <View style={dynamicStyles.container}>
       <View style={dynamicStyles.static}>
@@ -247,6 +252,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         </Text>
       </View>
       {/* Search*/}
+
       {data?.data?.length > 0 && (
         <View
           style={[dynamicStyles.SearchBar, isFocused && dynamicStyles.focus]}
@@ -289,7 +295,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         bounces={false}
         keyExtractor={(item) => item.id}
         scrollEnabled={displayNotes.length > 0}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: 0 }}
         renderItem={({ item }) => (
           <Card
             key={item.id}
@@ -300,6 +306,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             isPasswordProtected={item.isPasswordProtected}
             isReminderSet={item.isReminderSet}
             isLocked={item.isLocked}
+            onDeleteSuccess={showNotesFromCombinedDB}
           />
         )}
         onEndReached={loadMore}

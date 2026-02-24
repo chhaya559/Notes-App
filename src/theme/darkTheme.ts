@@ -57,8 +57,10 @@ export const DarkColors = {
 
   iconOnPrimary: "#FFFFFF",
 
-  iconSoftBg: "#1A2140",
+  iconSoftBg: "#35415dff",
+  // iconSoftBg: "#273046",
 
+  // iconSoftBg: "rgba(129,140,248,0.12)",
   // =========================
   // FAB
   // =========================

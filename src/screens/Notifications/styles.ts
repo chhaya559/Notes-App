@@ -43,22 +43,28 @@ const styles = (Colors: ThemeColors) =>
       borderRadius: 20,
       marginTop: 10,
     },
-    buttons: {
-      // flexDirection: "row",
-      // justifyContent: "space-between",
-
-      // backgroundColor: Colors.surfaceSoft,
-      // padding: 2,
-      // marginBottom: 20,
-      // borderRadius: 25,
+    buttonsWrapper: {
+      flexDirection: "row",
+      justifyContent: "space-evenly",
+      marginBottom: 10,
+    },
+    operations: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      backgroundColor: Colors.surface,
       borderRadius: 12,
-      paddingVertical: 6,
+      paddingVertical: 0,
       paddingHorizontal: 4,
-      marginBottom: 15,
+      gap: 5,
+    },
+    buttons: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderRadius: 10,
+      paddingVertical: 2,
+      paddingHorizontal: 6,
+      gap: 5,
     },
     text: {
       color: Colors.textSecondary,
@@ -75,9 +81,14 @@ const styles = (Colors: ThemeColors) =>
       paddingHorizontal: 14,
       borderRadius: 8,
       // backgroundColor: Colors.surface,
+      borderColor: Colors.primaryBorder,
+      borderWidth: 1,
     },
     activeTouchable: {
       backgroundColor: Colors.primary,
+    },
+    activeOperation: {
+      borderWidth: 2,
     },
     activeText: {
       color: Colors.textOnPrimary,
@@ -131,7 +142,7 @@ const styles = (Colors: ThemeColors) =>
       // position: "absolute",
     },
     swipe: {
-      backgroundColor: Colors.swipeDeleteBg,
+      backgroundColor: Colors.deleteBg,
       padding: 15,
       borderRadius: 20,
       elevation: 3,

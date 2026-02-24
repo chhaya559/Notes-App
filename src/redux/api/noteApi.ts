@@ -6,7 +6,6 @@ export const noteApi = createApi({
     baseUrl: "https://cloudnotes.clashhub.online/api",
     prepareHeaders: (headers, { getState }) => {
       const token = (getState() as RootState).auth.token;
-
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }

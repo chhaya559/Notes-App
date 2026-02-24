@@ -39,8 +39,9 @@ import { notesTable } from "src/db/schema";
 import Toast from "react-native-toast-message";
 import { db, pendingDb } from "src/db/notes";
 import { useSelector } from "react-redux";
+import Modal from "react-native-modal";
 import { RootState } from "@redux/store";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
   AntDesign,
   Entypo,
@@ -55,7 +56,6 @@ import useDebounce from "src/debounce/debounce";
 import FileViewer from "react-native-file-viewer";
 import useTheme from "@hooks/useTheme";
 import useStyles from "@hooks/useStyles";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { pendingNotes } from "src/db/pendingNotes/schema";
 
 type CreateNoteProps = NativeStackScreenProps<RootStackParamList, "CreateNote">;
@@ -76,10 +76,7 @@ export default function CreateNote({
       setIsGuest(isGuestFromStore);
     }, [isGuestFromStore]),
   );
-  const hasNotePasswordStore = useSelector(
-    (state: RootState) => state.auth.isCommonPasswordSet,
-  );
-  const [hasNotePassword, setHasNotePassword] = useState(hasNotePasswordStore);
+
   const appState = useRef(AppState.currentState);
 
   useEffect(() => {
@@ -97,7 +94,7 @@ export default function CreateNote({
     return () => {
       subscription.remove();
     };
-  }, []);
+  }, [handleSave]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", () => {
@@ -113,13 +110,8 @@ export default function CreateNote({
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, handleSave]);
 
-  useFocusEffect(
-    useCallback(() => {
-      setHasNotePassword(hasNotePasswordStore);
-    }, [hasNotePasswordStore]),
-  );
   const { isConnected } = useNetInfo();
 
   const [activeOption, setActiveOption] = useState<
@@ -134,13 +126,13 @@ export default function CreateNote({
   const [saveApi] = useSaveNoteMutation();
   const [editApi] = useUpdateMutation();
   const [deleteApi] = useDeleteMutation();
-  const [uploadApi] = useUploadFileMutation();
+  const [uploadApi, { isLoading: fileUploading }] = useUploadFileMutation();
   const [deleteFile] = useRemoveFileMutation();
 
   const [notes, setNotes] = useState({
     id: "",
-    title: route?.params?.title,
-    content: route?.params?.content,
+    title: route?.params?.title ?? "",
+    content: route?.params?.content ?? "",
     isPasswordProtected: false,
     isReminderSet: null,
     isLocked: false,
@@ -149,10 +141,15 @@ export default function CreateNote({
     route?.params?.id ?? null,
   );
   const [noteId, setNoteId] = useState(localNoteId);
-  const { data: NotesData, refetch } = useGetNoteByIdQuery(
+  const { data: NotesData } = useGetNoteByIdQuery(
     { id: String(noteId) },
     { skip: !noteId, refetchOnFocus: true },
   );
+  useEffect(() => {
+    if (fileUploading) {
+      console.log("dkeohfalfnakl");
+    }
+  }, [fileUploading]);
   const [AISummary] = useAiSummaryMutation();
   const [aiSummary, setAiSummary] = useState("");
   async function generateSummary() {
@@ -163,13 +160,6 @@ export default function CreateNote({
       console.log("Error generating AI summary: ", error);
     }
   }
-  useFocusEffect(
-    useCallback(() => {
-      if (noteId) {
-        refetch();
-      }
-    }, [noteId]),
-  );
 
   const isEditMode = !!noteId;
 
@@ -202,8 +192,7 @@ export default function CreateNote({
       setIsReminder(true);
     }
   }, [NotesData?.data?.isReminderSet]);
-
-  const isDeletingRef = useRef(false);
+  const isSavingInProgress = useRef(false);
   const isSavedRef = useRef(false);
 
   const [existingFiles, setExistingFiles] = useState<string[]>([]);
@@ -214,6 +203,14 @@ export default function CreateNote({
       const result = await pick({
         allowMultiSelection: true,
         allowVirtualFiles: true,
+        type: [
+          "image/*",
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "application/vnd.ms-excel",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ],
       });
 
       setFiles((prev) => [...prev, ...result]);
@@ -292,30 +289,31 @@ export default function CreateNote({
   }
 
   async function handleSave(navigate = true) {
+    // the below code is mine
+    // console.log(isSavingInProgress.current, "savngaivng");
+    // if (isSavingInProgress.current) return;
+    console.log("asving");
     try {
+      isSavingInProgress.current = true;
       if (navigate) {
-        if (!notes.title && !notes.content) {
+        if (!notesRef.current?.title && !notesRef.current?.content) {
           Toast.show({
             text1: "Your note needs at least a title or content",
           });
           return;
         }
-        if (!notes.title) {
-          setNotes((prev) => ({ ...prev, title: "New Note" }));
-        }
       }
       console.log("heyy");
 
       const filePaths = existingFiles;
-      const id = noteId ?? uuidv4();
+      const id = noteId ?? localNoteId ?? uuidv4();
 
-      if (!localNoteId) {
-        setLocalNoteId(id);
-      }
+      if (!noteId) setNoteId(id);
+      if (!localNoteId) setLocalNoteId(id);
 
       const payload = {
         id: id,
-        title: notesRef.current?.title ?? "",
+        title: notesRef.current?.title,
         content: notesRef.current?.content ?? "",
         isPasswordProtected: notesRef.current?.isPasswordProtected,
         isLocked: notesRef.current?.isLocked,
@@ -326,20 +324,18 @@ export default function CreateNote({
         if (isConnected) {
           await editApi(payload).unwrap();
         } else {
-          saveToPendingDB(filePaths, 2);
+          saveToPendingDB(2, filePaths);
         }
+      } else if (isConnected) {
+        const res = await saveApi(payload).unwrap();
+        setNoteId(res?.data?.id);
+        console.log(res?.data?.id);
       } else {
-        if (isConnected) {
-          const res = await saveApi(payload).unwrap();
-          setNoteId(res?.data?.id);
-          console.log(res?.data?.id);
-        } else {
-          saveToPendingDB(filePaths, 1);
-        }
+        saveToPendingDB(1, filePaths);
       }
+
       isSavedRef.current = true;
       if (navigate) {
-        isSavedRef.current = true;
         navigation.goBack();
       }
     } catch (error: any) {
@@ -367,13 +363,29 @@ export default function CreateNote({
         return;
       }
       if (!userId) throw new Error("userID is not correct");
-      await db
-        .delete(notesTable)
-        .where(and(eq(notesTable.id, noteId), eq(notesTable.userId, userId)));
-      console.log("note deleted from local db");
-      isDeletingRef.current = true;
       if (isConnected) {
         await deleteApi({ id: noteId }).unwrap();
+        await db.delete(notesTable).where(eq(notesTable.id, noteId));
+      } else {
+        await pendingDb
+          .insert(pendingNotes)
+          .values({
+            id: noteId,
+            userId,
+            syncStatus: 3,
+          })
+          .onConflictDoUpdate({
+            target: pendingNotes.id,
+            set: {
+              syncStatus: 3,
+            },
+          });
+        console.log(
+          "pendingdelete",
+          await pendingDb.select().from(pendingNotes),
+        );
+        await db.delete(notesTable).where(eq(notesTable.id, noteId));
+        console.log("notes in local", await db.select().from(notesTable));
       }
       Toast.show({
         text1: "Deleted",
@@ -396,25 +408,26 @@ export default function CreateNote({
         {
           text: "Delete",
           style: "destructive",
-          onPress: () => handleDelete(),
+          onPress: () => void handleDelete(),
         },
       ],
       { cancelable: true },
     );
   }
 
-  async function saveToPendingDB(filePaths: string[] = [], status: number) {
+  async function saveToPendingDB(status: number, filePaths: string[] = []) {
     const id = noteId ?? uuidv4();
 
-    console.log("inside pending");
+    const title = notesRef.current?.title ?? "";
+    const content = notesRef.current?.content ?? "";
 
     await pendingDb
       .insert(pendingNotes)
       .values({
         id,
         userId,
-        title: notes.title,
-        content: notes.content,
+        title,
+        content,
         updatedAt: new Date().toISOString(),
         filePaths: JSON.stringify(filePaths),
         syncStatus: status,
@@ -422,18 +435,15 @@ export default function CreateNote({
       .onConflictDoUpdate({
         target: pendingNotes.id,
         set: {
-          title: notes.title,
-          content: notes.content,
+          title,
+          content,
           updatedAt: new Date().toISOString(),
           syncStatus: status,
           filePaths: JSON.stringify(filePaths),
         },
       });
 
-    console.log("saved to pending notes");
-
-    const data = await pendingDb.select().from(pendingNotes);
-    console.log("Pending notes:", data);
+    console.log("Pending notes saved");
   }
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -483,9 +493,14 @@ export default function CreateNote({
   );
 
   useEffect(() => {
-    if (!debouncedNotes.title && !debouncedNotes.content) return;
+    const hasContent =
+      debouncedNotes.title?.trim() ||
+      debouncedNotes.content?.replaceAll(/<(.|\n)*?>/g, "").trim();
+
+    if (!hasContent) return;
     handleSave(false);
   }, [debouncedNotes.title, debouncedNotes.content]);
+
   const scrollRef = useRef<ScrollView | null>(null);
 
   useEffect(() => {
@@ -495,7 +510,6 @@ export default function CreateNote({
   }, []);
 
   const richText = useRef<RichEditor | null>(null);
-  const insets = useSafeAreaInsets();
 
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   useEffect(() => {
@@ -555,6 +569,7 @@ export default function CreateNote({
                 backgroundColor: Colors.background,
                 color: Colors.textPrimary,
                 caretColor: Colors.primary,
+                placeholderColor: Colors.placeholder,
               }}
               initialFocus={true}
               // initialHeight={570}
@@ -569,30 +584,6 @@ export default function CreateNote({
               keyExtractor={(item, index) => index.toString()}
               horizontal
               bounces={false}
-              // renderItem={({ item }) => (
-              //   <TouchableOpacity
-              //     onPress={() => openFile(item)}
-              //     activeOpacity={0.7}
-              //     style={dynamicStyles.fileContainer}
-              //   >
-              //     <Text style={{ color: Colors.textSecondary }}>
-              //       {item.name}
-              //     </Text>
-              //     <Text style={dynamicStyles.imageSize}>
-              //       {((item.size ?? 0) / 1024).toFixed(1)} KB
-              //     </Text>
-              //     <TouchableOpacity
-              //       style={dynamicStyles.close}
-              //       onPress={() => removeFile(item)}
-              //     >
-              //       <AntDesign
-              //         name="close"
-              //         size={12}
-              //         color={Colors.iconMuted}
-              //       />
-              //     </TouchableOpacity>
-              //   </TouchableOpacity>
-              // )}
               renderItem={({ item }) => {
                 const isImage = item.type?.startsWith("image");
 
@@ -602,26 +593,32 @@ export default function CreateNote({
                     style={dynamicStyles.fileContainer}
                   >
                     {isImage ? (
-                      <Image
-                        source={{ uri: item.uri }}
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 6,
-                          marginBottom: 4,
-                        }}
-                      />
+                      <>
+                        <Image
+                          source={{ uri: item.uri }}
+                          style={{
+                            width: 60,
+                            height: 60,
+                            borderRadius: 6,
+                            marginBottom: 4,
+                          }}
+                        />
+                        {/* <Text style={{ color: Colors.textSecondary }}>
+                          {item.name}
+                        </Text> */}
+                      </>
                     ) : (
-                      <MaterialCommunityIcons
-                        name="file-document-outline"
-                        size={40}
-                        color={Colors.iconPrimary}
-                      />
+                      <>
+                        <MaterialCommunityIcons
+                          name="file-document-outline"
+                          size={40}
+                          color={Colors.iconPrimary}
+                        />
+                        <Text style={{ color: Colors.textSecondary }}>
+                          {item.name}
+                        </Text>
+                      </>
                     )}
-
-                    <Text style={{ color: Colors.textSecondary }}>
-                      {item.name}
-                    </Text>
 
                     <Text style={dynamicStyles.imageSize}>
                       {((item.size ?? 0) / 1024).toFixed(1)} KB
@@ -701,31 +698,17 @@ export default function CreateNote({
         </View>
 
         {previewImage && (
-          <View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              // backgroundColor: "rgba(0,0,0,0.9)",
-              justifyContent: "center",
-              alignItems: "center",
-              zIndex: 100,
-            }}
+          <Modal
+            isVisible={Boolean(previewImage)}
+            onBackdropPress={() => setPreviewImage(null)}
           >
-            <TouchableOpacity
-              style={{ position: "absolute", top: 40, right: 20 }}
-              onPress={() => setPreviewImage(null)}
-            >
-              <AntDesign name="close" size={28} color={Colors.iconPrimary} />
-            </TouchableOpacity>
-
-            <Image
-              source={{ uri: previewImage }}
-              style={{ width: "90%", height: "80%", resizeMode: "contain" }}
-            />
-          </View>
+            <View>
+              <Image
+                source={{ uri: previewImage }}
+                style={{ width: "90%", height: "90%", resizeMode: "contain" }}
+              />
+            </View>
+          </Modal>
         )}
 
         {activeOption == "text" && (
@@ -816,7 +799,7 @@ export default function CreateNote({
                 position: "absolute",
                 left: 0,
                 right: 0,
-                bottom: keyboardHeight > 0 ? keyboardHeight : 0,
+                bottom: Math.max(keyboardHeight, 0),
                 backgroundColor: Colors.surface,
                 paddingBottom: 10,
                 paddingTop: 10,
@@ -851,7 +834,7 @@ export default function CreateNote({
             <TouchableOpacity
               style={[
                 dynamicStyles.optionButton,
-                { opacity: isEditMode || isGuest ? 1 : 0.5 },
+                { opacity: isEditMode && !isGuest ? 1 : 0.5 },
               ]}
               onPress={() => {
                 generateSummary();
@@ -868,7 +851,7 @@ export default function CreateNote({
             <TouchableOpacity
               style={[
                 dynamicStyles.optionButton,
-                { opacity: isEditMode || isGuest ? 1 : 0.5 },
+                { opacity: isEditMode && !isGuest ? 1 : 0.5 },
               ]}
               onPress={() => {
                 handleToggle("reminder");

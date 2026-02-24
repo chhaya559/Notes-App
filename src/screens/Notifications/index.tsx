@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Modal from "react-native-modal";
 import { AntDesign, Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
@@ -64,7 +70,7 @@ export default function Notifications() {
   async function openDetails(item: any) {
     setSelectedNotification(item);
     setShowDetailedNotification(true);
-
+    console.log(item, "itemitemitem");
     if (!item.isRead) {
       try {
         await markReadApi({ id: item.id }).unwrap();
@@ -127,118 +133,110 @@ export default function Notifications() {
   const { dynamicStyles } = useStyles(styles);
   const { Colors } = useTheme();
   const [filter, setFilter] = useState<"all" | "unread">("all");
-
-  const [activeAction, setActiveAction] = useState<"" | "readAll" | "clearAll">(
-    "",
-  );
+  const [isReadPressed, setIsReadPressed] = useState(false);
+  const [isClearPressed, setIsClearPressed] = useState(false);
 
   const filteredNotifications =
     filter === "all"
       ? allNotifications
       : allNotifications.filter((item) => !item.isRead);
 
+  const [firstLoad, setFirstLoad] = useState(true);
+
+  useEffect(() => {
+    if (!isFetching) {
+      setFirstLoad(false);
+    }
+  }, [isFetching]);
+
+  if (firstLoad && isFetching) {
+    return (
+      <View style={{ marginTop: 20 }}>
+        <ActivityIndicator size="large" color={Colors.iconPrimary} />
+      </View>
+    );
+  }
+
   return (
     <View style={dynamicStyles.container}>
       {allNotifications.length > 0 && (
-        <View style={dynamicStyles.buttons}>
-          {/* ALL FILTER */}
-          <TouchableOpacity
-            style={[
-              dynamicStyles.touchable,
-              filter === "all" && dynamicStyles.activeTouchable,
-            ]}
-            onPress={() => {
-              setFilter("all");
-              setActiveAction(""); // reset action
-            }}
-          >
-            <Text
+        <View style={dynamicStyles.buttonsWrapper}>
+          <View style={dynamicStyles.buttons}>
+            {/* ALL FILTER */}
+            <TouchableOpacity
               style={[
-                dynamicStyles.text,
-                filter === "all" && dynamicStyles.activeText,
+                dynamicStyles.touchable,
+                filter === "all" && dynamicStyles.activeTouchable,
               ]}
+              onPress={() => {
+                setFilter("all");
+              }}
             >
-              All
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[
+                  dynamicStyles.text,
+                  filter === "all" && dynamicStyles.activeText,
+                ]}
+              >
+                All
+              </Text>
+            </TouchableOpacity>
 
-          <View style={dynamicStyles.line} />
-
-          {/* UNREAD FILTER */}
-          <TouchableOpacity
-            style={[
-              dynamicStyles.touchable,
-              filter === "unread" && dynamicStyles.activeTouchable,
-            ]}
-            onPress={() => {
-              setFilter("unread");
-              setActiveAction("");
-            }}
-          >
-            <Text
+            {/* UNREAD FILTER */}
+            <TouchableOpacity
               style={[
-                dynamicStyles.text,
-                filter === "unread" && dynamicStyles.activeText,
+                dynamicStyles.touchable,
+                filter === "unread" && dynamicStyles.activeTouchable,
               ]}
+              onPress={() => {
+                setFilter("unread");
+              }}
             >
-              Unread
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[
+                  dynamicStyles.text,
+                  filter === "unread" && dynamicStyles.activeText,
+                ]}
+              >
+                Unread
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-          <View style={dynamicStyles.line} />
-
-          {/* READ ALL ACTION */}
-          <TouchableOpacity
-            style={[
-              dynamicStyles.touchable,
-              activeAction === "readAll" && dynamicStyles.activeTouchable,
-            ]}
-            onPress={() => {
-              readAll();
-              setActiveAction("readAll");
-
-              // optional reset after 1.5 sec
-              setTimeout(() => {
-                setActiveAction("");
-              }, 1500);
-            }}
-          >
-            <Text
-              style={[
-                dynamicStyles.text,
-                activeAction === "readAll" && dynamicStyles.activeText,
-              ]}
+          <View style={dynamicStyles.operations}>
+            <TouchableOpacity
+              style={
+                isReadPressed
+                  ? dynamicStyles.activeOperation
+                  : dynamicStyles.touchable
+              }
+              onPress={() => {
+                readAll();
+              }}
+              // onPressIn={() => setIsReadPressed(true)}
+              // onPressOut={() => setIsReadPressed(false)}
             >
-              Read All
-            </Text>
-          </TouchableOpacity>
+              <Text style={[dynamicStyles.text]}>Read All</Text>
+            </TouchableOpacity>
 
-          <View style={dynamicStyles.line} />
+            {/* <View style={dynamicStyles.line} /> */}
 
-          {/* CLEAR ALL ACTION */}
-          <TouchableOpacity
-            style={[
-              dynamicStyles.touchable,
-              activeAction === "clearAll" && dynamicStyles.activeTouchable,
-            ]}
-            onPress={() => {
-              clearAll();
-              setActiveAction("clearAll");
-
-              setTimeout(() => {
-                setActiveAction("");
-              }, 1500);
-            }}
-          >
-            <Text
-              style={[
-                dynamicStyles.text,
-                activeAction === "clearAll" && dynamicStyles.activeText,
-              ]}
+            {/* CLEAR ALL ACTION */}
+            <TouchableOpacity
+              style={
+                isClearPressed
+                  ? dynamicStyles.activeOperation
+                  : dynamicStyles.touchable
+              }
+              onPress={() => {
+                clearAll();
+              }}
+              onPressIn={() => setIsClearPressed(true)}
+              onPressOut={() => setIsClearPressed(false)}
             >
-              Clear All
-            </Text>
-          </TouchableOpacity>
+              <Text style={[dynamicStyles.text]}>Clear All</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
@@ -313,12 +311,12 @@ export default function Notifications() {
             onPress={() => setShowDetailedNotification(false)}
             style={dynamicStyles.close}
           >
-            <AntDesign name="close" size={20} color={Colors.icon} />
+            <AntDesign name="close" size={20} color={Colors.iconPrimary} />
           </TouchableOpacity>
           <Ionicons
             name="notifications-circle"
             size={70}
-            color={Colors.icon}
+            color={Colors.iconPrimary}
             style={dynamicStyles.icon}
           />
 
