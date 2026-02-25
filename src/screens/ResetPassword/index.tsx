@@ -1,8 +1,8 @@
 import CustomInput from "@components/atoms/CustomInput";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity } from "react-native";
 import styles from "./styles";
 import Toast from "react-native-toast-message";
 import {

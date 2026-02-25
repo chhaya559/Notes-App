@@ -77,40 +77,41 @@ export default function CreateNote({
     }, [isGuestFromStore]),
   );
 
-  const appState = useRef(AppState.currentState);
+  //------------------------------- save on app in background & back-----------------------
+  // const appState = useRef(AppState.currentState);
+  // useEffect(() => {
+  //   const subscription = AppState.addEventListener("change", (nextState) => {
+  //     if (isSavedRef.current) {
+  //       return;
+  //     }
+  //     if (nextState.match(/inactive|background/)) {
+  //       console.log("listener");
+  //       handleSave(false);
+  //     }
+  //     appState.current = nextState;
+  //   });
 
-  useEffect(() => {
-    const subscription = AppState.addEventListener("change", (nextState) => {
-      if (isSavedRef.current) {
-        return;
-      }
-      if (nextState.match(/inactive|background/)) {
-        console.log("listener");
-        handleSave(false);
-      }
-      appState.current = nextState;
-    });
+  //   return () => {
+  //     subscription.remove();
+  //   };
+  // }, [handleSave]);
 
-    return () => {
-      subscription.remove();
-    };
-  }, [handleSave]);
+  //---------------------------- save on back -----------------------
+  // useEffect(() => {
+  //   const unsubscribe = navigation.addListener("beforeRemove", () => {
+  //     if (isSavedRef.current) return;
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("beforeRemove", () => {
-      if (isSavedRef.current) return;
+  //     const isEmpty =
+  //       !notesRef.current?.title?.trim() &&
+  //       !notesRef.current?.content?.replaceAll(/<(.|\n)*?>/g, "").trim();
 
-      const isEmpty =
-        !notesRef.current?.title?.trim() &&
-        !notesRef.current?.content?.replaceAll(/<(.|\n)*?>/g, "").trim();
+  //     if (isEmpty) return;
 
-      if (isEmpty) return;
+  //     handleSave(false);
+  //   });
 
-      handleSave(false);
-    });
-
-    return unsubscribe;
-  }, [navigation, handleSave]);
+  //   return unsubscribe;
+  // }, [navigation, handleSave]);
 
   const { isConnected } = useNetInfo();
 
@@ -155,7 +156,7 @@ export default function CreateNote({
         .where(eq(notesTable.id, noteId));
 
       if (local.length > 0) {
-        const filePaths = JSON.parse(local[0].filePaths || "[]");
+        const filePaths: any = JSON.parse(local[0].filePaths || "[]");
 
         setExistingFiles(filePaths);
       }
@@ -307,14 +308,11 @@ export default function CreateNote({
 
     return uploadedPaths;
   }
-
+  const [offlineId, setOfflineId] = useState(null);
   async function handleSave(navigate = true) {
-    // the below code is mine
-    // console.log(isSavingInProgress.current, "savngaivng");
-    // if (isSavingInProgress.current) return;
-    console.log("asving");
+    console.log("saving");
+    const isNetConnected = isConnected;
     try {
-      isSavingInProgress.current = true;
       if (navigate) {
         if (!notesRef.current?.title && !notesRef.current?.content) {
           Toast.show({
@@ -322,12 +320,15 @@ export default function CreateNote({
           });
           return;
         }
+        if (!notesRef.current?.title) {
+          notesRef.current.title = "New Note";
+        }
       }
-      console.log("heyy");
+
+      console.log(isEditMode, "mmode");
 
       const filePaths = existingFiles;
       const id = noteId ?? localNoteId ?? uuidv4();
-
       if (!noteId) setNoteId(id);
       if (!localNoteId) setLocalNoteId(id);
 
@@ -340,33 +341,49 @@ export default function CreateNote({
         isReminderSet: isReminder,
         filePaths: filePaths ?? [],
       };
+
       if (isEditMode || noteId) {
-        if (isConnected) {
-          await editApi(payload).unwrap();
+        if (isNetConnected) {
+          const res = await editApi(payload).unwrap();
+          await pendingDb.delete(pendingNotes).where(eq(pendingNotes.id, id));
+          await db
+            .update(notesTable)
+            .set({
+              title: payload.title,
+              content: payload.content,
+              updatedAt: new Date().toISOString(),
+              filePaths: JSON.stringify(filePaths ?? []),
+            })
+            .where(eq(notesTable.id, id));
+          console.log(res);
         } else {
-          saveToPendingDB(2, filePaths);
+          saveToPendingDB(2, filePaths, offlineId);
         }
-      } else if (isConnected) {
-        //const res = await saveApi(payload).unwrap();
-        const res = await saveApi(payload).unwrap();
-
-        await db.insert(notesTable).values({
-          id: res.data.id,
-          userId,
-          title: payload.title,
-          content: payload.content,
-          updatedAt: new Date().toISOString(),
-          filePaths: JSON.stringify(payload.filePaths),
-          syncStatus: "synced",
-        });
-        setNoteId(res?.data?.id);
-        console.log(res?.data?.id);
       } else {
-        saveToPendingDB(1, filePaths);
-      }
+        if (isNetConnected) {
+          const res = await saveApi(payload).unwrap();
+          const newId = res?.data?.id;
 
-      isSavedRef.current = true;
+          await db.insert(notesTable).values({
+            id: newId,
+            userId,
+            title: payload.title,
+            content: payload.content,
+            updatedAt: new Date().toISOString(),
+            filePaths: JSON.stringify(filePaths ?? []),
+            syncStatus: "synced",
+          });
+          await pendingDb.delete(pendingNotes).where(eq(pendingNotes.id, id));
+          console.log(res, "save response");
+          setNoteId(res?.data?.id);
+        } else {
+          const id = saveToPendingDB(1, filePaths);
+          console.log(id);
+          setOfflineId(id);
+        }
+      }
       if (navigate) {
+        console.log("goback");
         navigation.goBack();
       }
     } catch (error: any) {
@@ -416,7 +433,6 @@ export default function CreateNote({
           await pendingDb.select().from(pendingNotes),
         );
         await db.delete(notesTable).where(eq(notesTable.id, noteId));
-        console.log("notes in local", await db.select().from(notesTable));
       }
       Toast.show({
         text1: "Deleted",
@@ -446,8 +462,12 @@ export default function CreateNote({
     );
   }
 
-  async function saveToPendingDB(status: number, filePaths: string[] = []) {
-    const id = noteId ?? uuidv4();
+  async function saveToPendingDB(
+    status: number,
+    filePaths: string[] = [],
+    offlineId?: any,
+  ) {
+    const id = offlineId ?? noteId ?? uuidv4();
 
     const title = notesRef.current?.title ?? "";
     const content = notesRef.current?.content ?? "";
@@ -473,20 +493,9 @@ export default function CreateNote({
           filePaths: JSON.stringify(filePaths),
         },
       });
-
     console.log("Pending notes saved");
-
-    await db.insert(notesTable).values({
-      id,
-      userId,
-      title,
-      content,
-      updatedAt: new Date().toISOString(),
-      filePaths: JSON.stringify(filePaths),
-      syncStatus: "pending",
-    });
+    return id;
   }
-
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   async function openFile(file: DocumentPickerResponse) {
@@ -613,7 +622,7 @@ export default function CreateNote({
                 placeholderColor: Colors.placeholder,
               }}
               initialFocus={true}
-              // initialHeight={570}
+              // initialHeight={300}
               placeholder="Type Here..."
             />
           </View>

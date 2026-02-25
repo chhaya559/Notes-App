@@ -13,7 +13,7 @@ import {
   GoogleSignin,
   isSuccessResponse,
 } from "@react-native-google-signin/google-signin";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "src/navigation/types";
 import {
@@ -28,7 +28,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { registerSchema } from "src/validations/registerSchema";
 import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { AntDesign } from "@expo/vector-icons";
 import messaging from "@react-native-firebase/messaging";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
@@ -36,7 +35,6 @@ import { useNetInfo } from "@react-native-community/netinfo";
 type RegisterProps = NativeStackScreenProps<RootStackParamList, "Register">;
 export default function Register({ navigation }: Readonly<RegisterProps>) {
   const dispatch = useDispatch();
-  const [isVisible, setIsVisible] = useState(false);
   const [registerApi, { isLoading }] = useRegisterMutation();
   const [googleApi, { isLoading: isGoogleLoading }] = useGoogleMutation();
 
@@ -128,6 +126,8 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           profileImageUrl: userInfo.data.user.photo,
           isCommonPasswordSet: response.data.isCommonPasswordSet,
           isNotesUnlocked: response.data.isNotesUnlocked,
+          lastName: response.data.lastName,
+          username: response.data.userName,
         }),
       );
       Toast.show({

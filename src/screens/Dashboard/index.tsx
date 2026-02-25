@@ -17,7 +17,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import {
   useDeleteMutation,
+  useGetNoteByIdQuery,
   useGetQuery,
+  useLazyGetNoteByIdQuery,
   useSaveNoteMutation,
   useSearchNotesQuery,
   useUpdateMutation,
@@ -108,17 +110,25 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       } else {
         showNotesFromCombinedDB();
       }
-    }, [data, isConnected, page]),
+    }, [isConnected, page]),
   );
+
+  // async function syncOnlineFlow() {
+  //   await syncPendingNotesToBackend();
+
+  //   await fetchBackendAndStoreLocal();
+
+  //   await loadLocalNotes();
+  // }
 
   async function syncOnlineFlow() {
     await syncPendingNotesToBackend();
 
     await fetchBackendAndStoreLocal();
 
-    await loadLocalNotes();
+    await showNotesFromCombinedDB();
   }
-
+  const [getNoteById] = useLazyGetNoteByIdQuery();
   async function syncPendingNotesToBackend() {
     const notesToSendBackend = await pendingDb.select().from(pendingNotes);
 
@@ -127,27 +137,46 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     for (const note of notesToSendBackend) {
       try {
         if (note.syncStatus === 1) {
-          await saveApi({
+          console.log(note, "note to save");
+          const res = await saveApi({
             title: note.title,
             content: note.content,
             filePaths: JSON.parse(note.filePaths || "[]"),
           }).unwrap();
+          console.log(res, "es form save");
         }
 
         if (note.syncStatus === 2) {
-          console.log("note to edit", note);
-          const res = await editApi({
-            id: note.id,
-            title: note.title,
-            content: note.content,
-            filePaths: JSON.parse(note.filePaths || "[]"),
-          }).unwrap();
-          console.log(res, "editediteditedit");
-        }
+          console.log(note, "note to edit");
+          try {
+            const idExists = await getNoteById({ id: note.id });
+            console.log(idExists, "fregetgt");
 
+            if (idExists.data?.success) {
+              const res = await editApi({
+                id: note.id,
+                title: note.title,
+                content: note.content,
+                filePaths: JSON.parse(note.filePaths || "[]"),
+              }).unwrap();
+              console.log(res, "edit");
+            } else {
+              const res = await saveApi({
+                title: note.title,
+                content: note.content,
+                filePaths: JSON.parse(note.filePaths || "[]"),
+              }).unwrap();
+              console.log(res, "es form save");
+            }
+          } catch (error) {
+            console.log(error);
+          }
+        }
         if (note.syncStatus === 3) {
+          console.log("note to delete", note);
+
           const res = await deleteApi({ id: note.id }).unwrap();
-          console.log(res, "resresres");
+          console.log(res, "resres");
           await db.delete(notesTable).where(eq(notesTable.id, note.id));
         }
 
@@ -158,8 +187,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         console.log("Sync failed", e);
       }
     }
-
-    await showNotesFromCombinedDB();
+    showNotesFromCombinedDB();
   }
 
   async function loadLocalNotes() {
@@ -197,31 +225,50 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   }
 
   async function showNotesFromCombinedDB() {
-    const local = await getLocalNotesPaginated(userId, page);
-
+    const localNotes = await getLocalNotesPaginated(userId, page);
     const pending = await pendingDb.select().from(pendingNotes);
 
     const pendingMap = new Map();
     const deletedSet = new Set();
 
+    // Process pending
     pending.forEach((note) => {
-      if (note.syncStatus === 3) deletedSet.add(note.id);
-      else pendingMap.set(note.id, note);
-    });
-
-    const merged = local
-      .filter((n) => !deletedSet.has(n.id))
-      .map((n) => pendingMap.get(n.id) || n);
-
-    pending.forEach((note) => {
-      if (!local.find((n) => n.id === note.id) && note.syncStatus !== 3) {
-        merged.unshift(note);
+      if (note.syncStatus === 3) {
+        deletedSet.add(note.id);
+        return;
       }
+
+      pendingMap.set(note.id, {
+        ...note,
+        filePaths: JSON.parse(note.filePaths || "[]"),
+      });
     });
+
+    const finalMap = new Map();
+
+    // Add local notes
+    for (const local of localNotes) {
+      if (deletedSet.has(local.id)) continue;
+      finalMap.set(local.id, local);
+    }
+
+    // Override with pending notes
+    pendingMap.forEach((note, id) => {
+      finalMap.set(id, note);
+    });
+
+    // Convert to array
+    const merged = Array.from(finalMap.values());
+
+    // ✅ Sort New → Old
+    merged.sort(
+      (a, b) =>
+        new Date(b.updatedAt || b.createdAt).getTime() -
+        new Date(a.updatedAt || a.createdAt).getTime(),
+    );
 
     setAllNotes(merged);
   }
-
   useEffect(() => {
     navigation.setOptions({
       headerStyle: {
@@ -241,6 +288,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const displayNotes = isSearching
     ? (SearchedNotes?.data ?? [])
     : (allNotes ?? []);
+
   return (
     <View style={dynamicStyles.container}>
       <View style={dynamicStyles.static}>
@@ -252,7 +300,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       </View>
       {/* Search*/}
 
-      {data?.data?.length > 0 && (
+      {allNotes.length > 0 && (
         <View
           style={[dynamicStyles.SearchBar, isFocused && dynamicStyles.focus]}
         >

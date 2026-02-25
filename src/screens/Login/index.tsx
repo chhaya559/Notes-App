@@ -247,7 +247,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
         <Pressable>
           <Text
             style={dynamicStyles.forgot}
-            onPress={() => navigation.replace("ForgotPassword")}
+            onPress={() => navigation.replace("ForgotPassword", {})}
           >
             Forgot Password?
           </Text>

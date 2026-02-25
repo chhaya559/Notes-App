@@ -14,6 +14,7 @@ export default function Onboarding({ navigation }: Readonly<OnboardingProps>) {
   const dispatch = useDispatch<AppDispatch>();
   const [guestApi, { isLoading }] = useGuestMutation();
   const { isConnected } = useNetInfo();
+
   async function handleGuestLogin() {
     if (!isConnected) {
       Toast.show({
@@ -29,6 +30,7 @@ export default function Onboarding({ navigation }: Readonly<OnboardingProps>) {
       }),
     );
   }
+
   const { dynamicStyles } = useStyles(styles);
 
   return (

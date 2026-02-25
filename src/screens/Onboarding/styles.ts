@@ -17,7 +17,7 @@ const styles = (Colors: ThemeColors) =>
       borderRadius: 20,
     },
     name: {
-      margin: 15,
+      margin: 10,
       fontWeight: "bold",
       fontSize: 25,
       marginTop: 25,
@@ -95,7 +95,7 @@ const styles = (Colors: ThemeColors) =>
       color: Colors.textOnPrimary,
       borderRadius: 20,
       fontSize: 20,
-      marginTop: 20,
+      marginTop: 10,
       paddingHorizontal: 40,
     },
   });

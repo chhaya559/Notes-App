@@ -198,4 +198,5 @@ export const {
   useRemoveFileMutation,
   useDeleteNotificationMutation,
   useRemoveLockMutation,
+  useLazyGetNoteByIdQuery,
 } = noteApi;
