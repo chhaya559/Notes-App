@@ -120,7 +120,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [getNoteById] = useLazyGetNoteByIdQuery();
 
   async function syncPendingNotesToBackend() {
-    const notesToSendBackend = await pendingDb.select().from(pendingNotes);
+    const notesToSendBackend = await pendingDb.select().from(pendingNotes).where(eq(pendingNotes.userId, userId));
     if (!notesToSendBackend.length) return;
     for (const note of notesToSendBackend) {
       try {
@@ -217,12 +217,11 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   }
 
   async function showNotesFromCombinedDB() {
-    //const localNotes = await getLocalNotesPaginated(String(userId), page);
     const localNotes = await db
       .select()
       .from(notesTable)
-      .where(eq(userId, notesTable.userId));
-    const pending = await pendingDb.select().from(pendingNotes);
+      .where(eq(notesTable.userId, String(userId)));
+    const pending = await pendingDb.select().from(pendingNotes).where(eq(pendingNotes.userId, String(userId)));
 
     const deletedSet = new Set();
     const pendingMap = new Map();

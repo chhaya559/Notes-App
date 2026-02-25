@@ -428,11 +428,9 @@ export default function CreateNote({
               syncStatus: 3,
             },
           });
-        console.log(
-          "pendingdelete",
-          await pendingDb.select().from(pendingNotes),
-        );
+        // console.log("pendingdelete", await pendingDb.select().from(pendingNotes));
         await db.delete(notesTable).where(eq(notesTable.id, noteId));
+        // console.log("notes in local", await db.select().from(notesTable));
       }
       Toast.show({
         text1: "Deleted",

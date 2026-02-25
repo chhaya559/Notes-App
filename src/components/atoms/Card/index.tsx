@@ -184,6 +184,43 @@ export default function Card(props: any) {
   //     console.log("Delete error:", error);
   //   }
   // }
+  async function handleDelete() {
+    try {
+      if (!userId) return;
+      if (isConnected) {
+        await deleteApi({ id: props.id }).unwrap();
+        await db.delete(notesTable).where(eq(notesTable.id, props.id));
+      } else {
+        await pendingDb
+          .insert(pendingNotes)
+          .values({
+            id: props.id,
+            userId,
+            syncStatus: 3,
+          })
+          .onConflictDoUpdate({
+            target: pendingNotes.id,
+            set: {
+              syncStatus: 3,
+            },
+          });
+        console.log(
+          "pendingdelete",
+          await pendingDb.select().from(pendingNotes),
+        );
+        await db.delete(notesTable).where(eq(notesTable.id, props.id));
+        console.log("notes in local", await db.select().from(notesTable));
+      }
+      if (props.onDeleteSuccess) {
+        await props.onDeleteSuccess();
+      }
+
+      Toast.show({ text1: "Note Deleted" });
+      // Toast.show({ text1: "Deleted" });
+    } catch (error) {
+      console.log("Delete error:", error);
+    }
+  }
 
   function handlePress() {
     const isStillUnlocked =

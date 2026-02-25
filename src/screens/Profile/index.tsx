@@ -33,6 +33,7 @@ import {
 } from "@redux/api/authApi";
 import { db, pendingDb } from "src/db/notes";
 import { notesTable } from "src/db/schema";
+import { eq } from "drizzle-orm";
 import AccountActions from "@components/atoms/AccountActions";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import { useEffect, useRef, useState } from "react";
@@ -68,8 +69,8 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
 
   async function handleLogout() {
     try {
-      await db.delete(notesTable);
-      await pendingDb.delete(pendingNotes);
+      await db.delete(notesTable).where(eq(notesTable.userId, username));
+      await pendingDb.delete(pendingNotes).where(eq(pendingNotes.userId, username));
       GoogleSignin.signOut();
       dispatch(logout());
     } catch (error) {
