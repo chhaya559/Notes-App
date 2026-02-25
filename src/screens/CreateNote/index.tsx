@@ -296,7 +296,7 @@ export default function CreateNote({
 
       try {
         const response = await uploadApi(formData).unwrap();
-
+        console.log(response, "rererereere");
         uploadedPaths.push(response.data.path);
       } catch (err: any) {
         Toast.show({
@@ -556,7 +556,7 @@ export default function CreateNote({
   useEffect(() => {
     setTimeout(() => {
       scrollRef.current?.scrollTo({ y: 0, animated: false });
-    }, 100);
+    }, 200);
   }, []);
 
   const richText = useRef<RichEditor | null>(null);
@@ -622,7 +622,7 @@ export default function CreateNote({
                 placeholderColor: Colors.placeholder,
               }}
               initialFocus={true}
-              // initialHeight={300}
+              // initialHeight={500}
               placeholder="Type Here..."
             />
           </View>
@@ -789,6 +789,7 @@ export default function CreateNote({
               iconTint={Colors.primary}
               style={dynamicStyles.toolbar}
             />
+
             <TouchableOpacity
               onPress={() => setActiveOption(null)}
               style={{
@@ -888,6 +889,7 @@ export default function CreateNote({
               onPress={() => {
                 generateSummary();
                 handleToggle("summary");
+                richText.current?.dismissKeyboard();
               }}
               disabled={!isEditMode || isGuest}
             >

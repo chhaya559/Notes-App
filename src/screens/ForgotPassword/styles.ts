@@ -12,7 +12,7 @@ const styles = (Colors: ThemeColors) =>
       fontSize: 25,
       fontWeight: "bold",
       textAlign: "center",
-      marginTop: 15,
+      marginTop: 30,
       margin: 10,
       color: Colors.textPrimary,
     },

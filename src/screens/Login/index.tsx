@@ -34,6 +34,7 @@ import messaging from "@react-native-firebase/messaging";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
 import { useNetInfo } from "@react-native-community/netinfo";
+import { formatName } from "@utils/utility";
 
 type LoginProps = NativeStackScreenProps<RootStackParamList, "Login">;
 export default function Login({ navigation }: Readonly<LoginProps>) {
@@ -126,7 +127,8 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
         google({
           token: response.data.token,
           email: userInfo.data.user.email,
-          firstName: response.data.firstName ?? userInfo.data.user.name,
+          firstName:
+            formatName(response.data.firstName) ?? userInfo.data.user.name,
           lastName: response.data.lastName ?? null,
           username: response.data.userName,
           profileImageUrl: userInfo.data.user.photo,
@@ -177,7 +179,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
             isNotesUnlocked: response.data.isNotesUnlocked,
           }),
         );
-        requestUserPermission();
+        await requestUserPermission();
       } else {
         Toast.show({
           text1: "Sign in failed",

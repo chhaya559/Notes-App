@@ -1,4 +1,4 @@
-import { Platform } from "react-native";
+import { findNodeHandle, Platform } from "react-native";
 
 import { FONT_WEIGHTS } from "./constants";
 
@@ -26,4 +26,11 @@ export const boldText = isAndroid() ? FONT_WEIGHTS[700] : FONT_WEIGHTS[600];
 
 export const _scaleText = (fontSize: number) => {
   return RFValue(fontSize);
+};
+
+export const formatName = (name) => {
+  const cleaned = name.replace(/\d/g, " ");
+  const firstWord = cleaned.trim().split(" ")[0];
+
+  return firstWord;
 };

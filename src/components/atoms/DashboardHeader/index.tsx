@@ -63,13 +63,13 @@ export default function DashboardHeader() {
 
       <TouchableOpacity onPress={toggleTheme}>
         {darkMode ? (
-          <Entypo name="light-up" size={24} color={Colors.iconPrimary} />
-        ) : (
           <MaterialIcons
             name="dark-mode"
             size={26}
             color={Colors.iconPrimary}
           />
+        ) : (
+          <Entypo name="light-up" size={24} color={Colors.iconPrimary} />
         )}
       </TouchableOpacity>
 

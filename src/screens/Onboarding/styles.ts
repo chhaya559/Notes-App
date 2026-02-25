@@ -73,7 +73,7 @@ const styles = (Colors: ThemeColors) =>
       fontWeight: "700",
     },
     innerContainer: {
-      marginTop: 50,
+      marginTop: 30,
       margin: 20,
       gap: 10,
     },

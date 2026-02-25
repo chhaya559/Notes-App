@@ -2,7 +2,7 @@ import * as yup from "yup";
 export const changePasswordSchema = yup.object({
   currentPassword: yup
     .string()
-    .required("Currentd Password is required")
+    .required("Current Password is required")
     .min(8, "Password must be atleast 8 characters")
     .matches(/[a-z]/, "Password must contain atleast one lowercase character")
     .matches(/[A-Z]/, "Password must contain atleast one uppercase character")

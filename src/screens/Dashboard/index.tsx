@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   FlatList,
   Text,
   TextInput,
@@ -7,17 +6,12 @@ import {
   View,
 } from "react-native";
 import styles from "./styles";
-import {
-  Ionicons,
-  MaterialCommunityIcons,
-  MaterialIcons,
-} from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import {
   useDeleteMutation,
-  useGetNoteByIdQuery,
   useGetQuery,
   useLazyGetNoteByIdQuery,
   useSaveNoteMutation,
@@ -39,6 +33,8 @@ import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
 import { createPendingTable } from "src/db/pendingNotes/pendingTable";
 import { pendingNotes } from "src/db/pendingNotes/schema";
+import EmptyListComponent from "@components/atoms/EmptyListComponent";
+import ListFooterComponent from "@components/atoms/ListFooterComponent";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
 
@@ -54,6 +50,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [saveApi] = useSaveNoteMutation();
   const [deleteApi] = useDeleteMutation();
   const { Colors } = useTheme();
+  const isGuest = useSelector((state: RootState) => state.auth.isGuest);
 
   function clearSearchText() {
     setSearchText("");
@@ -73,7 +70,8 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       refetchOnMountOrArgChange: true,
     },
   );
-
+  const token = useSelector((state: RootState) => state.auth.token);
+  console.log(data?.data);
   const notesUnlockUntil = useSelector(
     (state: RootState) => state.auth.notesUnlockUntil,
   );
@@ -110,101 +108,95 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       } else {
         showNotesFromCombinedDB();
       }
-    }, [isConnected, page]),
+    }, [isConnected, page, token]),
   );
 
-  // async function syncOnlineFlow() {
-  //   await syncPendingNotesToBackend();
-
-  //   await fetchBackendAndStoreLocal();
-
-  //   await loadLocalNotes();
-  // }
-
   async function syncOnlineFlow() {
+    setAllNotes(data?.data);
     await syncPendingNotesToBackend();
-
     await fetchBackendAndStoreLocal();
-
     await showNotesFromCombinedDB();
   }
   const [getNoteById] = useLazyGetNoteByIdQuery();
+
   async function syncPendingNotesToBackend() {
     const notesToSendBackend = await pendingDb.select().from(pendingNotes);
-
     if (!notesToSendBackend.length) return;
-
     for (const note of notesToSendBackend) {
       try {
-        if (note.syncStatus === 1) {
-          console.log(note, "note to save");
-          const res = await saveApi({
-            title: note.title,
-            content: note.content,
-            filePaths: JSON.parse(note.filePaths || "[]"),
-          }).unwrap();
-          console.log(res, "es form save");
-        }
-
-        if (note.syncStatus === 2) {
-          console.log(note, "note to edit");
-          try {
-            const idExists = await getNoteById({ id: note.id });
-            console.log(idExists, "fregetgt");
-
-            if (idExists.data?.success) {
-              const res = await editApi({
-                id: note.id,
-                title: note.title,
-                content: note.content,
-                filePaths: JSON.parse(note.filePaths || "[]"),
-              }).unwrap();
-              console.log(res, "edit");
-            } else {
-              const res = await saveApi({
-                title: note.title,
-                content: note.content,
-                filePaths: JSON.parse(note.filePaths || "[]"),
-              }).unwrap();
-              console.log(res, "es form save");
+        switch (note.syncStatus) {
+          case 1: {
+            console.log(note, "note to save");
+            const res = await saveApi({
+              title: note.title,
+              content: note.content,
+              filePaths: JSON.parse(note.filePaths || "[]"),
+            }).unwrap();
+            console.log(res, "es form save");
+            break;
+          }
+          case 2: {
+            console.log(note, "note to edit");
+            try {
+              const idExists = await getNoteById({ id: note.id });
+              console.log(idExists, "fregetgt");
+              if (idExists.data?.success) {
+                const res = await editApi({
+                  id: note.id,
+                  title: note.title,
+                  content: note.content,
+                  filePaths: JSON.parse(note.filePaths || "[]"),
+                }).unwrap();
+                console.log(res, "edit");
+              } else {
+                const res = await saveApi({
+                  title: note.title,
+                  content: note.content,
+                  filePaths: JSON.parse(note.filePaths || "[]"),
+                }).unwrap();
+                console.log(res, "es form save");
+              }
+            } catch (error) {
+              console.log(error);
             }
-          } catch (error) {
-            console.log(error);
+            break;
+          }
+          case 3: {
+            console.log("note to delete", note);
+            const res = await deleteApi({ id: note.id }).unwrap();
+            console.log(res, "resres");
+            await db.delete(notesTable).where(eq(notesTable.id, note.id));
+            break;
           }
         }
-        if (note.syncStatus === 3) {
-          console.log("note to delete", note);
-
-          const res = await deleteApi({ id: note.id }).unwrap();
-          console.log(res, "resres");
-          await db.delete(notesTable).where(eq(notesTable.id, note.id));
-        }
-
         await pendingDb
           .delete(pendingNotes)
           .where(eq(pendingNotes.id, note.id));
-      } catch (e) {
-        console.log("Sync failed", e);
+      } catch (error) {
+        console.log(error);
       }
     }
-    showNotesFromCombinedDB();
-  }
 
-  async function loadLocalNotes() {
-    const notes = await getLocalNotesPaginated(userId, page);
-
-    setAllNotes(notes);
+    // showNotesFromCombinedDB();
   }
 
   async function fetchBackendAndStoreLocal() {
-    if (!data?.data) return;
+    // if (!data?.data) return;
+
+    //const pending = await pendingDb.select().from(pendingNotes);
+
+    // const deletedSet = new Set(
+    //   pending.filter((n) => n.syncStatus === 3).map((n) => n.id),
+    // );
 
     for (const note of data.data) {
+      // if (deletedSet.has(String(note.id))) continue;
+
       await db
         .insert(notesTable)
         .values({
-          id: note.id,
-          userId,
+          id: String(note.id),
+          userId: String(userId),
           title: note.title,
           content: note.content,
           updatedAt: note.updatedAt,
@@ -225,14 +217,19 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   }
 
   async function showNotesFromCombinedDB() {
-    const localNotes = await getLocalNotesPaginated(userId, page);
+    //const localNotes = await getLocalNotesPaginated(String(userId), page);
+    const localNotes = await db
+      .select()
+      .from(notesTable)
+      .where(eq(userId, notesTable.userId));
     const pending = await pendingDb.select().from(pendingNotes);
 
-    const pendingMap = new Map();
     const deletedSet = new Set();
+    const pendingMap = new Map();
 
-    // Process pending
     pending.forEach((note) => {
+      if (note.userId !== String(userId)) return;
+
       if (note.syncStatus === 3) {
         deletedSet.add(note.id);
         return;
@@ -246,29 +243,28 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
 
     const finalMap = new Map();
 
-    // Add local notes
     for (const local of localNotes) {
+      if (local.userId !== String(userId)) continue;
+
       if (deletedSet.has(local.id)) continue;
+
       finalMap.set(local.id, local);
     }
 
-    // Override with pending notes
     pendingMap.forEach((note, id) => {
       finalMap.set(id, note);
     });
 
-    // Convert to array
     const merged = Array.from(finalMap.values());
 
-    // ✅ Sort New → Old
     merged.sort(
       (a, b) =>
         new Date(b.updatedAt || b.createdAt).getTime() -
         new Date(a.updatedAt || a.createdAt).getTime(),
     );
-
     setAllNotes(merged);
   }
+
   useEffect(() => {
     navigation.setOptions({
       headerStyle: {
@@ -288,7 +284,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const displayNotes = isSearching
     ? (SearchedNotes?.data ?? [])
     : (allNotes ?? []);
-
   return (
     <View style={dynamicStyles.container}>
       <View style={dynamicStyles.static}>
@@ -300,7 +295,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       </View>
       {/* Search*/}
 
-      {allNotes.length > 0 && (
+      {allNotes?.length > 0 && (
         <View
           style={[dynamicStyles.SearchBar, isFocused && dynamicStyles.focus]}
         >
@@ -317,7 +312,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             cursorColor={Colors.primary}
             selectionColor={Colors.primary}
           />
-          {searchText && (
+          {searchText ? (
             <TouchableOpacity onPress={clearSearchText}>
               <MaterialIcons
                 name="clear"
@@ -325,24 +320,16 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
                 color={Colors.iconPrimary}
               />
             </TouchableOpacity>
-          )}
+          ) : null}
         </View>
       )}
-      {/* <View style={dynamicStyles.optionContainer}>
-        <TouchableOpacity style={dynamicStyles.option}>
-          <Text style={dynamicStyles.optionText}>All Notes</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={dynamicStyles.option}>
-          <Text style={dynamicStyles.optionText}>Locked</Text>
-        </TouchableOpacity>
-      </View> */}
+
       {/* Card components */}
       <FlatList
         data={displayNotes}
         bounces={false}
         keyExtractor={(item) => item.id}
-        scrollEnabled={displayNotes.length > 0}
-        contentContainerStyle={{ paddingBottom: 0 }}
+        scrollEnabled={displayNotes.length > 4}
         renderItem={({ item }) => (
           <Card
             key={item.id}
@@ -358,58 +345,15 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         )}
         onEndReached={loadMore}
         onEndReachedThreshold={0.3}
-        ListFooterComponent={() =>
-          isFetching && page > 1 ? (
-            <View style={{ padding: 20 }}>
-              <ActivityIndicator size="small" color={Colors.primary} />
-            </View>
-          ) : (
-            <View style={{ height: 100 }} />
-          )
+        ListFooterComponent={
+          <ListFooterComponent isFetching={isFetching} page={page} />
         }
-        ListEmptyComponent={() => {
-          if (isSearching) {
-            return (
-              <View style={dynamicStyles.emptyContainer}>
-                <Text style={dynamicStyles.emptyText}>
-                  No results for “{debouncedSearch.trim()}”
-                </Text>
-                <Text style={dynamicStyles.emptySecondaryText}>
-                  Try a different keyword
-                </Text>
-              </View>
-            );
-          }
-
-          return (
-            <View style={dynamicStyles.emptyContainer}>
-              {/* <Image
-                source={
-                  darkMode
-                    ? require("../../../assets/dark.png")
-                    : require("../../../assets/light.png")
-                }
-                style={{
-                  borderRadius: 40,
-                  height: 200,
-                  width: 200,
-                  alignSelf: "center",
-                }}
-                resizeMode="contain"
-              /> */}
-              <MaterialCommunityIcons
-                name="note-multiple-outline"
-                size={60}
-                color={Colors.iconPrimary}
-                style={{ alignSelf: "center", paddingBottom: 10 }}
-              />
-              <Text style={dynamicStyles.emptyText}>No notes yet</Text>
-              <Text style={dynamicStyles.emptySecondaryText}>
-                Tap the + button to write your first thought or idea
-              </Text>
-            </View>
-          );
-        }}
+        ListEmptyComponent={
+          <EmptyListComponent
+            isSearching={isSearching}
+            debouncedSearch={debouncedSearch}
+          />
+        }
       />
 
       {/* Create Note */}

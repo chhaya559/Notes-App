@@ -160,7 +160,7 @@ export default function Reminder({
               <TextInput
                 pointerEvents="none"
                 editable={false}
-                placeholder="Select date & time"
+                placeholder="Select Date & Time"
                 placeholderTextColor={Colors.placeholder}
                 value={formattedDate}
                 style={[

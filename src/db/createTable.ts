@@ -1,6 +1,9 @@
 import { sqlite } from "./notes";
 
 export async function createTable() {
+  // await sqlite.execAsync(`
+  //     DROP TABLE IF EXISTS notes_table;
+  //   `);
   await sqlite.execAsync(`
     CREATE TABLE IF NOT EXISTS notes_table (
       id TEXT PRIMARY KEY,
@@ -18,3 +21,4 @@ export async function createTable() {
     );
   `);
 }
+console.log("local db notes created");

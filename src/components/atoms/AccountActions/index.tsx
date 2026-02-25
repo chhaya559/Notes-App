@@ -10,6 +10,9 @@ import Toast from "react-native-toast-message";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { db, pendingDb } from "src/db/notes";
+import { notesTable } from "src/db/schema";
+import { pendingNotes } from "src/db/pendingNotes/schema";
 
 type props = {
   hasCommonPassword: boolean;
@@ -40,9 +43,10 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
     try {
       const response = await deleteApi(" ").unwrap();
       dispatch(logout());
-      if (isGoogle) {
-        GoogleSignin.signOut();
-      }
+      GoogleSignin.signOut();
+      console.log("deleted");
+      await db.delete(notesTable);
+      await pendingDb.delete(pendingNotes);
       if (response.success) {
         Toast.show({
           text1: "Account Deleted Successfully!",

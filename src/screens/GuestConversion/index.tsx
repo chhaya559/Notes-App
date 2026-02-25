@@ -116,6 +116,7 @@ export default function GuestConversion({
           text1: "Guest converted to User",
         });
         requestUserPermission();
+        navigation.navigate("Dashboard");
       }
     } catch (error: any) {
       console.log(error);
@@ -129,7 +130,6 @@ export default function GuestConversion({
         });
       }
     }
-    navigation.navigate("Dashboard");
   }
   const { dynamicStyles } = useStyles(style);
   const { Colors } = useTheme();
