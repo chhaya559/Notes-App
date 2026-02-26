@@ -1,8 +1,9 @@
-import { findNodeHandle, Platform } from "react-native";
+import { Platform } from "react-native";
 
 import { FONT_WEIGHTS } from "./constants";
 
 import { RFValue } from "react-native-responsive-fontsize";
+import Toast from "react-native-toast-message";
 
 /**
  * Checks if the current platform is iOS.
@@ -29,8 +30,34 @@ export const _scaleText = (fontSize: number) => {
 };
 
 export const formatName = (name) => {
-  const cleaned = name.replace(/\d/g, " ");
+  const cleaned = name.replaceAll(/\d/g, " ");
   const firstWord = cleaned.trim().split(" ")[0];
 
   return firstWord;
 };
+
+export const sanitizeSearch = (input: string) => {
+  if (!input) return "";
+
+  let cleaned = input.trim().replaceAll(/\s+/g, " ");
+  cleaned = cleaned.replaceAll(/[^\w\s,-]/g, "");
+
+  return cleaned;
+};
+
+export function showError(error) {
+  if (error?.data?.errors?.length) {
+    Toast.show({
+      type: "error",
+      text1: error.data.errors[0],
+    });
+    return;
+  }
+
+  if (error?.data?.message) {
+    Toast.show({
+      type: "error",
+      text1: error.data.message,
+    });
+  }
+}

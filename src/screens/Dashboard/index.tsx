@@ -21,7 +21,6 @@ import {
 import Card from "@components/atoms/Card";
 import { db, pendingDb } from "src/db/notes";
 import { notesTable } from "src/db/schema";
-import { getLocalNotesPaginated } from "src/db/queries";
 import { createTable } from "src/db/createTable";
 import { eq } from "drizzle-orm";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -35,6 +34,7 @@ import { createPendingTable } from "src/db/pendingNotes/pendingTable";
 import { pendingNotes } from "src/db/pendingNotes/schema";
 import EmptyListComponent from "@components/atoms/EmptyListComponent";
 import ListFooterComponent from "@components/atoms/ListFooterComponent";
+import { sanitizeSearch } from "@utils/utility";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
 
@@ -50,11 +50,12 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [saveApi] = useSaveNoteMutation();
   const [deleteApi] = useDeleteMutation();
   const { Colors } = useTheme();
-  const isGuest = useSelector((state: RootState) => state.auth.isGuest);
+  const dispatch = useDispatch();
 
   function clearSearchText() {
     setSearchText("");
   }
+
   useEffect(() => {
     createTable();
     createPendingTable();
@@ -70,8 +71,9 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       refetchOnMountOrArgChange: true,
     },
   );
+
   const token = useSelector((state: RootState) => state.auth.token);
-  console.log(data?.data);
+
   const notesUnlockUntil = useSelector(
     (state: RootState) => state.auth.notesUnlockUntil,
   );
@@ -81,8 +83,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       setPage((prev) => prev + 1);
     }
   };
-
-  const dispatch = useDispatch();
 
   useEffect(() => {
     if (!notesUnlockUntil) return;
@@ -101,6 +101,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     return () => clearTimeout(timer);
   }, [notesUnlockUntil]);
 
+  // notes load flow based on connection
   useFocusEffect(
     useCallback(() => {
       if (isConnected) {
@@ -108,19 +109,21 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       } else {
         showNotesFromCombinedDB();
       }
-    }, [isConnected, page, token]),
+    }, [isConnected, page, token, data]),
   );
 
   async function syncOnlineFlow() {
-    setAllNotes(data?.data);
     await syncPendingNotesToBackend();
+    setAllNotes(data?.data);
     await fetchBackendAndStoreLocal();
-    await showNotesFromCombinedDB();
   }
   const [getNoteById] = useLazyGetNoteByIdQuery();
 
   async function syncPendingNotesToBackend() {
-    const notesToSendBackend = await pendingDb.select().from(pendingNotes).where(eq(pendingNotes.userId, userId));
+    const notesToSendBackend = await pendingDb
+      .select()
+      .from(pendingNotes)
+      .where(eq(pendingNotes.userId, userId));
     if (!notesToSendBackend.length) return;
     for (const note of notesToSendBackend) {
       try {
@@ -176,14 +179,12 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         console.log(error);
       }
     }
-
-    // showNotesFromCombinedDB();
   }
 
   async function fetchBackendAndStoreLocal() {
-    // if (!data?.data) return;
+    if (!data?.data) return;
 
-    //const pending = await pendingDb.select().from(pendingNotes);
+    // const pending = await pendingDb.select().from(pendingNotes);
 
     // const deletedSet = new Set(
     //   pending.filter((n) => n.syncStatus === 3).map((n) => n.id),
@@ -221,7 +222,10 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       .select()
       .from(notesTable)
       .where(eq(notesTable.userId, String(userId)));
-    const pending = await pendingDb.select().from(pendingNotes).where(eq(pendingNotes.userId, String(userId)));
+    const pending = await pendingDb
+      .select()
+      .from(pendingNotes)
+      .where(eq(pendingNotes.userId, String(userId)));
 
     const deletedSet = new Set();
     const pendingMap = new Map();
@@ -271,18 +275,22 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       },
     });
   }, [Colors.background]);
+
   //search
-  const debouncedSearch = useDebounce(searchText.trim(), 200);
+  const sanitizedSearch = sanitizeSearch(searchText);
+
+  const debouncedSearch = useDebounce(sanitizedSearch, 200);
+
+  const isSearching = debouncedSearch.length > 0;
 
   const { data: SearchedNotes } = useSearchNotesQuery(debouncedSearch, {
-    skip: debouncedSearch.trim().length === 0,
+    skip: !isSearching,
   });
-
-  const isSearching = debouncedSearch.trim().length > 0;
 
   const displayNotes = isSearching
     ? (SearchedNotes?.data ?? [])
     : (allNotes ?? []);
+
   return (
     <View style={dynamicStyles.container}>
       <View style={dynamicStyles.static}>
@@ -328,7 +336,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         data={displayNotes}
         bounces={false}
         keyExtractor={(item) => item.id}
-        scrollEnabled={displayNotes.length > 4}
+        //scrollEnabled={displayNotes.length > 4}
         renderItem={({ item }) => (
           <Card
             key={item.id}

@@ -11,25 +11,25 @@ const styles = (Colors: ThemeColors) =>
       padding: 20,
       alignItems: "center",
       margin: 15,
-      marginTop: 5,
-      paddingBottom: 40,
+      paddingBottom: 0,
+      marginBottom: 70,
     },
     headingContainer: {
       alignItems: "center",
       flexDirection: "row",
       gap: 10,
-      marginBottom: 15,
     },
     icon: {},
     heading: {
       color: Colors.textPrimary,
       fontSize: 18,
       fontWeight: "700",
+      textAlign: "center",
     },
     close: {
       position: "absolute",
-      right: 15,
-      top: 22,
+      right: 12,
+      top: 23,
     },
     content: {
       backgroundColor: Colors.surfaceSoft,
@@ -39,6 +39,7 @@ const styles = (Colors: ThemeColors) =>
     contentText: {
       fontSize: 16,
       color: Colors.textPrimary,
+      textAlign: "justify",
     },
   });
 

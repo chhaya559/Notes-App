@@ -1,11 +1,11 @@
 import { pendingDB, sqlite } from "../notes";
 
 export async function createPendingTable() {
-  // await sqlite.execAsync(`
-  //   DROP TABLE IF EXISTS pending_notes;
-  // `);
+  await pendingDB.execAsync(`
+    DROP TABLE IF EXISTS pending_notes;
+  `);
 
-  await sqlite.execAsync(`
+  await pendingDB.execAsync(`
     CREATE TABLE IF NOT EXISTS pending_notes (
       id TEXT PRIMARY KEY,
       userId TEXT NOT NULL,

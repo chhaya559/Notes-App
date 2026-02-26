@@ -35,6 +35,7 @@ const styles = (Colors: ThemeColors) =>
       backgroundColor: Colors.surface,
       borderWidth: 1,
       borderColor: Colors.primaryBorder,
+      paddingTop: 0,
     },
 
     pressable: {

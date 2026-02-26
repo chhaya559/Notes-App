@@ -70,7 +70,11 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   async function handleLogout() {
     try {
       await db.delete(notesTable).where(eq(notesTable.userId, username));
-      await pendingDb.delete(pendingNotes).where(eq(pendingNotes.userId, username));
+
+      await pendingDb
+        .delete(pendingNotes)
+        .where(eq(pendingNotes.userId, username));
+      console.log("dbdeleted");
       GoogleSignin.signOut();
       dispatch(logout());
     } catch (error) {

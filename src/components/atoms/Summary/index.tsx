@@ -15,10 +15,19 @@ type props = {
   onClose: () => void;
   id: string;
   data?: string;
+  isLoading?: boolean;
 };
-export default function Summary({ onClose, id, data }: Readonly<props>) {
+export default function Summary({
+  onClose,
+  id,
+  data,
+  isLoading,
+}: Readonly<props>) {
   const { dynamicStyles } = useStyles(styles);
   const { Colors } = useTheme();
+  if (isLoading) {
+    return <ActivityIndicator size="large" color={Colors.iconPrimary} />;
+  }
   return (
     <View style={dynamicStyles.container}>
       <View style={dynamicStyles.headingContainer}>
@@ -32,9 +41,7 @@ export default function Summary({ onClose, id, data }: Readonly<props>) {
         </Pressable>
         <Text style={dynamicStyles.heading}>AI Generated Summary</Text>
       </View>
-      {data == null && (
-        <ActivityIndicator size="large" color={Colors.iconPrimary} />
-      )}
+
       <ScrollView style={dynamicStyles.content}>
         <Text style={dynamicStyles.contentText}>{data}</Text>
       </ScrollView>

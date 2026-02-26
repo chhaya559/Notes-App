@@ -1,0 +1,34 @@
+  //------------------------------- save on app in background & back-----------------------
+  // const appState = useRef(AppState.currentState);
+  // useEffect(() => {
+  //   const subscription = AppState.addEventListener("change", (nextState) => {
+  //     if (isSavedRef.current) {
+  //       return;
+  //     }
+  //     if (nextState.match(/inactive|background/)) {
+  //       console.log("listener");
+  //       handleSave(false);
+  //     }
+  //     appState.current = nextState;
+  //   });
+
+  //   return () => {
+  //     subscription.remove();
+  //   };
+  // }, [handleSave]);
+
+  //---------------------------- save on back -----------------------
+  // useEffect(() => {
+  //   const unsubscribe = navigation.addListener("beforeRemove", () => {
+  //     if (isSavedRef.current) return;
+ //     const isEmpty =
+  //       !notesRef.current?.title?.trim() &&
+  //       !notesRef.current?.content?.replaceAll(/<(.|\n)*?>/g, "").trim();
+
+  //     if (isEmpty) return;
+
+  //     handleSave(false);
+  //   });
+
+  //   return unsubscribe;
+  // }, [navigation, handleSave]);

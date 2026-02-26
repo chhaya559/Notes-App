@@ -6,6 +6,7 @@ import {
   Alert,
   useWindowDimensions,
   ScrollView,
+  KeyboardAvoidingView,
 } from "react-native";
 import styles from "./styles";
 import { AntDesign, Entypo, Feather, MaterialIcons } from "@expo/vector-icons";
@@ -17,7 +18,7 @@ import Toast from "react-native-toast-message";
 import { RenderHTML } from "react-native-render-html";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
-import { setNotesUnlocked, lockNotes } from "@redux/slice/authSlice";
+import { setNotesUnlocked, lockNotes, isGuest } from "@redux/slice/authSlice";
 import {
   useDeleteMutation,
   useNoteLockMutation,
@@ -40,6 +41,7 @@ import { useNetInfo } from "@react-native-community/netinfo";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
 import { pendingNotes } from "src/db/pendingNotes/schema";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString(undefined, {
@@ -59,6 +61,7 @@ export default function Card(props: any) {
   const { isConnected } = useNetInfo();
   const [deleteApi] = useDeleteMutation();
   const [lockApi] = useNoteLockMutation();
+  const isGuest = useSelector((state: RootState) => state.auth.isGuest);
   const [removeLockApi] = useRemoveLockMutation();
   const notesUnlockUntil = useSelector(
     (state: RootState) => state.auth.notesUnlockUntil,
@@ -103,7 +106,11 @@ export default function Card(props: any) {
       Toast.show({ text1: "Enter password & select time" });
       return;
     }
-
+    if (!isConnected) {
+      Toast.show({
+        text1: "This feature requires internet",
+      });
+    }
     try {
       await unlockNote({
         password: unlockValue.password,
@@ -128,62 +135,6 @@ export default function Card(props: any) {
     }
   }
 
-  async function handleDelete() {
-    try {
-      if (!userId) return;
-
-      if (isConnected) {
-        await deleteApi({ id: props.id }).unwrap();
-
-        await db.delete(notesTable).where(eq(notesTable.id, props.id));
-
-        if (props.onDeleteSuccess) {
-          await props.onDeleteSuccess();
-        }
-      }
-
-      Toast.show({ text1: "Note Deleted" });
-    } catch (error) {
-      console.log("Delete error:", error);
-    }
-  }
-  // async function handleDelete() {
-  //   try {
-  //     if (!userId) return;
-  //     if (isConnected) {
-  //       await deleteApi({ id: props.id }).unwrap();
-  //       await db.delete(notesTable).where(eq(notesTable.id, props.id));
-  //     } else {
-  //       await pendingDb
-  //         .insert(pendingNotes)
-  //         .values({
-  //           id: props.id,
-  //           userId,
-  //           syncStatus: 3,
-  //         })
-  //         .onConflictDoUpdate({
-  //           target: pendingNotes.id,
-  //           set: {
-  //             syncStatus: 3,
-  //           },
-  //         });
-  //       console.log(
-  //         "pendingdelete",
-  //         await pendingDb.select().from(pendingNotes),
-  //       );
-  //       await db.delete(notesTable).where(eq(notesTable.id, props.id));
-  //       console.log("notes in local", await db.select().from(notesTable));
-  //     }
-  //     if (props.onDeleteSuccess) {
-  //       await props.onDeleteSuccess();
-  //     }
-
-  //     Toast.show({ text1: "Note Deleted" });
-  //     // Toast.show({ text1: "Deleted" });
-  //   } catch (error) {
-  //     console.log("Delete error:", error);
-  //   }
-  // }
   async function handleDelete() {
     try {
       if (!userId) return;
@@ -216,9 +167,11 @@ export default function Card(props: any) {
       }
 
       Toast.show({ text1: "Note Deleted" });
-      // Toast.show({ text1: "Deleted" });
     } catch (error) {
       console.log("Delete error:", error);
+      Toast.show({
+        text1: error?.data?.message,
+      });
     }
   }
 
@@ -249,6 +202,11 @@ export default function Card(props: any) {
     };
   });
   async function unLockNote() {
+    if (!isConnected) {
+      Toast.show({
+        text1: "This feature requires internet",
+      });
+    }
     try {
       const response = await removeLockApi({
         id: String(props.id),
@@ -273,8 +231,15 @@ export default function Card(props: any) {
       console.log(error);
     }
   }
+
   async function lockNote() {
     try {
+      if (!isConnected) {
+        Toast.show({
+          text1: "This feature requires internet",
+        });
+      }
+
       if (!hasCommonPassword) {
         Alert.alert(
           "Set Notes Password",
@@ -310,6 +275,7 @@ export default function Card(props: any) {
       if (error.data.message) {
         Toast.show({
           text2: error?.data?.message,
+          position: "top",
         });
       } else {
         Toast.show({ text1: "Failed to lock note" });
@@ -336,6 +302,7 @@ export default function Card(props: any) {
       { cancelable: true },
     );
   }
+
   function RightAction(
     progress: SharedValue<number>,
     translation: SharedValue<number>,
@@ -381,67 +348,6 @@ export default function Card(props: any) {
   const swipeRef = useRef<SwipeableMethods>(null);
   return (
     <>
-      {showLockedModal && (
-        <Modal isVisible backdropOpacity={0.2} style={dynamicStyles.modal}>
-          <ScrollView>
-            <Text style={dynamicStyles.unlockHeading}>Unlock Notes</Text>
-            <TouchableOpacity>
-              <AntDesign
-                name="close"
-                size={24}
-                color={Colors.iconPrimary}
-                style={dynamicStyles.close}
-                onPress={() => setShowLockedModal(false)}
-              />
-            </TouchableOpacity>
-            <CustomInput
-              placeholder="Enter password"
-              color={Colors.placeholder}
-              value={unlockValue.password}
-              onChangeText={(text: string) =>
-                setUnlockValue((p) => ({ ...p, password: text }))
-              }
-              isPassword
-            />
-
-            <Text style={dynamicStyles.timeText}>Unlock for minutes</Text>
-
-            <View style={dynamicStyles.counter}>
-              {[5, 10, 20, 30, 50].map((min) => (
-                <TouchableOpacity
-                  key={min}
-                  style={[
-                    dynamicStyles.counterTime,
-                    unlockValue.unlockMinutes === min &&
-                      dynamicStyles.counterActive,
-                  ]}
-                  onPress={() =>
-                    setUnlockValue((p) => ({ ...p, unlockMinutes: min }))
-                  }
-                >
-                  <Text
-                    style={[
-                      dynamicStyles.time,
-                      unlockValue.unlockMinutes === min &&
-                        dynamicStyles.textActive,
-                    ]}
-                  >
-                    {min}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <TouchableOpacity
-              onPress={handleUnlock}
-              style={dynamicStyles.pressable}
-            >
-              <Text style={dynamicStyles.pressableText}>Unlock</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </Modal>
-      )}
-
       <View>
         <ReanimatedSwipeable
           enableTrackpadTwoFingerGesture
@@ -498,6 +404,74 @@ export default function Card(props: any) {
           </Animated.View>
         </ReanimatedSwipeable>
       </View>
+
+      {showLockedModal && (
+        <Modal
+          isVisible={showLockedModal}
+          backdropOpacity={0.2}
+          style={dynamicStyles.modal}
+        >
+          <View>
+            <KeyboardAwareScrollView bounces={false}>
+              <Text style={dynamicStyles.unlockHeading}>Unlock Notes</Text>
+              <TouchableOpacity>
+                <AntDesign
+                  name="close"
+                  size={24}
+                  color={Colors.iconPrimary}
+                  style={dynamicStyles.close}
+                  onPress={() => setShowLockedModal(false)}
+                />
+              </TouchableOpacity>
+              <CustomInput
+                placeholder="Enter password"
+                color={Colors.placeholder}
+                value={unlockValue.password}
+                onChangeText={(text: string) =>
+                  setUnlockValue((p) => ({ ...p, password: text }))
+                }
+                isPassword
+              />
+
+              <Text style={dynamicStyles.timeText}>Unlock for minutes</Text>
+
+              <View style={dynamicStyles.counter}>
+                {[5, 10, 20, 30, 50].map((min) => (
+                  <TouchableOpacity
+                    key={min}
+                    style={[
+                      dynamicStyles.counterTime,
+                      unlockValue.unlockMinutes === min &&
+                        dynamicStyles.counterActive,
+                    ]}
+                    onPress={() =>
+                      setUnlockValue((p) => ({ ...p, unlockMinutes: min }))
+                    }
+                  >
+                    <Text
+                      style={[
+                        dynamicStyles.time,
+                        unlockValue.unlockMinutes === min &&
+                          dynamicStyles.textActive,
+                      ]}
+                    >
+                      {min}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <TouchableOpacity
+                onPress={handleUnlock}
+                style={dynamicStyles.pressable}
+              >
+                <Text style={dynamicStyles.pressableText}>Unlock</Text>
+              </TouchableOpacity>
+            </KeyboardAwareScrollView>
+          </View>
+          <Toast />
+        </Modal>
+      )}
     </>
   );
 }

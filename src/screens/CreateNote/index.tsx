@@ -10,8 +10,6 @@ import {
   Alert,
   Image,
   FlatList,
-  Linking,
-  AppState,
   Keyboard,
 } from "react-native";
 import styles from "./style";
@@ -57,6 +55,7 @@ import FileViewer from "react-native-file-viewer";
 import useTheme from "@hooks/useTheme";
 import useStyles from "@hooks/useStyles";
 import { pendingNotes } from "src/db/pendingNotes/schema";
+import SaveNoteButton from "@components/atoms/SaveNoteButton";
 
 type CreateNoteProps = NativeStackScreenProps<RootStackParamList, "CreateNote">;
 
@@ -76,42 +75,6 @@ export default function CreateNote({
       setIsGuest(isGuestFromStore);
     }, [isGuestFromStore]),
   );
-
-  //------------------------------- save on app in background & back-----------------------
-  // const appState = useRef(AppState.currentState);
-  // useEffect(() => {
-  //   const subscription = AppState.addEventListener("change", (nextState) => {
-  //     if (isSavedRef.current) {
-  //       return;
-  //     }
-  //     if (nextState.match(/inactive|background/)) {
-  //       console.log("listener");
-  //       handleSave(false);
-  //     }
-  //     appState.current = nextState;
-  //   });
-
-  //   return () => {
-  //     subscription.remove();
-  //   };
-  // }, [handleSave]);
-
-  //---------------------------- save on back -----------------------
-  // useEffect(() => {
-  //   const unsubscribe = navigation.addListener("beforeRemove", () => {
-  //     if (isSavedRef.current) return;
-
-  //     const isEmpty =
-  //       !notesRef.current?.title?.trim() &&
-  //       !notesRef.current?.content?.replaceAll(/<(.|\n)*?>/g, "").trim();
-
-  //     if (isEmpty) return;
-
-  //     handleSave(false);
-  //   });
-
-  //   return unsubscribe;
-  // }, [navigation, handleSave]);
 
   const { isConnected } = useNetInfo();
 
@@ -146,36 +109,50 @@ export default function CreateNote({
     { id: String(noteId) },
     { skip: !noteId, refetchOnFocus: true },
   );
-  useEffect(() => {
-    async function loadFilesFromLocal() {
-      if (!noteId) return;
 
-      const local = await db
-        .select()
-        .from(notesTable)
-        .where(eq(notesTable.id, noteId));
+  console.log(NotesData, "dadatataadata");
 
-      if (local.length > 0) {
-        const filePaths: any = JSON.parse(local[0].filePaths || "[]");
+  // useEffect(() => {
+  //   async function loadFilesFromLocal() {
+  //     if (!noteId) return;
 
-        setExistingFiles(filePaths);
-      }
-    }
+  //     const local = await db
+  //       .select()
+  //       .from(notesTable)
+  //       .where(eq(notesTable.id, noteId));
 
-    if (!isConnected) {
-      loadFilesFromLocal();
-    }
-  }, [noteId, isConnected]);
+  //     if (local.length > 0) {
+  //       const filePaths: any = JSON.parse(local[0].filePaths || "[]");
+
+  //       setExistingFiles(filePaths);
+  //     }
+  //   }
+
+  //   if (!isConnected) {
+  //     loadFilesFromLocal();
+  //   }
+  // }, [noteId, isConnected]);
   useEffect(() => {
     if (fileUploading) {
       console.log("dkeohfalfnakl");
     }
   }, [fileUploading]);
-  const [AISummary] = useAiSummaryMutation();
-  const [aiSummary, setAiSummary] = useState("");
+  const [AISummary, { isLoading: summaryLoading }] = useAiSummaryMutation();
+  const [aiSummary, setAiSummary] = useState(" ");
+
   async function generateSummary() {
     try {
+      if (!isConnected) {
+        Toast.show({
+          text1: "You need internet to generate AI summary",
+        });
+      }
       const response = await AISummary({ id: String(noteId) });
+      if (response?.error?.data?.message) {
+        Toast.show({
+          text1: response.error.data.message,
+        });
+      }
       setAiSummary(response.data.summary);
     } catch (error) {
       console.log("Error generating AI summary: ", error);
@@ -188,7 +165,8 @@ export default function CreateNote({
   useEffect(() => {
     notesRef.current = notes;
   }, [notes]);
-
+  const [existingFiles, setExistingFiles] = useState<string[]>([]);
+  const [files, setFiles] = useState<DocumentPickerResponse[]>([]);
   useEffect(() => {
     if (!NotesData?.data) return;
     setNotes({
@@ -200,7 +178,9 @@ export default function CreateNote({
       isReminderSet: NotesData.data.isReminderSet ?? null,
     });
 
-    richText.current?.setContentHTML(NotesData.data.content ?? "");
+    setTimeout(() => {
+      richText.current?.setContentHTML(NotesData.data.content ?? "");
+    }, 200);
     if (Array.isArray(NotesData.data.filePaths)) {
       setExistingFiles(NotesData.data.filePaths);
     }
@@ -213,11 +193,6 @@ export default function CreateNote({
       setIsReminder(true);
     }
   }, [NotesData?.data?.isReminderSet]);
-  const isSavingInProgress = useRef(false);
-  const isSavedRef = useRef(false);
-
-  const [existingFiles, setExistingFiles] = useState<string[]>([]);
-  const [files, setFiles] = useState<DocumentPickerResponse[]>([]);
 
   async function pickFile() {
     try {
@@ -225,7 +200,11 @@ export default function CreateNote({
         allowMultiSelection: true,
         allowVirtualFiles: true,
         type: [
-          "image/*",
+          "image/jpeg",
+          "image/png",
+          "image/jpg",
+          "image/gif",
+          "image/webp",
           "application/pdf",
           "application/msword",
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -234,6 +213,7 @@ export default function CreateNote({
         ],
       });
 
+<<<<<<< HEAD
       let uploadedFiles: { path: string; file: DocumentPickerResponse }[] = [];
 
       if (isConnected) {
@@ -281,14 +261,59 @@ export default function CreateNote({
           isReminderSet: isReminder,
           filePaths: newExistingFiles,
         }).unwrap();
+=======
+      const imageFiles = result.filter((f) => f.type?.startsWith("image"));
+      console.log(imageFiles, "imageimage");
+      const documentFiles = result.filter((f) => !f.type?.startsWith("image"));
+
+      if (imageFiles.length > 0) {
+        imageFiles.forEach((file) => {
+          richText.current?.insertHTML(
+            `<img 
+   src="${file.uri}" 
+   style="
+     width:500px;
+     height:300px;
+     max-width:100%;
+     object-fit:contain;
+     border-radius:8px;
+     margin-top:8px;
+   "
+   onclick="window.ReactNativeWebView.postMessage(this.src)"
+ />`,
+          );
+        });
+
+        if (isConnected) {
+          uploadFilesToBackend(imageFiles).then((uploadedPaths) => {
+            console.log(uploadedPaths, "uploaded");
+            setExistingFiles((prev) => [...prev, ...uploadedPaths]);
+          });
+        } else {
+          setExistingFiles((prev) => [
+            ...prev,
+            ...imageFiles.map((f) => f.uri),
+          ]);
+        }
+      }
+
+      if (documentFiles.length > 0) {
+        if (isConnected) {
+          const uploadedDocs = await uploadFilesToBackend(documentFiles);
+
+          setExistingFiles((prev) => [...prev, ...uploadedDocs]);
+        } else {
+          setFiles((prev) => [...prev, ...documentFiles]);
+        }
+>>>>>>> df266aa (minor)
       }
     } catch (error) {
       console.log(error);
     }
   }
 
-  async function removeFile(filePath: any) {
-    setFiles((prev) => prev.filter((item) => item !== filePath));
+  async function removeFile(file: any) {
+    setFiles((prev) => prev.filter((item) => item.uri !== file.uri));
   }
 
   async function DeleteFilefromNote(filePath: string) {
@@ -321,6 +346,12 @@ export default function CreateNote({
 
       try {
         const response = await uploadApi(formData).unwrap();
+        if (response) {
+          Toast.show({
+            text1: response.message,
+            type: "success",
+          });
+        }
         console.log(response, "rererereere");
         uploadedFiles.push({ path: response.data.path, file });
       } catch (err: any) {
@@ -333,7 +364,9 @@ export default function CreateNote({
 
     return uploadedFiles;
   }
+
   const [offlineId, setOfflineId] = useState(null);
+
   async function handleSave(navigate = true) {
     console.log("saving");
     const isNetConnected = isConnected;
@@ -404,7 +437,7 @@ export default function CreateNote({
         } else {
           const id = saveToPendingDB(1, filePaths);
           console.log(id);
-          setOfflineId(id);
+          setOfflineId(await id);
         }
       }
       if (navigate) {
@@ -453,9 +486,7 @@ export default function CreateNote({
               syncStatus: 3,
             },
           });
-        // console.log("pendingdelete", await pendingDb.select().from(pendingNotes));
         await db.delete(notesTable).where(eq(notesTable.id, noteId));
-        // console.log("notes in local", await db.select().from(notesTable));
       }
       Toast.show({
         text1: "Deleted",
@@ -486,7 +517,7 @@ export default function CreateNote({
   }
 
   async function saveToPendingDB(
-    status: number,
+    status: any,
     filePaths: string[] = [],
     offlineId?: any,
   ) {
@@ -498,8 +529,8 @@ export default function CreateNote({
     await pendingDb
       .insert(pendingNotes)
       .values({
-        id,
-        userId,
+        id: String(id),
+        userId: String(userId),
         title,
         content,
         updatedAt: new Date().toISOString(),
@@ -521,7 +552,7 @@ export default function CreateNote({
   }
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  async function openFile(file: DocumentPickerResponse) {
+  async function openFile(file: any) {
     try {
       if (file.type?.startsWith("image")) {
         setPreviewImage(file.uri);
@@ -539,18 +570,7 @@ export default function CreateNote({
 
   useEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <View style={dynamicStyles.header}>
-          <TouchableOpacity onPress={() => handleSave()}>
-            <Entypo
-              name="check"
-              size={30}
-              color={Colors.iconPrimary}
-              style={dynamicStyles.headerButton}
-            />
-          </TouchableOpacity>
-        </View>
-      ),
+      headerRight: () => <SaveNoteButton handleSave={handleSave} />,
     });
   }, [navigation, handleSave]);
 
@@ -598,6 +618,18 @@ export default function CreateNote({
     };
   });
 
+  const combinedFiles = [
+    ...(existingFiles || []).map((uri) => ({
+      uri,
+      name: uri.split("/").pop(),
+      isExisting: true,
+    })),
+    ...(files || []).map((file) => ({
+      ...file,
+      isExisting: false,
+    })),
+  ].filter((file) => !/\.(jpg|jpeg|png|webp|gif)$/i.test(file.uri));
+
   return (
     <KeyboardAvoidingView
       style={[
@@ -623,12 +655,9 @@ export default function CreateNote({
         <ScrollView
           bounces={false}
           ref={scrollRef}
-          onContentSizeChange={() =>
-            scrollRef.current?.scrollToEnd({ animated: true })
-          }
           contentContainerStyle={{
             flexGrow: 1,
-            paddingBottom: keyboardHeight + 20,
+            paddingBottom: keyboardHeight + 40,
           }}
         >
           <View style={[dynamicStyles.editorContainer]}>
@@ -638,6 +667,7 @@ export default function CreateNote({
               onChange={(val) =>
                 setNotes((prev) => ({ ...prev, content: val }))
               }
+<<<<<<< HEAD
               onMessage={(msg: any) => {
                 try {
                   const data = typeof msg === "string" ? JSON.parse(msg) : msg;
@@ -648,6 +678,15 @@ export default function CreateNote({
                     setPreviewImage(data.url);
                   }
                 } catch (e) {}
+=======
+              onMessage={(event) => {
+                const uri = event.nativeEvent.data;
+
+                openFile({
+                  uri,
+                  type: "image/jpeg",
+                });
+>>>>>>> df266aa (minor)
               }}
               editorStyle={{
                 backgroundColor: Colors.background,
@@ -662,55 +701,26 @@ export default function CreateNote({
           </View>
         </ScrollView>
         <View style={{ padding: 10 }}>
+<<<<<<< HEAD
           {files.filter(f => !f.type?.startsWith("image")).length > 0 ? (
             <FlatList
               data={files.filter(f => !f.type?.startsWith("image"))}
+=======
+          {combinedFiles.length > 0 && (
+            <FlatList
+              data={combinedFiles}
+>>>>>>> df266aa (minor)
               keyExtractor={(item, index) => index.toString()}
               horizontal
               bounces={false}
               renderItem={({ item }) => {
-                const isImage = item.type?.startsWith("image");
-
                 return (
-                  <TouchableOpacity
-                    onPress={() => openFile(item)}
-                    style={dynamicStyles.fileContainer}
-                  >
-                    {isImage ? (
-                      <>
-                        <Image
-                          source={{ uri: item.uri }}
-                          style={{
-                            width: 120,
-                            height: 120,
-                            borderRadius: 8,
-                          }}
-                        />
-                        {/* <Text style={{ color: Colors.textSecondary }}>
-                          {item.name}
-                        </Text> */}
-                      </>
-                    ) : (
-                      <>
-                        <MaterialCommunityIcons
-                          name="file-document-outline"
-                          size={40}
-                          color={Colors.iconPrimary}
-                        />
-                        <Text style={{ color: Colors.textSecondary }}>
-                          {item.name}
-                        </Text>
-                      </>
-                    )}
-
-                    <Text style={dynamicStyles.imageSize}>
-                      {((item.size ?? 0) / 1024).toFixed(1)} KB
-                    </Text>
-
+                  <View style={dynamicStyles.filesWrap}>
                     <TouchableOpacity
-                      style={dynamicStyles.close}
-                      onPress={() => removeFile(item)}
+                      onPress={() => openFile(item)}
+                      style={dynamicStyles.fileContainer}
                     >
+<<<<<<< HEAD
                       <AntDesign name="close" size={12} />
                     </TouchableOpacity>
                   </TouchableOpacity>
@@ -725,61 +735,37 @@ export default function CreateNote({
                 horizontal
                 renderItem={({ item }) => {
                   const isImage = item.match(/\.(jpg|jpeg|png|webp)$/);
+=======
+                      <MaterialCommunityIcons
+                        name="file-document-outline"
+                        size={40}
+                        color={Colors.iconPrimary}
+                      />
+>>>>>>> df266aa (minor)
 
-                  return (
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (isImage) {
-                          setPreviewImage(item);
-                        } else {
-                          Linking.openURL(item);
-                        }
-                      }}
-                      style={dynamicStyles.existingFile}
-                    >
-                      {isImage ? (
-                        <Image
-                          source={{ uri: item }}
-                          style={{
-                            width: 120,
-                            height: 120,
-                            borderRadius: 6,
-                            marginBottom: 6,
-                          }}
-                        />
-                      ) : (
-                        <>
-                          <MaterialCommunityIcons
-                            name="file-document-outline"
-                            size={40}
-                            color={Colors.iconPrimary}
-                          />
-                          <Text>{item.split("/").pop()}</Text>
-                        </>
-                      )}
-
-                      <Text style={{ fontSize: 10, color: Colors.textMuted }}>
-                        Saved file
+                      <Text style={{ color: Colors.textSecondary }}>
+                        {item.name}
                       </Text>
 
                       <TouchableOpacity
                         style={dynamicStyles.close}
-                        onPress={() => DeleteFilefromNote(item)}
+                        onPress={() => {
+                          if (item.isExisting) {
+                            DeleteFilefromNote(item.uri);
+                          } else {
+                            removeFile(item);
+                          }
+                        }}
                       >
-                        <AntDesign
-                          name="close"
-                          size={16}
-                          color={Colors.iconMuted}
-                        />
+                        <AntDesign name="close" size={12} />
                       </TouchableOpacity>
                     </TouchableOpacity>
-                  );
-                }}
-              />
-            )
+                  </View>
+                );
+              }}
+            />
           )}
         </View>
-
         {previewImage && (
           <Modal
             isVisible={Boolean(previewImage)}
@@ -793,7 +779,6 @@ export default function CreateNote({
             </View>
           </Modal>
         )}
-
         {activeOption == "text" && (
           <View
             style={[
@@ -841,9 +826,7 @@ export default function CreateNote({
             </TouchableOpacity>
           </View>
         )}
-
         <View style={dynamicStyles.line} />
-
         {/* show reminder */}
         {activeOption == "reminder" ? (
           <Reminder
@@ -864,16 +847,16 @@ export default function CreateNote({
             }}
           />
         ) : null}
-
         {/* show summary */}
+
         {activeOption == "summary" ? (
           <Summary
             id={notes.id}
             onClose={() => setActiveOption(null)}
             data={aiSummary}
+            isLoading={summaryLoading}
           />
         ) : null}
-
         {/* Options bottom  */}
         {activeOption == "text" ? null : (
           <View
@@ -924,6 +907,7 @@ export default function CreateNote({
                 generateSummary();
                 handleToggle("summary");
                 richText.current?.dismissKeyboard();
+                Keyboard.dismiss();
               }}
               disabled={!isEditMode || isGuest}
             >

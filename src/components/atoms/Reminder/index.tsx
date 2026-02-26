@@ -14,6 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
+import { useNetInfo } from "@react-native-community/netinfo";
 
 type Props = {
   onClose: () => void;
@@ -41,8 +42,8 @@ export default function Reminder({
     if (ReminderData?.data) {
       const remindAt = new Date(ReminderData.data.remindAt);
       const now = new Date();
-      console.log(remindAt.toISOString(), "fjkfk");
-
+      console.log(remindAt.toLocaleString("en-IN"));
+      console.log(now.toLocaleString());
       if (remindAt < now) {
         setIsEditMode(false);
         setDate(null);
@@ -63,23 +64,31 @@ export default function Reminder({
   }, [ReminderData]);
 
   const formattedDate = date ? date.toLocaleString() : "";
-
+  const { isConnected } = useNetInfo();
   async function setReminder() {
     try {
       if (!date) {
         Toast.show({ text1: "Please select date & time" });
         return;
       }
+      if (!isConnected) {
+        Toast.show({
+          text1: "Internet connection required",
+        });
+      }
 
       const utcISOString = new Date(date).toISOString();
 
-      await setReminderApi({
+      const res = await setReminderApi({
         noteId: id,
         title: name,
         description,
         remindAt: utcISOString,
       }).unwrap();
-      Toast.show({ text1: "Reminder set successfully" });
+      console.log(res);
+      if (res.success) {
+        Toast.show({ text1: "Reminder set successfully" });
+      }
       onReminderSet(id);
       onClose();
       navigation.setParams({ reminderSet: true });
@@ -104,7 +113,7 @@ export default function Reminder({
   }
   const { Colors } = useTheme();
   return (
-    <Modal isVisible={true} onBackdropPress={onClose} backdropOpacity={0.3}>
+    <Modal isVisible={true} onBackdropPress={onClose} backdropOpacity={0}>
       <View style={dynamicStyles.container}>
         <KeyboardAwareScrollView bounces={false}>
           <View style={dynamicStyles.headingContainer}>
@@ -209,6 +218,7 @@ export default function Reminder({
           </TouchableOpacity>
         </KeyboardAwareScrollView>
       </View>
+      <Toast />
     </Modal>
   );
 }

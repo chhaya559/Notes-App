@@ -26,7 +26,7 @@ const styles = (Colors: ThemeColors) =>
       color: Colors.primary,
       fontWeight: "bold",
       fontSize: 20,
-      verticalAlign: "middle",
+      verticalAlign: "bottom",
       textAlignVertical: "center",
       marginTop: 3,
     },
@@ -37,8 +37,8 @@ const styles = (Colors: ThemeColors) =>
     },
     close: {
       position: "absolute",
-      right: 18,
-      top: 13,
+      right: 15,
+      top: 11,
     },
     pressable: {
       margin: 10,

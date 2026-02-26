@@ -156,7 +156,6 @@ export default function Notifications() {
       </View>
     );
   }
-
   return (
     <View style={dynamicStyles.container}>
       {allNotifications.length > 0 && (
@@ -213,8 +212,8 @@ export default function Notifications() {
               onPress={() => {
                 readAll();
               }}
-              // onPressIn={() => setIsReadPressed(true)}
-              // onPressOut={() => setIsReadPressed(false)}
+              onPressIn={() => setIsReadPressed(true)}
+              onPressOut={() => setIsReadPressed(false)}
             >
               <Text style={[dynamicStyles.text]}>Read All</Text>
             </TouchableOpacity>
@@ -271,19 +270,6 @@ export default function Notifications() {
         )}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={
-          isFetching && page > 1 ? (
-            <Text
-              style={{
-                textAlign: "center",
-                padding: 10,
-                color: Colors.textSecondary,
-              }}
-            >
-              Loading more...
-            </Text>
-          ) : null
-        }
         ListEmptyComponent={
           // !isLoading && (
           <View style={dynamicStyles.emptyComponent}>
