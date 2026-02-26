@@ -234,17 +234,42 @@ export default function CreateNote({
         ],
       });
 
-      setFiles((prev) => [...prev, ...result]);
-
-      let uploadedPaths: string[] = [];
+      let uploadedFiles: { path: string; file: DocumentPickerResponse }[] = [];
 
       if (isConnected) {
-        uploadedPaths = await uploadFilesToBackend(result);
+        uploadedFiles = await uploadFilesToBackend(result);
+        if (uploadedFiles.length > 0) {
+          Toast.show({ text1: "File uploaded" });
+        }
       }
 
-      const updatedPaths = [...existingFiles, ...uploadedPaths];
+      const newExistingFiles = [...existingFiles];
+      const newLocalFiles = [];
 
-      setExistingFiles(updatedPaths);
+      for (const item of (isConnected ? uploadedFiles : result.map((f) => ({ path: f.uri, file: f })))) {
+        const isImage = item.file.type?.startsWith("image") || item.path.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+
+        if (isConnected) {
+          newExistingFiles.push(item.path);
+        } else if (!isImage) {
+          newLocalFiles.push(item.file);
+        }
+
+        if (isImage) {
+          const imgMarkup = `<img src="${item.path}" alt="${item.file.name}" style="width: 120px; height: 120px; border-radius: 8px;" onclick="window.ReactNativeWebView.postMessage(JSON.stringify({type: 'imageClick', url: '${item.path}'}))" />&nbsp;`;
+          richText.current?.insertHTML(imgMarkup);
+        } else {
+          if (isConnected) {
+            newLocalFiles.push(item.file);
+          }
+        }
+      }
+
+      setFiles((prev) => [...prev, ...newLocalFiles]);
+
+      if (isConnected) {
+        setExistingFiles(newExistingFiles);
+      }
 
       if (isConnected && noteId) {
         await editApi({
@@ -254,7 +279,7 @@ export default function CreateNote({
           isPasswordProtected: notesRef.current?.isPasswordProtected,
           isLocked: notesRef.current?.isLocked,
           isReminderSet: isReminder,
-          filePaths: updatedPaths,
+          filePaths: newExistingFiles,
         }).unwrap();
       }
     } catch (error) {
@@ -283,7 +308,7 @@ export default function CreateNote({
   }
 
   async function uploadFilesToBackend(files: DocumentPickerResponse[]) {
-    const uploadedPaths: string[] = [];
+    const uploadedFiles: { path: string; file: DocumentPickerResponse }[] = [];
 
     for (const file of files) {
       const formData = new FormData();
@@ -297,7 +322,7 @@ export default function CreateNote({
       try {
         const response = await uploadApi(formData).unwrap();
         console.log(response, "rererereere");
-        uploadedPaths.push(response.data.path);
+        uploadedFiles.push({ path: response.data.path, file });
       } catch (err: any) {
         Toast.show({
           text1: err?.data?.message || "File not supported",
@@ -306,7 +331,7 @@ export default function CreateNote({
       }
     }
 
-    return uploadedPaths;
+    return uploadedFiles;
   }
   const [offlineId, setOfflineId] = useState(null);
   async function handleSave(navigate = true) {
@@ -613,6 +638,17 @@ export default function CreateNote({
               onChange={(val) =>
                 setNotes((prev) => ({ ...prev, content: val }))
               }
+              onMessage={(msg: any) => {
+                try {
+                  const data = typeof msg === "string" ? JSON.parse(msg) : msg;
+                  const payload = typeof data.data === "string" ? JSON.parse(data.data) : (data.data || data);
+                  if (payload.type === 'imageClick' && payload.url) {
+                    setPreviewImage(payload.url);
+                  } else if (data.type === 'imageClick' && data.url) {
+                    setPreviewImage(data.url);
+                  }
+                } catch (e) {}
+              }}
               editorStyle={{
                 backgroundColor: Colors.background,
                 color: Colors.textPrimary,
@@ -626,9 +662,9 @@ export default function CreateNote({
           </View>
         </ScrollView>
         <View style={{ padding: 10 }}>
-          {files.length > 0 ? (
+          {files.filter(f => !f.type?.startsWith("image")).length > 0 ? (
             <FlatList
-              data={files}
+              data={files.filter(f => !f.type?.startsWith("image"))}
               keyExtractor={(item, index) => index.toString()}
               horizontal
               bounces={false}
@@ -682,9 +718,9 @@ export default function CreateNote({
               }}
             />
           ) : (
-            existingFiles.length > 0 && (
+            existingFiles.filter(item => !item.match(/\.(jpg|jpeg|png|webp|gif)$/i) || !(notes.content || '').includes(item)).length > 0 && (
               <FlatList
-                data={existingFiles}
+                data={existingFiles.filter(item => !item.match(/\.(jpg|jpeg|png|webp|gif)$/i) || !(notes.content || '').includes(item))}
                 keyExtractor={(item, index) => `${item}-${index}`}
                 horizontal
                 renderItem={({ item }) => {
