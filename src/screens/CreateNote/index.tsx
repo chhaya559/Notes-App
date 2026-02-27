@@ -20,7 +20,6 @@ import {
 } from "react-native-pell-rich-editor";
 import {
   useAiSummaryMutation,
-  useDeleteMutation,
   useGetNoteByIdQuery,
   useRemoveFileMutation,
   useSaveNoteMutation,
@@ -48,14 +47,14 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import Reminder from "@components/atoms/Reminder";
-import { useFocusEffect } from "@react-navigation/native";
 import Summary from "@components/atoms/Summary";
+import SaveNoteButton from "@components/atoms/SaveNoteButton";
+import { useFocusEffect } from "@react-navigation/native";
 import useDebounce from "src/debounce/debounce";
 import FileViewer from "react-native-file-viewer";
 import useTheme from "@hooks/useTheme";
 import useStyles from "@hooks/useStyles";
 import { pendingNotes } from "src/db/pendingNotes/schema";
-import SaveNoteButton from "@components/atoms/SaveNoteButton";
 
 type CreateNoteProps = NativeStackScreenProps<RootStackParamList, "CreateNote">;
 
@@ -67,32 +66,37 @@ export default function CreateNote({
   const isGuestFromStore = useSelector(
     (state: RootState) => state.auth.isGuest,
   );
+
   const { Colors } = useTheme();
   const { dynamicStyles } = useStyles(styles);
+  const [offlineId, setOfflineId] = useState(null);
   const [isGuest, setIsGuest] = useState(isGuestFromStore);
+
   useFocusEffect(
     useCallback(() => {
       setIsGuest(isGuestFromStore);
     }, [isGuestFromStore]),
   );
 
+  const [noteLoaded, setNoteLoaded] = useState(false);
   const { isConnected } = useNetInfo();
 
   const [activeOption, setActiveOption] = useState<
     "text" | "attachment" | "summary" | "reminder" | null
   >(null);
+
   const handleToggle = (
     option: "text" | "attachment" | "summary" | "reminder",
   ) => {
     setActiveOption((prev) => (prev === option ? null : option));
   };
-
+  const notesRef = useRef<any>(null);
   const [saveApi] = useSaveNoteMutation();
   const [editApi] = useUpdateMutation();
-  const [deleteApi] = useDeleteMutation();
   const [uploadApi, { isLoading: fileUploading }] = useUploadFileMutation();
   const [deleteFile] = useRemoveFileMutation();
 
+  console.log(route?.params?.content, "contentget");
   const [notes, setNotes] = useState({
     id: "",
     title: route?.params?.title ?? "",
@@ -101,43 +105,24 @@ export default function CreateNote({
     isReminderSet: null,
     isLocked: false,
   });
+
+  useEffect(() => {
+    notesRef.current = notes;
+  }, [notes]);
+
   const [localNoteId, setLocalNoteId] = useState<string | null>(
     route?.params?.id ?? null,
   );
+
   const [noteId, setNoteId] = useState(localNoteId);
+
   const { data: NotesData } = useGetNoteByIdQuery(
     { id: String(noteId) },
     { skip: !noteId, refetchOnFocus: true },
   );
 
-  console.log(NotesData, "dadatataadata");
-
-  // useEffect(() => {
-  //   async function loadFilesFromLocal() {
-  //     if (!noteId) return;
-
-  //     const local = await db
-  //       .select()
-  //       .from(notesTable)
-  //       .where(eq(notesTable.id, noteId));
-
-  //     if (local.length > 0) {
-  //       const filePaths: any = JSON.parse(local[0].filePaths || "[]");
-
-  //       setExistingFiles(filePaths);
-  //     }
-  //   }
-
-  //   if (!isConnected) {
-  //     loadFilesFromLocal();
-  //   }
-  // }, [noteId, isConnected]);
-  useEffect(() => {
-    if (fileUploading) {
-      console.log("dkeohfalfnakl");
-    }
-  }, [fileUploading]);
   const [AISummary, { isLoading: summaryLoading }] = useAiSummaryMutation();
+
   const [aiSummary, setAiSummary] = useState(" ");
 
   async function generateSummary() {
@@ -145,46 +130,71 @@ export default function CreateNote({
       if (!isConnected) {
         Toast.show({
           text1: "You need internet to generate AI summary",
+          type: "info",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
+        return;
       }
-      const response = await AISummary({ id: String(noteId) });
+
+      const response: any = await AISummary({ id: String(noteId) });
+
       if (response?.error?.data?.message) {
         Toast.show({
           text1: response.error.data.message,
+          type: "info",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
+        return;
       }
-      setAiSummary(response.data.summary);
+
+      setAiSummary(response?.data?.summary ?? "");
     } catch (error) {
-      console.log("Error generating AI summary: ", error);
+      console.log("Error generating AI summary:", error);
     }
   }
 
   const isEditMode = !!noteId;
 
-  const notesRef = useRef<any>(null);
-  useEffect(() => {
-    notesRef.current = notes;
-  }, [notes]);
   const [existingFiles, setExistingFiles] = useState<string[]>([]);
   const [files, setFiles] = useState<DocumentPickerResponse[]>([]);
+
+  const richText = useRef<RichEditor | null>(null);
+
   useEffect(() => {
     if (!NotesData?.data) return;
+
+    const data = NotesData.data;
+
     setNotes({
-      id: NotesData.data.id ?? "",
-      title: NotesData.data.title ?? "",
-      content: NotesData.data.content ?? "",
-      isPasswordProtected: NotesData.data.isPasswordProtected ?? false,
-      isLocked: NotesData.data.isLocked ?? false,
-      isReminderSet: NotesData.data.isReminderSet ?? null,
+      id: data.id ?? "",
+      title: data.title ?? "",
+      content: data.content ?? "",
+      isPasswordProtected: data.isPasswordProtected ?? false,
+      isLocked: data.isLocked ?? false,
+      isReminderSet: data.isReminderSet ?? null,
     });
 
-    setTimeout(() => {
-      richText.current?.setContentHTML(NotesData.data.content ?? "");
-    }, 200);
-    if (Array.isArray(NotesData.data.filePaths)) {
-      setExistingFiles(NotesData.data.filePaths);
-    }
+    setExistingFiles(data.filePaths || []);
+    richText.current?.setContentHTML(notes.content);
+    setNoteLoaded(true);
   }, [NotesData]);
+
+  useEffect(() => {
+    if (!route?.params) return;
+
+    setNotes((prev) => ({
+      ...prev,
+      id: route.params.id ?? "",
+      title: route.params.title ?? "",
+      content: route.params.content ?? "",
+    }));
+
+    setNoteId(route.params.id ?? null);
+    setLocalNoteId(route.params.id ?? null);
+    richText.current?.setContentHTML(notes.content);
+  }, [route.params]);
 
   const [isReminder, setIsReminder] = useState(false);
 
@@ -194,128 +204,6 @@ export default function CreateNote({
     }
   }, [NotesData?.data?.isReminderSet]);
 
-  async function pickFile() {
-    try {
-      const result = await pick({
-        allowMultiSelection: true,
-        allowVirtualFiles: true,
-        type: [
-          "image/jpeg",
-          "image/png",
-          "image/jpg",
-          "image/gif",
-          "image/webp",
-          "application/pdf",
-          "application/msword",
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          "application/vnd.ms-excel",
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        ],
-      });
-
-<<<<<<< HEAD
-      let uploadedFiles: { path: string; file: DocumentPickerResponse }[] = [];
-
-      if (isConnected) {
-        uploadedFiles = await uploadFilesToBackend(result);
-        if (uploadedFiles.length > 0) {
-          Toast.show({ text1: "File uploaded" });
-        }
-      }
-
-      const newExistingFiles = [...existingFiles];
-      const newLocalFiles = [];
-
-      for (const item of (isConnected ? uploadedFiles : result.map((f) => ({ path: f.uri, file: f })))) {
-        const isImage = item.file.type?.startsWith("image") || item.path.match(/\.(jpg|jpeg|png|webp|gif)$/i);
-
-        if (isConnected) {
-          newExistingFiles.push(item.path);
-        } else if (!isImage) {
-          newLocalFiles.push(item.file);
-        }
-
-        if (isImage) {
-          const imgMarkup = `<img src="${item.path}" alt="${item.file.name}" style="width: 120px; height: 120px; border-radius: 8px;" onclick="window.ReactNativeWebView.postMessage(JSON.stringify({type: 'imageClick', url: '${item.path}'}))" />&nbsp;`;
-          richText.current?.insertHTML(imgMarkup);
-        } else {
-          if (isConnected) {
-            newLocalFiles.push(item.file);
-          }
-        }
-      }
-
-      setFiles((prev) => [...prev, ...newLocalFiles]);
-
-      if (isConnected) {
-        setExistingFiles(newExistingFiles);
-      }
-
-      if (isConnected && noteId) {
-        await editApi({
-          id: noteId,
-          title: notesRef.current?.title ?? "",
-          content: notesRef.current?.content ?? "",
-          isPasswordProtected: notesRef.current?.isPasswordProtected,
-          isLocked: notesRef.current?.isLocked,
-          isReminderSet: isReminder,
-          filePaths: newExistingFiles,
-        }).unwrap();
-=======
-      const imageFiles = result.filter((f) => f.type?.startsWith("image"));
-      console.log(imageFiles, "imageimage");
-      const documentFiles = result.filter((f) => !f.type?.startsWith("image"));
-
-      if (imageFiles.length > 0) {
-        imageFiles.forEach((file) => {
-          richText.current?.insertHTML(
-            `<img 
-   src="${file.uri}" 
-   style="
-     width:500px;
-     height:300px;
-     max-width:100%;
-     object-fit:contain;
-     border-radius:8px;
-     margin-top:8px;
-   "
-   onclick="window.ReactNativeWebView.postMessage(this.src)"
- />`,
-          );
-        });
-
-        if (isConnected) {
-          uploadFilesToBackend(imageFiles).then((uploadedPaths) => {
-            console.log(uploadedPaths, "uploaded");
-            setExistingFiles((prev) => [...prev, ...uploadedPaths]);
-          });
-        } else {
-          setExistingFiles((prev) => [
-            ...prev,
-            ...imageFiles.map((f) => f.uri),
-          ]);
-        }
-      }
-
-      if (documentFiles.length > 0) {
-        if (isConnected) {
-          const uploadedDocs = await uploadFilesToBackend(documentFiles);
-
-          setExistingFiles((prev) => [...prev, ...uploadedDocs]);
-        } else {
-          setFiles((prev) => [...prev, ...documentFiles]);
-        }
->>>>>>> df266aa (minor)
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async function removeFile(file: any) {
-    setFiles((prev) => prev.filter((item) => item.uri !== file.uri));
-  }
-
   async function DeleteFilefromNote(filePath: string) {
     console.log(filePath, "filepathfilepath");
     try {
@@ -324,12 +212,57 @@ export default function CreateNote({
         fileUrl: filePath,
       }).unwrap();
 
-      Toast.show({ text1: "File removed" });
+      Toast.show({
+        text1: "File removed",
+        type: "success",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
       setExistingFiles((prev) => prev.filter((item) => item !== filePath));
     } catch (error) {
       console.log("Error removing file", error);
-      Toast.show({ text1: "Failed to remove file" });
+      Toast.show({
+        text1: "Failed to remove file",
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
     }
+  }
+
+  async function saveToPendingDB(
+    status: any,
+    filePaths: string[] = [],
+    offlineId?: any,
+  ) {
+    const id = offlineId ?? noteId ?? uuidv4();
+
+    const title = notesRef.current?.title ?? "";
+    const content = notesRef.current?.content ?? "";
+
+    await pendingDb
+      .insert(pendingNotes)
+      .values({
+        id: String(id),
+        userId: String(userId),
+        title,
+        content,
+        updatedAt: new Date().toISOString(),
+        filePaths: JSON.stringify(filePaths),
+        syncStatus: status,
+      })
+      .onConflictDoUpdate({
+        target: pendingNotes.id,
+        set: {
+          title,
+          content,
+          updatedAt: new Date().toISOString(),
+          syncStatus: status,
+          filePaths: JSON.stringify(filePaths),
+        },
+      });
+    console.log("Pending notes saved");
+    return id.toString();
   }
 
   async function uploadFilesToBackend(files: DocumentPickerResponse[]) {
@@ -346,40 +279,144 @@ export default function CreateNote({
 
       try {
         const response = await uploadApi(formData).unwrap();
-        if (response) {
+
+        console.log(response, "upload response");
+
+        if (response?.data?.path) {
           Toast.show({
-            text1: response.message,
+            text1: response.message || "File uploaded successfully",
             type: "success",
+            swipeable: false,
+            onPress: () => Toast.hide(),
+          });
+
+          uploadedFiles.push({
+            path: response.data.path,
+            file,
           });
         }
-        console.log(response, "rererereere");
-        uploadedFiles.push({ path: response.data.path, file });
       } catch (err: any) {
         Toast.show({
           text1: err?.data?.message || "File not supported",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
-        continue;
       }
     }
 
     return uploadedFiles;
   }
 
-  const [offlineId, setOfflineId] = useState(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  async function openFile(file: any) {
+    try {
+      if (file.type?.startsWith("image")) {
+        setPreviewImage(file.uri);
+        return;
+      }
+
+      await FileViewer.open(file.uri, {
+        showOpenWithDialog: true,
+      });
+    } catch (error) {
+      Alert.alert("Unable to open file");
+      console.log("Open file error:", error);
+    }
+  }
+
+  async function pickFile() {
+    const result = await pick({
+      allowMultiSelection: false,
+      type: ["image/*"],
+    });
+
+    const file = result[0];
+
+    const isImage = file.type?.startsWith("image");
+
+    if (!isImage) return;
+
+    if (isConnected) {
+      const uploaded = await uploadFilesToBackend([file]);
+
+      if (uploaded.length === 0) {
+        Toast.show({
+          text1: "Upload Failed",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
+        return;
+      }
+
+      Toast.show({
+        text1: "File Uploaded Successfully",
+        type: "success",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
+
+      const path = uploaded[0].path;
+
+      const imgMarkup = `
+   <img 
+   src="${path}"
+   style="
+   width:400px;
+   height:400px;
+   border-radius:12px;
+   object-fit:cover;
+   margin-top:10px;
+   "/>
+   `;
+
+      richText.current?.insertHTML(imgMarkup);
+
+      setExistingFiles((prev) => [...prev, path]);
+    } else {
+      Toast.show({
+        text1: "Saved Offline",
+        type: "success",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
+
+      const imgMarkup = `
+   <img 
+   src="${file.uri}"
+   style="
+   width:400px;
+   height:400px;
+   border-radius:12px;
+   object-fit:cover;
+   margin-top:10px;
+   "/>
+   `;
+
+      richText.current?.insertHTML(imgMarkup);
+
+      setFiles((prev) => [...prev, file]);
+    }
+  }
 
   async function handleSave(navigate = true) {
     console.log("saving");
     const isNetConnected = isConnected;
     try {
       if (navigate) {
+        if (!notesRef.current?.title.trim() || existingFiles.length > 0) {
+          notesRef.current.title = "New Note";
+        }
         if (!notesRef.current?.title && !notesRef.current?.content) {
           Toast.show({
             text1: "Your note needs at least a title or content",
+            type: "info",
+            swipeable: false,
+            onPress: () => Toast.hide(),
           });
           return;
-        }
-        if (!notesRef.current?.title) {
-          notesRef.current.title = "New Note";
         }
       }
 
@@ -423,8 +460,8 @@ export default function CreateNote({
           const newId = res?.data?.id;
 
           await db.insert(notesTable).values({
-            id: newId,
-            userId,
+            id: String(newId),
+            userId: String(userId),
             title: payload.title,
             content: payload.content,
             updatedAt: new Date().toISOString(),
@@ -436,8 +473,8 @@ export default function CreateNote({
           setNoteId(res?.data?.id);
         } else {
           const id = saveToPendingDB(1, filePaths);
-          console.log(id);
-          setOfflineId(await id);
+          console.log(id, "ididididid");
+          setOfflineId(id);
         }
       }
       if (navigate) {
@@ -449,122 +486,18 @@ export default function CreateNote({
         Toast.show({
           type: "error",
           text1: error.data.errors[0],
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       } else if (error?.data.message) {
         Toast.show({
           type: "error",
           text1: error?.data.message,
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
       console.log("Save error:", error);
-    }
-  }
-
-  async function handleDelete(navigate = true) {
-    try {
-      if (!noteId) {
-        Toast.show({
-          text1: "Empty note can’t be deleted",
-        });
-        return;
-      }
-      if (!userId) throw new Error("userID is not correct");
-      if (isConnected) {
-        await deleteApi({ id: noteId }).unwrap();
-        await db.delete(notesTable).where(eq(notesTable.id, noteId));
-      } else {
-        await pendingDb
-          .insert(pendingNotes)
-          .values({
-            id: noteId,
-            userId,
-            syncStatus: 3,
-          })
-          .onConflictDoUpdate({
-            target: pendingNotes.id,
-            set: {
-              syncStatus: 3,
-            },
-          });
-        await db.delete(notesTable).where(eq(notesTable.id, noteId));
-      }
-      Toast.show({
-        text1: "Deleted",
-      });
-      if (navigate) navigation.goBack();
-    } catch (error) {
-      console.log("Delete error:", error);
-      Toast.show({
-        text1: "Not able to delete this",
-      });
-    }
-  }
-
-  async function alertDelete() {
-    Alert.alert(
-      "Delete Note",
-      "Are you sure you want to delete this note?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => void handleDelete(),
-        },
-      ],
-      { cancelable: true },
-    );
-  }
-
-  async function saveToPendingDB(
-    status: any,
-    filePaths: string[] = [],
-    offlineId?: any,
-  ) {
-    const id = offlineId ?? noteId ?? uuidv4();
-
-    const title = notesRef.current?.title ?? "";
-    const content = notesRef.current?.content ?? "";
-
-    await pendingDb
-      .insert(pendingNotes)
-      .values({
-        id: String(id),
-        userId: String(userId),
-        title,
-        content,
-        updatedAt: new Date().toISOString(),
-        filePaths: JSON.stringify(filePaths),
-        syncStatus: status,
-      })
-      .onConflictDoUpdate({
-        target: pendingNotes.id,
-        set: {
-          title,
-          content,
-          updatedAt: new Date().toISOString(),
-          syncStatus: status,
-          filePaths: JSON.stringify(filePaths),
-        },
-      });
-    console.log("Pending notes saved");
-    return id;
-  }
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-
-  async function openFile(file: any) {
-    try {
-      if (file.type?.startsWith("image")) {
-        setPreviewImage(file.uri);
-        return;
-      }
-
-      await FileViewer.open(file.uri, {
-        showOpenWithDialog: true,
-      });
-    } catch (error) {
-      Alert.alert("Unable to open file");
-      console.log("Open file error:", error);
     }
   }
 
@@ -586,11 +519,14 @@ export default function CreateNote({
   );
 
   useEffect(() => {
+    if (!noteLoaded && noteId) return;
+
     const hasContent =
       debouncedNotes.title?.trim() ||
       debouncedNotes.content?.replaceAll(/<(.|\n)*?>/g, "").trim();
 
     if (!hasContent) return;
+
     handleSave(false);
   }, [debouncedNotes.title, debouncedNotes.content]);
 
@@ -601,8 +537,6 @@ export default function CreateNote({
       scrollRef.current?.scrollTo({ y: 0, animated: false });
     }, 200);
   }, []);
-
-  const richText = useRef<RichEditor | null>(null);
 
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   useEffect(() => {
@@ -663,22 +597,12 @@ export default function CreateNote({
           <View style={[dynamicStyles.editorContainer]}>
             <RichEditor
               ref={richText}
-              initialContentHTML={notes.content}
+              useContainer={true}
+              initialFocus={true}
+              initialHeight={50}
               onChange={(val) =>
                 setNotes((prev) => ({ ...prev, content: val }))
               }
-<<<<<<< HEAD
-              onMessage={(msg: any) => {
-                try {
-                  const data = typeof msg === "string" ? JSON.parse(msg) : msg;
-                  const payload = typeof data.data === "string" ? JSON.parse(data.data) : (data.data || data);
-                  if (payload.type === 'imageClick' && payload.url) {
-                    setPreviewImage(payload.url);
-                  } else if (data.type === 'imageClick' && data.url) {
-                    setPreviewImage(data.url);
-                  }
-                } catch (e) {}
-=======
               onMessage={(event) => {
                 const uri = event.nativeEvent.data;
 
@@ -686,83 +610,67 @@ export default function CreateNote({
                   uri,
                   type: "image/jpeg",
                 });
->>>>>>> df266aa (minor)
+              }}
+              onCursorPosition={(scrollY) => {
+                if (scrollY > 100) {
+                  scrollRef.current?.scrollTo({
+                    y: scrollY - 50,
+                    animated: true,
+                  });
+                }
               }}
               editorStyle={{
                 backgroundColor: Colors.background,
                 color: Colors.textPrimary,
                 caretColor: Colors.primary,
                 placeholderColor: Colors.placeholder,
+                // contentCSSText: "font-size: 10px;", // Custom CSS styles
               }}
-              initialFocus={true}
-              // initialHeight={500}
               placeholder="Type Here..."
             />
           </View>
         </ScrollView>
         <View style={{ padding: 10 }}>
-<<<<<<< HEAD
-          {files.filter(f => !f.type?.startsWith("image")).length > 0 ? (
-            <FlatList
-              data={files.filter(f => !f.type?.startsWith("image"))}
-=======
           {combinedFiles.length > 0 && (
             <FlatList
               data={combinedFiles}
->>>>>>> df266aa (minor)
               keyExtractor={(item, index) => index.toString()}
               horizontal
               bounces={false}
-              renderItem={({ item }) => {
-                return (
-                  <View style={dynamicStyles.filesWrap}>
-                    <TouchableOpacity
-                      onPress={() => openFile(item)}
-                      style={dynamicStyles.fileContainer}
+              renderItem={({ item }) => (
+                <View style={dynamicStyles.filesWrap}>
+                  <TouchableOpacity
+                    onPress={() => openFile(item)}
+                    style={dynamicStyles.fileContainer}
+                  >
+                    <MaterialCommunityIcons
+                      name="file-document-outline"
+                      size={40}
+                      color={Colors.iconPrimary}
+                    />
+
+                    <Text
+                      numberOfLines={1}
+                      style={{
+                        color: Colors.textSecondary,
+                        marginTop: 5,
+                        fontSize: 12,
+                      }}
                     >
-<<<<<<< HEAD
+                      {item.name}
+                    </Text>
+
+                    <TouchableOpacity
+                      style={{ position: "absolute", top: 5, right: 5 }}
+                      onPress={() =>
+                        item.isExisting ? DeleteFilefromNote(item.uri) : null
+                      }
+                    >
                       <AntDesign name="close" size={12} />
                     </TouchableOpacity>
                   </TouchableOpacity>
-                );
-              }}
-            />
-          ) : (
-            existingFiles.filter(item => !item.match(/\.(jpg|jpeg|png|webp|gif)$/i) || !(notes.content || '').includes(item)).length > 0 && (
-              <FlatList
-                data={existingFiles.filter(item => !item.match(/\.(jpg|jpeg|png|webp|gif)$/i) || !(notes.content || '').includes(item))}
-                keyExtractor={(item, index) => `${item}-${index}`}
-                horizontal
-                renderItem={({ item }) => {
-                  const isImage = item.match(/\.(jpg|jpeg|png|webp)$/);
-=======
-                      <MaterialCommunityIcons
-                        name="file-document-outline"
-                        size={40}
-                        color={Colors.iconPrimary}
-                      />
->>>>>>> df266aa (minor)
-
-                      <Text style={{ color: Colors.textSecondary }}>
-                        {item.name}
-                      </Text>
-
-                      <TouchableOpacity
-                        style={dynamicStyles.close}
-                        onPress={() => {
-                          if (item.isExisting) {
-                            DeleteFilefromNote(item.uri);
-                          } else {
-                            removeFile(item);
-                          }
-                        }}
-                      >
-                        <AntDesign name="close" size={12} />
-                      </TouchableOpacity>
-                    </TouchableOpacity>
-                  </View>
-                );
-              }}
+                </View>
+              )}
             />
           )}
         </View>

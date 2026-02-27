@@ -34,25 +34,25 @@ export default function Summary({
         <Pressable style={dynamicStyles.icon}>
           <Ionicons
             name="sparkles-outline"
-            size={26}
+            size={24}
             style={{ alignItems: "center" }}
             color={Colors.iconPrimary}
           />
         </Pressable>
         <Text style={dynamicStyles.heading}>AI Generated Summary</Text>
+        <TouchableOpacity style={dynamicStyles.close}>
+          <AntDesign
+            name="close"
+            size={22}
+            onPress={onClose}
+            color={Colors.iconPrimary}
+          />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView style={dynamicStyles.content}>
+      <ScrollView style={dynamicStyles.content} bounces={false}>
         <Text style={dynamicStyles.contentText}>{data}</Text>
       </ScrollView>
-      <TouchableOpacity style={dynamicStyles.close}>
-        <AntDesign
-          name="close"
-          size={22}
-          onPress={onClose}
-          color={Colors.iconPrimary}
-        />
-      </TouchableOpacity>
     </View>
   );
 }

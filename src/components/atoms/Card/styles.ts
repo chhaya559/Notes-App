@@ -33,6 +33,7 @@ const styles = (Colors: ThemeColors) =>
     },
     contentText: {
       color: Colors.textSecondary,
+      // fontSize: 8,
     },
     created: {
       color: Colors.textMuted,
@@ -48,11 +49,13 @@ const styles = (Colors: ThemeColors) =>
       top: 26,
     },
     modal: {
-      backgroundColor: Colors.surface,
+      backgroundColor: Colors.surfaceSoft,
       width: screenWidth * 0.9,
       marginTop: isSmallScreen ? screenHeight * 0.25 : screenHeight * 0.3,
       marginBottom: isSmallScreen ? screenHeight * 0.25 : screenHeight * 0.3,
       borderRadius: 10,
+      borderWidth: 1,
+      borderColor: Colors.inputFocusBorder,
     },
 
     unlockHeading: {
@@ -117,31 +120,30 @@ const styles = (Colors: ThemeColors) =>
       fontSize: 18,
       color: Colors.textSecondary,
     },
-
     swipeAction: {
       flexDirection: "row",
       gap: 10,
-      height: 80,
-      marginVertical: 5,
-      overflow: "hidden",
+      height: 90,
       alignItems: "center",
+      justifyContent: "center",
     },
+
     deleteBg: {
       width: 70,
-      padding: 17,
-      alignItems: "center",
-      backgroundColor: Colors.swipeDeleteBg,
-      borderRadius: 10,
       height: 80,
+      backgroundColor: Colors.swipeDeleteBg,
+      borderRadius: 16,
+      justifyContent: "center",
+      alignItems: "center",
     },
 
     lockBg: {
       width: 70,
-      padding: 17,
-      alignItems: "center",
-      backgroundColor: Colors.swipeLockBg,
-      borderRadius: 10,
       height: 80,
+      backgroundColor: Colors.swipeLockBg,
+      borderRadius: 16,
+      justifyContent: "center",
+      alignItems: "center",
     },
   });
 export default styles;

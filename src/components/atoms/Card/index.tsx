@@ -5,8 +5,6 @@ import {
   Pressable,
   Alert,
   useWindowDimensions,
-  ScrollView,
-  KeyboardAvoidingView,
 } from "react-native";
 import styles from "./styles";
 import { AntDesign, Entypo, Feather, MaterialIcons } from "@expo/vector-icons";
@@ -18,7 +16,7 @@ import Toast from "react-native-toast-message";
 import { RenderHTML } from "react-native-render-html";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
-import { setNotesUnlocked, lockNotes, isGuest } from "@redux/slice/authSlice";
+import { setNotesUnlocked, lockNotes } from "@redux/slice/authSlice";
 import {
   useDeleteMutation,
   useNoteLockMutation,
@@ -61,8 +59,8 @@ export default function Card(props: any) {
   const { isConnected } = useNetInfo();
   const [deleteApi] = useDeleteMutation();
   const [lockApi] = useNoteLockMutation();
-  const isGuest = useSelector((state: RootState) => state.auth.isGuest);
   const [removeLockApi] = useRemoveLockMutation();
+
   const notesUnlockUntil = useSelector(
     (state: RootState) => state.auth.notesUnlockUntil,
   );
@@ -81,6 +79,7 @@ export default function Card(props: any) {
     password: "",
     unlockMinutes: null,
   });
+
   const { width } = useWindowDimensions();
 
   useEffect(() => {
@@ -103,12 +102,20 @@ export default function Card(props: any) {
 
   async function handleUnlock() {
     if (!unlockValue.password || !unlockValue.unlockMinutes) {
-      Toast.show({ text1: "Enter password & select time" });
+      Toast.show({
+        text1: "Enter password & select time",
+        type: "info",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
       return;
     }
     if (!isConnected) {
       Toast.show({
         text1: "This feature requires internet",
+        type: "info",
+        swipeable: false,
+        onPress: () => Toast.hide(),
       });
     }
     try {
@@ -131,6 +138,9 @@ export default function Card(props: any) {
     } catch (error) {
       Toast.show({
         text1: error?.data?.message,
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
       });
     }
   }
@@ -166,11 +176,19 @@ export default function Card(props: any) {
         await props.onDeleteSuccess();
       }
 
-      Toast.show({ text1: "Note Deleted" });
+      Toast.show({
+        text1: "Note Deleted",
+        type: "success",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
     } catch (error) {
       console.log("Delete error:", error);
       Toast.show({
         text1: error?.data?.message,
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
       });
     }
   }
@@ -183,7 +201,7 @@ export default function Card(props: any) {
       setShowLockedModal(true);
       return;
     }
-
+    console.log(props.content, "contentcontent");
     navigation.navigate("CreateNote", {
       id: props.id,
       title: props.title,
@@ -195,6 +213,7 @@ export default function Card(props: any) {
   const hasCommonPassword = useSelector(
     (state: RootState) => state.auth.isCommonPasswordSet,
   );
+
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -205,6 +224,9 @@ export default function Card(props: any) {
     if (!isConnected) {
       Toast.show({
         text1: "This feature requires internet",
+        type: "info",
+        swipeable: false,
+        onPress: () => Toast.hide(),
       });
     }
     try {
@@ -216,17 +238,29 @@ export default function Card(props: any) {
       if (response.success) {
         Toast.show({
           text1: "Note Lock Removed",
+          type: "success",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
         swipeRef.current?.close();
       }
     } catch (error: any) {
       if (error.data.message) {
         Toast.show({
-          text2: error?.data?.message,
+          text1: error?.data?.message,
           position: "top",
+          type: "error",
+          topOffset: 0,
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       } else {
-        Toast.show({ text1: "Failed to remove lock from note" });
+        Toast.show({
+          text1: "Failed to remove lock from note",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
       }
       console.log(error);
     }
@@ -237,6 +271,9 @@ export default function Card(props: any) {
       if (!isConnected) {
         Toast.show({
           text1: "This feature requires internet",
+          type: "info",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
 
@@ -268,17 +305,28 @@ export default function Card(props: any) {
       if (response.success) {
         Toast.show({
           text1: "Note Locked",
+          type: "success",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
         swipeRef.current?.close();
       }
     } catch (error: any) {
       if (error.data.message) {
         Toast.show({
-          text2: error?.data?.message,
+          text1: error?.data?.message,
           position: "top",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       } else {
-        Toast.show({ text1: "Failed to lock note" });
+        Toast.show({
+          text1: "Failed to lock note",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
       }
       console.log(error);
     }
@@ -338,12 +386,7 @@ export default function Card(props: any) {
     );
   }
 
-  const firstLine = props.content
-    ?.split(/\r?\n|<br\s*\/?>/)[0]
-    ?.substring(0, 40);
-
-  const contentToShow =
-    firstLine?.length > 30 ? firstLine.substring(0, 30) + "..." : firstLine;
+  const contentToShow = props.preview;
 
   const swipeRef = useRef<SwipeableMethods>(null);
   return (
@@ -406,12 +449,14 @@ export default function Card(props: any) {
       </View>
 
       {showLockedModal && (
-        <Modal
-          isVisible={showLockedModal}
-          backdropOpacity={0.2}
-          style={dynamicStyles.modal}
-        >
-          <View>
+        <View>
+          <Modal
+            isVisible={showLockedModal}
+            backdropOpacity={0.1}
+            style={dynamicStyles.modal}
+            onBackdropPress={() => setShowLockedModal(false)}
+            onBackButtonPress={() => setShowLockedModal(false)}
+          >
             <KeyboardAwareScrollView bounces={false}>
               <Text style={dynamicStyles.unlockHeading}>Unlock Notes</Text>
               <TouchableOpacity>
@@ -468,9 +513,8 @@ export default function Card(props: any) {
                 <Text style={dynamicStyles.pressableText}>Unlock</Text>
               </TouchableOpacity>
             </KeyboardAwareScrollView>
-          </View>
-          <Toast />
-        </Modal>
+          </Modal>
+        </View>
       )}
     </>
   );

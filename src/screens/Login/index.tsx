@@ -105,6 +105,9 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       if (!isConnected) {
         Toast.show({
           text1: "You appear to be offline. Please try again!",
+          type: "info",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
       const userInfo = await GoogleSignin.signIn();
@@ -139,6 +142,8 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       Toast.show({
         type: "success",
         text1: "Logged in with google",
+        swipeable: false,
+        onPress: () => Toast.hide(),
       });
 
       requestUserPermission();
@@ -150,10 +155,16 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
         Toast.show({
           text1: "No internet connection",
           text2: "Please check your network",
+          type: "info",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       } else {
         Toast.show({
           text1: "Google login failed",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
     }
@@ -183,6 +194,9 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       } else {
         Toast.show({
           text1: "Sign in failed",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
     } catch (error: any) {
@@ -190,14 +204,23 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       if (error?.data?.message) {
         Toast.show({
           text1: error?.data?.message,
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       } else if (error.error.includes("TypeError: Network request failed")) {
         Toast.show({
           text1: "Connection lost. Please try again",
+          type: "info",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       } else {
         Toast.show({
           text1: "Something went wrong. Please try again later.",
+          type: "info",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
     }

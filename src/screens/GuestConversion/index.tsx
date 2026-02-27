@@ -114,6 +114,9 @@ export default function GuestConversion({
         );
         Toast.show({
           text1: "Guest converted to User",
+          type: "success",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
         requestUserPermission();
         navigation.navigate("Dashboard");
@@ -123,10 +126,16 @@ export default function GuestConversion({
       if (error?.data?.message) {
         Toast.show({
           text1: error?.data?.message,
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       } else {
         Toast.show({
           text1: "Error converting guest to user",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
     }

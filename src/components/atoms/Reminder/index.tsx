@@ -2,7 +2,7 @@ import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import styles from "./styles";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import DatePicker from "react-native-date-picker";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Modal from "react-native-modal";
 import {
   useDeleteReminderMutation,
@@ -32,6 +32,7 @@ export default function Reminder({
   const navigation = useNavigation<any>();
   const [date, setDate] = useState<Date | null>(null);
   const [openDateModal, setOpenDateModal] = useState(false);
+  const [openTimeModal, setOpenTimeModal] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [setReminderApi, { isLoading }] = useSetReminderMutation();
   const [name, setName] = useState("");
@@ -68,12 +69,20 @@ export default function Reminder({
   async function setReminder() {
     try {
       if (!date) {
-        Toast.show({ text1: "Please select date & time" });
+        Toast.show({
+          text1: "Please select date & time",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
         return;
       }
       if (!isConnected) {
         Toast.show({
           text1: "Internet connection required",
+          type: "info",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
 
@@ -87,7 +96,12 @@ export default function Reminder({
       }).unwrap();
       console.log(res);
       if (res.success) {
-        Toast.show({ text1: "Reminder set successfully" });
+        Toast.show({
+          text1: "Reminder set successfully",
+          type: "success",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
       }
       onReminderSet(id);
       onClose();
@@ -96,6 +110,9 @@ export default function Reminder({
       console.log(error);
       Toast.show({
         text1: error?.data?.message || "Failed to set reminder",
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
       });
     }
   }
@@ -104,18 +121,43 @@ export default function Reminder({
     try {
       const response = await deleteApi(id).unwrap();
       console.log(response, "delete response");
-      Toast.show({ text1: "Reminder deleted" });
+      Toast.show({
+        text1: "Reminder deleted",
+        type: "success",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
       onClose();
     } catch (error) {
-      Toast.show({ text1: "Failed to delete reminder" });
+      Toast.show({
+        text1: "Failed to delete reminder",
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
       console.log("error deleting reminder", error);
     }
   }
   const { Colors } = useTheme();
+  const getInitialTime = () => {
+    const now = new Date();
+    return new Date(now.getTime() + 2 * 60000); // 60000ms = 1 minute
+  };
+
+  const [time, getTime] = useState(getInitialTime());
+  const descriptionRef = useRef(null);
   return (
-    <Modal isVisible={true} onBackdropPress={onClose} backdropOpacity={0}>
+    <Modal
+      isVisible={true}
+      onBackButtonPress={onClose}
+      onBackdropPress={onClose}
+      backdropOpacity={0}
+    >
       <View style={dynamicStyles.container}>
-        <KeyboardAwareScrollView bounces={false}>
+        <KeyboardAwareScrollView
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={dynamicStyles.headingContainer}>
             <View style={dynamicStyles.iconBackground}>
               <Ionicons
@@ -134,13 +176,28 @@ export default function Reminder({
               modal
               open={openDateModal}
               date={date ?? new Date()}
-              mode="datetime"
+              mode="date"
               minimumDate={new Date()}
               onConfirm={(selectedDate) => {
                 setOpenDateModal(false);
                 setDate(selectedDate);
+                setOpenTimeModal(true);
               }}
               onCancel={() => setOpenDateModal(false)}
+            />
+          )}
+          {openTimeModal && (
+            <DatePicker
+              modal
+              open={openTimeModal}
+              date={time || getInitialTime()}
+              mode="time"
+              minimumDate={new Date()}
+              onConfirm={(selectedDate) => {
+                setDate(selectedDate);
+                setOpenTimeModal(false);
+              }}
+              onCancel={() => setOpenTimeModal(false)}
             />
           )}
 
@@ -152,18 +209,23 @@ export default function Reminder({
               onChangeText={setName}
               placeholderTextColor={Colors.placeholder}
               style={dynamicStyles.input}
+              returnKeyType="next"
+              onSubmitEditing={() => descriptionRef.current?.focus()}
             />
 
             <Text style={dynamicStyles.textInput}>Description</Text>
             <TextInput
               style={dynamicStyles.input}
+              multiline
+              ref={descriptionRef}
               placeholderTextColor={Colors.placeholder}
               value={description}
               placeholder="Description of Reminder"
               onChangeText={setDescription}
+              returnKeyType="next"
             />
 
-            <Text style={dynamicStyles.textInput}>Date & Time</Text>
+            <Text style={dynamicStyles.textInput}>Date & Time*</Text>
 
             <TouchableOpacity onPress={() => setOpenDateModal(true)}>
               <TextInput
@@ -194,7 +256,7 @@ export default function Reminder({
           <TouchableOpacity
             style={[
               dynamicStyles.pressable,
-              (!date || isLoading) && { opacity: 0.6 },
+              (!date || isLoading) && { opacity: 0.5 },
             ]}
             disabled={!date || isLoading}
             onPress={setReminder}
@@ -214,11 +276,10 @@ export default function Reminder({
           )}
 
           <TouchableOpacity style={dynamicStyles.close} onPress={onClose}>
-            <AntDesign name="close" size={22} color={Colors.iconPrimary} />
+            <AntDesign name="close" size={24} color={Colors.iconPrimary} />
           </TouchableOpacity>
         </KeyboardAwareScrollView>
       </View>
-      <Toast />
     </Modal>
   );
 }

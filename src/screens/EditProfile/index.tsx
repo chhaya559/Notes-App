@@ -59,6 +59,9 @@ export default function EditProfile({
         );
         Toast.show({
           text1: "Profile updated successfully!",
+          type: "success",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
         if (navigation.canGoBack()) navigation.goBack();
       }
@@ -67,10 +70,16 @@ export default function EditProfile({
       if (error?.data?.message) {
         Toast.show({
           text1: error?.data?.message,
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       } else {
         Toast.show({
           text1: "Profile updation failed",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
     }

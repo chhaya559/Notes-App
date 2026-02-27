@@ -19,6 +19,9 @@ export default function Onboarding({ navigation }: Readonly<OnboardingProps>) {
     if (!isConnected) {
       Toast.show({
         text1: "No internet connection",
+        type: "info",
+        swipeable: false,
+        onPress: () => Toast.hide(),
       });
     }
     const response = await guestApi().unwrap();

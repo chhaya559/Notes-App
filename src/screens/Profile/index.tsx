@@ -115,12 +115,18 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         Toast.show({
           text1: "Account Deleted Successfully!",
           visibilityTime: 1000,
+          type: "success",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
     } catch (error) {
       console.log(error);
       Toast.show({
         text1: "Not able to delete account",
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
       });
     }
   }
@@ -138,6 +144,9 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
     } catch (error) {
       Toast.show({
         text1: "Error removing current photo",
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
       });
       console.log("Error deleting profile image", error);
     }
@@ -205,6 +214,9 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       console.log("Error uploading file", error);
       Toast.show({
         text1: "Error uploading image",
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
       });
     }
   }
@@ -232,12 +244,18 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
         case RESULTS.DENIED:
           Toast.show({
             text1: "Permission denied to access images",
+            type: "info",
+            swipeable: false,
+            onPress: () => Toast.hide(),
           });
           console.log("Permission denied to access images");
           return;
         case RESULTS.UNAVAILABLE:
           Toast.show({
             text1: "Feature not available on this device",
+            type: "info",
+            swipeable: false,
+            onPress: () => Toast.hide(),
           });
           console.log("Feature not available on this device.");
           return;
@@ -282,10 +300,16 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       if (error?.data?.errors[0]) {
         Toast.show({
           text1: error?.data?.errors[0],
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       } else {
         Toast.show({
           text1: "Error uploading image",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
     }

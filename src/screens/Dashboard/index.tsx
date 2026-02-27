@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   FlatList,
   Text,
   TextInput,
@@ -7,7 +8,7 @@ import {
 } from "react-native";
 import styles from "./styles";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@redux/store";
 import {
@@ -34,7 +35,14 @@ import { createPendingTable } from "src/db/pendingNotes/pendingTable";
 import { pendingNotes } from "src/db/pendingNotes/schema";
 import EmptyListComponent from "@components/atoms/EmptyListComponent";
 import ListFooterComponent from "@components/atoms/ListFooterComponent";
-import { sanitizeSearch } from "@utils/utility";
+import { getFirstLinePreview, sanitizeSearch } from "@utils/utility";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
 
@@ -51,7 +59,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [deleteApi] = useDeleteMutation();
   const { Colors } = useTheme();
   const dispatch = useDispatch();
-
+  const [noteLoaded, setNoteLoaded] = useState(false);
   function clearSearchText() {
     setSearchText("");
   }
@@ -184,14 +192,14 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   async function fetchBackendAndStoreLocal() {
     if (!data?.data) return;
 
-    // const pending = await pendingDb.select().from(pendingNotes);
+    const pending = await pendingDb.select().from(pendingNotes);
 
-    // const deletedSet = new Set(
-    //   pending.filter((n) => n.syncStatus === 3).map((n) => n.id),
-    // );
+    const deletedSet = new Set(
+      pending.filter((n) => n.syncStatus === 3).map((n) => n.id),
+    );
 
     for (const note of data.data) {
-      // if (deletedSet.has(String(note.id))) continue;
+      if (deletedSet.has(String(note.id))) continue;
 
       await db
         .insert(notesTable)
@@ -276,6 +284,15 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     });
   }, [Colors.background]);
 
+  const searchInputRef = useRef(null);
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("blur", () => {
+      searchInputRef.current?.blur();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   //search
   const sanitizedSearch = sanitizeSearch(searchText);
 
@@ -287,9 +304,53 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     skip: !isSearching,
   });
 
+  //pan gesture
+  const pressed = useSharedValue<boolean>(false);
+  const translateX = useSharedValue<number>(0);
+  const translateY = useSharedValue<number>(0);
+
+  const pan = Gesture.Pan()
+    .onBegin(() => {
+      pressed.value = true;
+    })
+    .onChange((e) => {
+      translateX.value = e.translationX;
+      translateY.value = e.translationY;
+    })
+    .onFinalize(() => {
+      translateX.value = withSpring(0);
+      translateY.value = withSpring(0);
+      pressed.value = false;
+    });
+
+  const AddStyles = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: withTiming(pressed.value ? 1.1 : 1) },
+    ],
+  }));
+
+  const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+  //display
   const displayNotes = isSearching
     ? (SearchedNotes?.data ?? [])
     : (allNotes ?? []);
+
+  if (isFetching) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: Colors.background,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={dynamicStyles.container}>
@@ -304,17 +365,24 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
 
       {allNotes?.length > 0 && (
         <View
-          style={[dynamicStyles.SearchBar, isFocused && dynamicStyles.focus]}
+          style={[
+            dynamicStyles.SearchBar,
+            isFocused ? dynamicStyles.focus : dynamicStyles.SearchBar,
+          ]}
         >
           <Ionicons name="search" color={Colors.iconPrimary} size={22} />
           <TextInput
+            ref={searchInputRef}
             placeholder="Search notes..."
             placeholderTextColor={Colors.placeholder}
             style={dynamicStyles.search}
             value={searchText}
             onChangeText={setSearchText}
             onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
+            onBlur={() => {
+              setIsFocused(false);
+              clearSearchText();
+            }}
             autoCorrect={false}
             cursorColor={Colors.primary}
             selectionColor={Colors.primary}
@@ -343,6 +411,8 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             id={item.id}
             title={item.title}
             content={item.content}
+            preview={getFirstLinePreview(item.content)}
+            filePaths={item.filePaths}
             updatedAt={item.updatedAt}
             isPasswordProtected={item.isPasswordProtected}
             isReminderSet={item.isReminderSet}
@@ -364,12 +434,14 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       />
 
       {/* Create Note */}
-      <TouchableOpacity
-        style={dynamicStyles.add}
-        onPress={() => navigation.navigate("CreateNote" as never)}
-      >
-        <Ionicons name="add-circle" size={60} color={Colors.gradientStart} />
-      </TouchableOpacity>
+      <GestureDetector gesture={pan}>
+        <AnimatedTouchable
+          style={[dynamicStyles.add, AddStyles]}
+          onPress={() => navigation.navigate("CreateNote" as never)}
+        >
+          <Ionicons name="add-circle" size={60} color={Colors.gradientStart} />
+        </AnimatedTouchable>
+      </GestureDetector>
     </View>
   );
 }

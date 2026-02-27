@@ -42,18 +42,28 @@ export default function ChangeNotePassword({
       }).unwrap();
 
       if (response.success) {
-        Toast.show({ text1: "Password Changed successfully!" });
+        Toast.show({
+          text1: "Password Changed successfully!",
+          type: "success",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
         navigation.goBack();
       }
     } catch (error: any) {
       if (error?.data?.message) {
         Toast.show({
           text1: error?.data?.message,
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       } else {
         Toast.show({
           type: "error",
           text1: "Failed to change password",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
       console.log(error.data.message);

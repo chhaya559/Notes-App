@@ -45,14 +45,16 @@ const styles = (Colors: ThemeColors) =>
       bottom: 2,
     },
     profile: {
-      height: 100,
-      width: 100,
+      height: 104,
+      width: 104,
       borderRadius: 50,
       alignSelf: "center",
       justifyContent: "center",
       alignItems: "center",
       marginTop: 15,
       backgroundColor: "white",
+      borderColor: Colors.primaryBorder,
+      borderWidth: 1,
     },
     name: {
       textAlign: "center",

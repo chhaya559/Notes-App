@@ -29,13 +29,11 @@ const styles = (Colors: ThemeColors) =>
       right: 10,
     },
     modal: {
-      padding: 15,
       borderRadius: 12,
-      height: 200,
+      // height: 200,
       backgroundColor: Colors.surface,
       borderWidth: 1,
       borderColor: Colors.primaryBorder,
-      paddingTop: 0,
     },
 
     pressable: {
@@ -45,33 +43,43 @@ const styles = (Colors: ThemeColors) =>
       marginTop: 10,
     },
     buttonsWrapper: {
-      flexDirection: "row",
-      justifyContent: "space-evenly",
+      // flexDirection: "row",
+      // justifyContent: "space-evenly",
       marginBottom: 10,
     },
     operations: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
+      justifyContent: "flex-end",
       borderRadius: 12,
       paddingVertical: 0,
       paddingHorizontal: 4,
-      gap: 5,
+      gap: 10,
+      marginBottom: 10,
     },
     buttons: {
       flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
+      // alignItems: "center",
+      justifyContent: "flex-start",
       borderRadius: 10,
       paddingVertical: 2,
       paddingHorizontal: 6,
-      gap: 5,
+      gap: 10,
+      //gap: 5,
+    },
+    operationsButton: {
+      borderWidth: 1.5,
+      borderColor: Colors.primaryBorder,
+    },
+    operationsText: {
+      color: Colors.primary,
+      padding: 5,
     },
     text: {
-      color: Colors.textSecondary,
+      color: Colors.primary,
       textAlign: "center",
       fontSize: 16,
-      padding: 3,
+      padding: 2,
     },
     focused: {
       backgroundColor: Colors.primary,
@@ -89,7 +97,8 @@ const styles = (Colors: ThemeColors) =>
       backgroundColor: Colors.primary,
     },
     activeOperation: {
-      borderWidth: 2,
+      borderWidth: 1.5,
+      borderColor: Colors.primaryPressed,
     },
     activeText: {
       color: Colors.textOnPrimary,
@@ -105,6 +114,7 @@ const styles = (Colors: ThemeColors) =>
       fontWeight: "700",
       margin: 10,
       color: Colors.textPrimary,
+      fontSize: 20,
     },
     reminderName: {
       fontWeight: "500",
@@ -143,7 +153,7 @@ const styles = (Colors: ThemeColors) =>
       // position: "absolute",
     },
     swipe: {
-      backgroundColor: Colors.deleteBg,
+      backgroundColor: Colors.swipeDeleteBg,
       padding: 15,
       borderRadius: 20,
       elevation: 3,

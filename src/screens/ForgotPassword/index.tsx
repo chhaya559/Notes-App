@@ -55,10 +55,16 @@ export default function ForgotPassword({
             text1: "Email sent",
             visibilityTime: 2000,
             onHide: () => setIsModalVisible(true),
+            type: "success",
+            swipeable: false,
+            onPress: () => Toast.hide(),
           });
         } else {
           Toast.show({
             text1: "Email not sent",
+            type: "error",
+            swipeable: false,
+            onPress: () => Toast.hide(),
           });
         }
       } else {
@@ -70,10 +76,16 @@ export default function ForgotPassword({
             text1: "Email sent",
             visibilityTime: 2000,
             onHide: () => setIsModalVisible(true),
+            type: "success",
+            swipeable: false,
+            onPress: () => Toast.hide(),
           });
         } else {
           Toast.show({
             text1: "Email not sent",
+            type: "error",
+            swipeable: false,
+            onPress: () => Toast.hide(),
           });
         }
       }
@@ -81,6 +93,9 @@ export default function ForgotPassword({
       console.log(error);
       Toast.show({
         text1: error?.data?.message || "Something went wrong",
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
       });
     }
   }
@@ -100,7 +115,12 @@ export default function ForgotPassword({
   const { Colors } = useTheme();
   return (
     <>
-      <Modal isVisible={isModalVisible} backdropOpacity={0.8}>
+      <Modal
+        isVisible={isModalVisible}
+        backdropOpacity={0.8}
+        onBackButtonPress={() => setIsModalVisible(false)}
+        onBackdropPress={() => setIsModalVisible(false)}
+      >
         <View style={dynamicStyles.modal}>
           <View style={dynamicStyles.iconWrap}>
             <MaterialCommunityIcons

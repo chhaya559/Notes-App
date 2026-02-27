@@ -51,12 +51,18 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
         Toast.show({
           text1: "Account Deleted Successfully!",
           visibilityTime: 1000,
+          type: "success",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
     } catch (error) {
       console.log(error);
       Toast.show({
         text1: "Not able to delete account",
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
       });
     }
   }

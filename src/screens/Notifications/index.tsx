@@ -123,7 +123,7 @@ export default function Notifications() {
           <MaterialIcons
             name="delete-outline"
             size={38}
-            color={Colors.swipeDeleteBg}
+            color={Colors.danger}
             style={dynamicStyles.delete}
           />
         </TouchableOpacity>
@@ -149,10 +149,17 @@ export default function Notifications() {
     }
   }, [isFetching]);
 
-  if (firstLoad && isFetching) {
+  if (isFetching && firstLoad) {
     return (
-      <View style={{ marginTop: 20 }}>
-        <ActivityIndicator size="large" color={Colors.iconPrimary} />
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: Colors.background,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
@@ -201,41 +208,6 @@ export default function Notifications() {
               </Text>
             </TouchableOpacity>
           </View>
-
-          <View style={dynamicStyles.operations}>
-            <TouchableOpacity
-              style={
-                isReadPressed
-                  ? dynamicStyles.activeOperation
-                  : dynamicStyles.touchable
-              }
-              onPress={() => {
-                readAll();
-              }}
-              onPressIn={() => setIsReadPressed(true)}
-              onPressOut={() => setIsReadPressed(false)}
-            >
-              <Text style={[dynamicStyles.text]}>Read All</Text>
-            </TouchableOpacity>
-
-            {/* <View style={dynamicStyles.line} /> */}
-
-            {/* CLEAR ALL ACTION */}
-            <TouchableOpacity
-              style={
-                isClearPressed
-                  ? dynamicStyles.activeOperation
-                  : dynamicStyles.touchable
-              }
-              onPress={() => {
-                clearAll();
-              }}
-              onPressIn={() => setIsClearPressed(true)}
-              onPressOut={() => setIsClearPressed(false)}
-            >
-              <Text style={[dynamicStyles.text]}>Clear All</Text>
-            </TouchableOpacity>
-          </View>
         </View>
       )}
 
@@ -252,7 +224,9 @@ export default function Notifications() {
             rightThreshold={10}
           >
             <TouchableOpacity
-              onPress={() => openDetails(item)}
+              onPress={() => {
+                openDetails(item);
+              }}
               style={dynamicStyles.card}
             >
               <Text style={dynamicStyles.reminderName}>{item.title}</Text>
@@ -285,23 +259,59 @@ export default function Notifications() {
           </View>
           //  )
         }
+        ListFooterComponent={
+          filteredNotifications.length > 0 ? (
+            <View style={dynamicStyles.operations}>
+              <TouchableOpacity
+                style={
+                  isReadPressed
+                    ? dynamicStyles.activeOperation
+                    : dynamicStyles.operationsButton
+                }
+                onPress={() => {
+                  readAll();
+                }}
+                onPressIn={() => setIsReadPressed(true)}
+                onPressOut={() => setIsReadPressed(false)}
+              >
+                <Text style={[dynamicStyles.operationsText]}>Read All</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={
+                  isClearPressed
+                    ? dynamicStyles.activeOperation
+                    : dynamicStyles.operationsButton
+                }
+                onPress={() => {
+                  clearAll();
+                }}
+                onPressIn={() => setIsClearPressed(true)}
+                onPressOut={() => setIsClearPressed(false)}
+              >
+                <Text style={[dynamicStyles.operationsText]}>Clear All</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null
+        }
       />
 
       <Modal
         isVisible={showDetailedNotification}
         backdropOpacity={0.5}
         onBackdropPress={() => setShowDetailedNotification(false)}
+        onBackButtonPress={() => setShowDetailedNotification(false)}
       >
         <View style={dynamicStyles.modal}>
           <TouchableOpacity
             onPress={() => setShowDetailedNotification(false)}
             style={dynamicStyles.close}
           >
-            <AntDesign name="close" size={20} color={Colors.iconPrimary} />
+            <AntDesign name="close" size={22} color={Colors.iconPrimary} />
           </TouchableOpacity>
           <Ionicons
             name="notifications-circle"
-            size={70}
+            size={50}
             color={Colors.iconPrimary}
             style={dynamicStyles.icon}
           />

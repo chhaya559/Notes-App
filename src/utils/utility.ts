@@ -29,7 +29,7 @@ export const _scaleText = (fontSize: number) => {
   return RFValue(fontSize);
 };
 
-export const formatName = (name) => {
+export const formatName = (name: string) => {
   const cleaned = name.replaceAll(/\d/g, " ");
   const firstWord = cleaned.trim().split(" ")[0];
 
@@ -45,7 +45,9 @@ export const sanitizeSearch = (input: string) => {
   return cleaned;
 };
 
-export function showError(error) {
+export function showError(error: {
+  data: { errors: string | any[]; message: any };
+}) {
   if (error?.data?.errors?.length) {
     Toast.show({
       type: "error",
@@ -60,4 +62,23 @@ export function showError(error) {
       text1: error.data.message,
     });
   }
+}
+
+export function getFirstLinePreview(content: string): string {
+  if (!content) return "";
+  const standardizedContent = content
+    .replace(/<\/li>|<\/p>|<\/div>|<br\s*\/?>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "");
+
+  const cleanText = standardizedContent.replace(/<(.|\n)*?>/g, "");
+
+  const lines = cleanText.trimStart().split(/\r?\n/);
+
+  const firstLine = lines.find((line) => line.trim().length > 0) || "";
+
+  const finalResult = firstLine.trim();
+
+  return finalResult.length > 30
+    ? finalResult.substring(0, 30) + "..."
+    : finalResult;
 }

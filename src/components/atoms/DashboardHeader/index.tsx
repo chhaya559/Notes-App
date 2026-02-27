@@ -14,7 +14,7 @@ export default function DashboardHeader() {
   const navigation = useNavigation<any>();
   const { toggleTheme, darkMode, Colors } = useTheme();
   const { dynamicStyles } = useStyles(styles);
-
+  const isGuest = useSelector((state: RootState) => state.auth.isGuest);
   const profileImage = useSelector(
     (state: RootState) => state.auth.profileImageUrl,
   );
@@ -45,7 +45,11 @@ export default function DashboardHeader() {
 
   return (
     <View style={dynamicStyles.outer}>
-      <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate("Notifications")}
+        style={{ opacity: isGuest ? 0.5 : 1 }}
+        disabled={isGuest}
+      >
         <Ionicons
           name="notifications-circle-outline"
           color={Colors.iconPrimary}

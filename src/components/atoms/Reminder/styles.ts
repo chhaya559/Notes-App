@@ -5,8 +5,10 @@ const styles = (Colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       backgroundColor: Colors.surfaceSoft,
-      borderRadius: 15,
+      borderRadius: 10,
       padding: 15,
+      borderWidth: 1,
+      borderColor: Colors.primary,
     },
     headingContainer: {
       flexDirection: "row",
@@ -25,10 +27,10 @@ const styles = (Colors: ThemeColors) =>
       textAlign: "center",
       color: Colors.primary,
       fontWeight: "bold",
-      fontSize: 20,
-      verticalAlign: "bottom",
+      fontSize: 21,
+      verticalAlign: "middle",
       textAlignVertical: "center",
-      marginTop: 3,
+      marginTop: 2,
     },
     contentView: {
       padding: 10,
@@ -37,8 +39,8 @@ const styles = (Colors: ThemeColors) =>
     },
     close: {
       position: "absolute",
-      right: 15,
-      top: 11,
+      right: 2,
+      top: 13,
     },
     pressable: {
       margin: 10,

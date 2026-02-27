@@ -16,10 +16,12 @@ const styles = (Colors: ThemeColors) =>
       top: 4,
     },
     profileCover: {
-      height: 30,
-      width: 30,
+      height: 32,
+      width: 32,
       borderRadius: 50,
       backgroundColor: Colors.textOnPrimary,
+      borderWidth: 1,
+      borderColor: Colors.primaryBorder,
     },
 
     image: {

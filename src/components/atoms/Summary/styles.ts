@@ -9,15 +9,14 @@ const styles = (Colors: ThemeColors) =>
       borderWidth: 1,
       borderColor: Colors.border,
       padding: 20,
-      alignItems: "center",
+      // alignItems: "center",
       margin: 15,
       paddingBottom: 0,
       marginBottom: 70,
     },
     headingContainer: {
-      alignItems: "center",
       flexDirection: "row",
-      gap: 10,
+      justifyContent: "space-evenly",
     },
     icon: {},
     heading: {
@@ -27,14 +26,15 @@ const styles = (Colors: ThemeColors) =>
       textAlign: "center",
     },
     close: {
-      position: "absolute",
-      right: 12,
-      top: 23,
+      // position: "absolute",
+      // right: 25,
+      // top: 23,
     },
     content: {
       backgroundColor: Colors.surfaceSoft,
       borderRadius: 10,
       padding: 10,
+      marginTop: 5,
     },
     contentText: {
       fontSize: 16,

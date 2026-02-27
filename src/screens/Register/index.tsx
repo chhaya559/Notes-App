@@ -133,6 +133,8 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
       Toast.show({
         type: "success",
         text1: "Logged in with google",
+        swipeable: false,
+        onPress: () => Toast.hide(),
       });
       requestUserPermission();
     } catch (error: any) {
@@ -143,10 +145,16 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
         Toast.show({
           text1: "No internet connection",
           text2: "Please check your network",
+          type: "info",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       } else {
         Toast.show({
           text1: "Google signup failed",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
     }
@@ -157,6 +165,9 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
     if (!isConnected) {
       Toast.show({
         text1: "No Internet Connected",
+        type: "info",
+        swipeable: false,
+        onPress: () => Toast.hide(),
       });
     }
     try {
@@ -190,10 +201,16 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
       if (error.data.message) {
         Toast.show({
           text1: error.data.message,
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       } else {
         Toast.show({
           text1: "Something went wrong",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
         });
       }
     }

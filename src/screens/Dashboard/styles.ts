@@ -34,6 +34,11 @@ const styles = (Colors: ThemeColors) =>
       marginLeft: 10,
       color: Colors.textPrimary,
     },
+    indicator: {
+      backgroundColor: Colors.background,
+      justifyContent: "center",
+      alignContent: "center",
+    },
     SearchBar: {
       flexDirection: "row",
       alignItems: "center",

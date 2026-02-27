@@ -65,14 +65,24 @@ export default function ChangePassword({
 
   useEffect(() => {
     if (url && !resetToken && !authToken) {
-      Toast.show({ text1: "Reset link expired or invalid" });
+      Toast.show({
+        text1: "Reset link expired or invalid",
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
     }
   }, [url, resetToken, authToken]);
 
   const onResetPassword = async (data: FormValues) => {
     try {
       if (!resetToken) {
-        Toast.show({ text1: "Reset token expired or invalid" });
+        Toast.show({
+          text1: "Reset token expired or invalid",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
         return;
       }
 
@@ -82,12 +92,22 @@ export default function ChangePassword({
       }).unwrap();
 
       if (response.success) {
-        Toast.show({ text1: "Password reset successful" });
+        Toast.show({
+          text1: "Password reset successful",
+          type: "success",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
         navigation.replace("Login");
       }
     } catch (error) {
       console.log(error);
-      Toast.show({ text1: "Reset token expired or invalid" });
+      Toast.show({
+        text1: "Reset token expired or invalid",
+        type: "info",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
     }
   };
 
@@ -99,15 +119,30 @@ export default function ChangePassword({
       }).unwrap();
 
       if (response.success) {
-        Toast.show({ text1: "Password changed successfully" });
+        Toast.show({
+          text1: "Password changed successfully",
+          type: "success",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
         navigation.replace("Login");
       }
     } catch (error: any) {
       console.log(error);
       if (error.data.message) {
-        Toast.show({ text1: error.data.message });
+        Toast.show({
+          text1: error.data.message,
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
       } else {
-        Toast.show({ text1: "Something went wrong" });
+        Toast.show({
+          text1: "Something went wrong",
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
       }
     }
   };
