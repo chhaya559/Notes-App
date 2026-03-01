@@ -50,7 +50,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [allNotes, setAllNotes] = useState<any[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const userId = useSelector((state: RootState) => state.auth.token);
+  const userId = useSelector((state: RootState) => state.auth.identifier || state.auth.token);
   const { isConnected } = useNetInfo();
   const [page, setPage] = useState(1);
   const { dynamicStyles } = useStyles(styles);
@@ -131,7 +131,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     const notesToSendBackend = await pendingDb
       .select()
       .from(pendingNotes)
-      .where(eq(pendingNotes.userId, userId));
+      .where(eq(pendingNotes.userId, String(userId)));
     if (!notesToSendBackend.length) return;
     for (const note of notesToSendBackend) {
       try {
@@ -284,7 +284,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     });
   }, [Colors.background]);
 
-  const searchInputRef = useRef(null);
+  const searchInputRef = useRef<TextInput | null>(null);
   useEffect(() => {
     const unsubscribe = navigation.addListener("blur", () => {
       searchInputRef.current?.blur();

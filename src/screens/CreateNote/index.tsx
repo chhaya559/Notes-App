@@ -11,6 +11,7 @@ import {
   Image,
   FlatList,
   Keyboard,
+  AppState,
 } from "react-native";
 import styles from "./style";
 import {
@@ -91,6 +92,8 @@ export default function CreateNote({
     setActiveOption((prev) => (prev === option ? null : option));
   };
   const notesRef = useRef<any>(null);
+  const noteIdRef = useRef<string | null>(route?.params?.id ?? null);
+  const handleSaveRef = useRef<any>(null);
   const [saveApi] = useSaveNoteMutation();
   const [editApi] = useUpdateMutation();
   const [uploadApi, { isLoading: fileUploading }] = useUploadFileMutation();
@@ -177,7 +180,7 @@ export default function CreateNote({
     });
 
     setExistingFiles(data.filePaths || []);
-    richText.current?.setContentHTML(notes.content);
+    richText.current?.setContentHTML(data.content ?? "");
     setNoteLoaded(true);
   }, [NotesData]);
 
@@ -193,7 +196,8 @@ export default function CreateNote({
 
     setNoteId(route.params.id ?? null);
     setLocalNoteId(route.params.id ?? null);
-    richText.current?.setContentHTML(notes.content);
+    noteIdRef.current = route.params.id ?? null;
+    richText.current?.setContentHTML(route.params.content ?? "");
   }, [route.params]);
 
   const [isReminder, setIsReminder] = useState(false);
@@ -423,7 +427,8 @@ export default function CreateNote({
       console.log(isEditMode, "mmode");
 
       const filePaths = existingFiles;
-      const id = noteId ?? localNoteId ?? uuidv4();
+      const id = noteId ?? localNoteId ?? noteIdRef.current ?? uuidv4();
+      noteIdRef.current = id;
       if (!noteId) setNoteId(id);
       if (!localNoteId) setLocalNoteId(id);
 
@@ -507,6 +512,33 @@ export default function CreateNote({
     });
   }, [navigation, handleSave]);
 
+  useEffect(() => {
+    handleSaveRef.current = handleSave;
+  });
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+      // Avoid saving on explicit cancel or dismiss if any, but GO_BACK is standard
+      if (handleSaveRef.current) {
+        handleSaveRef.current(false);
+      }
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState.match(/inactive|background/)) {
+        if (handleSaveRef.current) {
+          handleSaveRef.current(false);
+        }
+      }
+    });
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
   const debouncedNotes = useDebounce(
     {
       title: notes.title,
@@ -564,6 +596,73 @@ export default function CreateNote({
     })),
   ].filter((file) => !/\.(jpg|jpeg|png|webp|gif)$/i.test(file.uri));
 
+
+  async function handleDelete() {
+      try {
+        if (!userId) return;
+        if (isConnected) {
+          await deleteApi({ id: props.id }).unwrap();
+          await db.delete(notesTable).where(eq(notesTable.id, props.id));
+        } else {
+          await pendingDb
+            .insert(pendingNotes)
+            .values({
+              id: props.id,
+              userId,
+              syncStatus: 3,
+            })
+            .onConflictDoUpdate({
+              target: pendingNotes.id,
+              set: {
+                syncStatus: 3,
+              },
+            });
+          console.log(
+            "pendingdelete",
+            await pendingDb.select().from(pendingNotes),
+          );
+          await db.delete(notesTable).where(eq(notesTable.id, props.id));
+          console.log("notes in local", await db.select().from(notesTable));
+        }
+        if (props.onDeleteSuccess) {
+          await props.onDeleteSuccess();
+        }
+  
+        Toast.show({
+          text1: "Note Deleted",
+          type: "success",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
+      } catch (error: any) {
+        console.log("Delete error:", error);
+        Toast.show({
+          text1: error?.data?.message,
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
+      }
+    }
+    
+   function confirmDelete() {
+      Alert.alert(
+        "Delete Note",
+        "This action is permanent. Are you sure?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              await handleDelete();
+            },
+          },
+        ],
+        { cancelable: true },
+      );
+    }
+
   return (
     <KeyboardAvoidingView
       style={[
@@ -599,6 +698,7 @@ export default function CreateNote({
               ref={richText}
               useContainer={true}
               initialFocus={true}
+              initialContentHTML={route?.params?.content || ""}
               initialHeight={50}
               onChange={(val) =>
                 setNotes((prev) => ({ ...prev, content: val }))
@@ -846,7 +946,7 @@ export default function CreateNote({
                 dynamicStyles.optionButton,
                 { opacity: isEditMode ? 1 : 0.5 },
               ]}
-              onPress={() => alertDelete()}
+              onPress={() => confirmDelete()}
               disabled={isGuest || !isEditMode}
             >
               <MaterialIcons

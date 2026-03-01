@@ -81,6 +81,7 @@
     "react-redux": "^9.2.0",
     "redux-persist": "^6.0.0",
     "uuid": "^13.0.0",
+    "yarn": "^1.22.22",
     "yup": "^1.7.1"
   },
   "devDependencies": {

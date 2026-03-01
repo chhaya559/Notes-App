@@ -55,7 +55,7 @@ export default function Card(props: any) {
 
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
-  const userId = useSelector((state: RootState) => state.auth.token);
+  const userId = useSelector((state: RootState) => state.auth.identifier || state.auth.token);
   const { isConnected } = useNetInfo();
   const [deleteApi] = useDeleteMutation();
   const [lockApi] = useNoteLockMutation();
@@ -135,7 +135,7 @@ export default function Card(props: any) {
         title: props.title,
         content: props.content,
       });
-    } catch (error) {
+    } catch (error: any) {
       Toast.show({
         text1: error?.data?.message,
         type: "error",
@@ -182,7 +182,7 @@ export default function Card(props: any) {
         swipeable: false,
         onPress: () => Toast.hide(),
       });
-    } catch (error) {
+    } catch (error: any) {
       console.log("Delete error:", error);
       Toast.show({
         text1: error?.data?.message,
@@ -207,6 +207,9 @@ export default function Card(props: any) {
       title: props.title,
       content: props.content,
       filePaths: props.filePaths,
+      isPasswordProtected: props.isPasswordProtected,
+      isReminderSet: props.isReminderSet,
+      isLocked: props.isLocked,
     });
   }
 

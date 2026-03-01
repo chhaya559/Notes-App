@@ -14,6 +14,8 @@ export type RootStackParamList = {
     content?: string;
     updatedAt?: string;
     isPasswordProtected?: boolean;
+    isReminderSet?: boolean;
+    isLocked?: boolean;
     reminder?: string | null;
     unlockUntil?: any;
     filePaths?: any;
