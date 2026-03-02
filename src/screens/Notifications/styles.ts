@@ -70,6 +70,7 @@ const styles = (Colors: ThemeColors) =>
     operationsButton: {
       borderWidth: 1.5,
       borderColor: Colors.primaryBorder,
+      borderRadius: 12,
     },
     operationsText: {
       color: Colors.primary,
@@ -99,6 +100,7 @@ const styles = (Colors: ThemeColors) =>
     activeOperation: {
       borderWidth: 1.5,
       borderColor: Colors.primaryPressed,
+      borderRadius: 10,
     },
     activeText: {
       color: Colors.textOnPrimary,

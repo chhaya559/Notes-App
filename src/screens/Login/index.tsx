@@ -26,7 +26,7 @@ import {
 } from "../../redux/api/authApi";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@redux/store";
-import { login, google } from "@redux/slice/authSlice";
+import { login, google, fcmToken } from "@redux/slice/authSlice";
 import { loginSchema } from "src/validations/loginSchema";
 import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
@@ -78,7 +78,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
 
     const token = await messaging().getToken();
     console.log(token, "FCM token");
-
+    dispatch(fcmToken(String(token)));
     if (enabled) {
       handleTokenSend(token);
       console.log("Authorization status:", authStatus);
@@ -132,7 +132,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
           email: userInfo.data.user.email,
           firstName:
             formatName(response.data.firstName) ?? userInfo.data.user.name,
-          lastName: response.data.lastName ?? null,
+          lastName: formatName(response.data.lastName) ?? null,
           username: response.data.userName,
           profileImageUrl: userInfo.data.user.photo,
           isCommonPasswordSet: response.data.isCommonPasswordSet,

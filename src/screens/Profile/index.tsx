@@ -29,6 +29,7 @@ import RBSheet from "react-native-raw-bottom-sheet";
 import {
   useDeleteImageMutation,
   useDeleteUserMutation,
+  useLogoutMutation,
   useProfileImageMutation,
 } from "@redux/api/authApi";
 import { db, pendingDb } from "src/db/notes";
@@ -55,6 +56,8 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   );
   const [image, setImage] = useState(profileImage);
   console.log(image, "gg");
+  const FCM = useSelector((state: RootState) => state.auth.fcmToken);
+  console.log(FCM, "fc,fc,fc,fc,f");
   useEffect(() => {
     setImage(profileImage);
   }, [profileImage, image]);
@@ -64,11 +67,13 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   const [deleteApi] = useDeleteUserMutation();
   const [uploadProfile] = useProfileImageMutation();
   const [deleteProfileImage] = useDeleteImageMutation();
-
+  const [logoutApi] = useLogoutMutation();
   const bottomSheetRef = useRef<any>(null);
 
   async function handleLogout() {
     try {
+      const res = await logoutApi({ fcmToken: FCM });
+      console.log("result from logout", res);
       await db.delete(notesTable).where(eq(notesTable.userId, username));
 
       await pendingDb
@@ -213,7 +218,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
     } catch (error) {
       console.log("Error uploading file", error);
       Toast.show({
-        text1: "Error uploading image",
+        text1: error?.data?.errors[0],
         type: "error",
         swipeable: false,
         onPress: () => Toast.hide(),

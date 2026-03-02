@@ -5,6 +5,8 @@ import {
   Pressable,
   Alert,
   useWindowDimensions,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import styles from "./styles";
 import { AntDesign, Entypo, Feather, MaterialIcons } from "@expo/vector-icons";
@@ -40,6 +42,7 @@ import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
 import { pendingNotes } from "src/db/pendingNotes/schema";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { ScrollView } from "react-native-gesture-handler";
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString(undefined, {
@@ -55,12 +58,11 @@ export default function Card(props: any) {
 
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
-  const userId = useSelector((state: RootState) => state.auth.identifier || state.auth.token);
+  const userId = useSelector((state: RootState) => state.auth.token);
   const { isConnected } = useNetInfo();
   const [deleteApi] = useDeleteMutation();
   const [lockApi] = useNoteLockMutation();
   const [removeLockApi] = useRemoveLockMutation();
-
   const notesUnlockUntil = useSelector(
     (state: RootState) => state.auth.notesUnlockUntil,
   );
@@ -101,9 +103,27 @@ export default function Card(props: any) {
   //},[notesUnlockUntil, dispatch]);
 
   async function handleUnlock() {
-    if (!unlockValue.password || !unlockValue.unlockMinutes) {
+    if (!unlockValue.password && !unlockValue.unlockMinutes) {
       Toast.show({
         text1: "Enter password & select time",
+        type: "info",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
+      return;
+    }
+    if (!unlockValue.password) {
+      Toast.show({
+        text1: "Enter password",
+        type: "info",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
+      return;
+    }
+    if (!unlockValue.unlockMinutes) {
+      Toast.show({
+        text1: "Select time",
         type: "info",
         swipeable: false,
         onPress: () => Toast.hide(),
@@ -251,7 +271,6 @@ export default function Card(props: any) {
       if (error.data.message) {
         Toast.show({
           text1: error?.data?.message,
-          position: "top",
           type: "error",
           topOffset: 0,
           swipeable: false,
@@ -318,7 +337,6 @@ export default function Card(props: any) {
       if (error.data.message) {
         Toast.show({
           text1: error?.data?.message,
-          position: "top",
           type: "error",
           swipeable: false,
           onPress: () => Toast.hide(),
@@ -360,7 +378,7 @@ export default function Card(props: any) {
   ) {
     const animatedStyle = useAnimatedStyle(() => {
       return {
-        translateX: translation.value + 150,
+        translateX: translation.value + 145,
       };
     });
 
@@ -372,17 +390,17 @@ export default function Card(props: any) {
         >
           <MaterialIcons
             name="delete-outline"
-            size={38}
+            size={42}
             color={Colors.danger}
           />
         </TouchableOpacity>
         {props.isPasswordProtected ? (
           <TouchableOpacity onPress={unLockNote} style={dynamicStyles.lockBg}>
-            <Entypo name="lock-open" size={38} color={Colors.iconPrimary} />
+            <Entypo name="lock-open" size={42} color={Colors.iconPrimary} />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity onPress={lockNote} style={dynamicStyles.lockBg}>
-            <Entypo name="lock" size={38} color={Colors.iconPrimary} />
+            <Entypo name="lock" size={42} color={Colors.iconPrimary} />
           </TouchableOpacity>
         )}
       </Animated.View>
@@ -390,7 +408,7 @@ export default function Card(props: any) {
   }
 
   const contentToShow = props.preview;
-
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const swipeRef = useRef<SwipeableMethods>(null);
   return (
     <>
@@ -451,74 +469,84 @@ export default function Card(props: any) {
         </ReanimatedSwipeable>
       </View>
 
-      {showLockedModal && (
-        <View>
-          <Modal
-            isVisible={showLockedModal}
-            backdropOpacity={0.1}
-            style={dynamicStyles.modal}
-            onBackdropPress={() => setShowLockedModal(false)}
-            onBackButtonPress={() => setShowLockedModal(false)}
+      <Modal
+        isVisible={showLockedModal}
+        backdropOpacity={0.1}
+        style={dynamicStyles.modal}
+        onBackdropPress={() => setShowLockedModal(false)}
+        onBackButtonPress={() => setShowLockedModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={dynamicStyles.modalContainer}
+        >
+          <ScrollView
+            bounces={false}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            scrollEnabled={keyboardHeight > 0}
+            keyboardDismissMode="interactive"
+            contentContainerStyle={dynamicStyles.scrollContent}
           >
-            <KeyboardAwareScrollView bounces={false}>
-              <Text style={dynamicStyles.unlockHeading}>Unlock Notes</Text>
-              <TouchableOpacity>
-                <AntDesign
-                  name="close"
-                  size={24}
-                  color={Colors.iconPrimary}
-                  style={dynamicStyles.close}
-                  onPress={() => setShowLockedModal(false)}
-                />
-              </TouchableOpacity>
-              <CustomInput
-                placeholder="Enter password"
-                color={Colors.placeholder}
-                value={unlockValue.password}
-                onChangeText={(text: string) =>
-                  setUnlockValue((p) => ({ ...p, password: text }))
-                }
-                isPassword
+            <Text style={dynamicStyles.unlockHeading}>Unlock Notes</Text>
+
+            <TouchableOpacity>
+              <AntDesign
+                name="close"
+                size={24}
+                color={Colors.iconPrimary}
+                style={dynamicStyles.close}
+                onPress={() => setShowLockedModal(false)}
               />
+            </TouchableOpacity>
 
-              <Text style={dynamicStyles.timeText}>Unlock for minutes</Text>
+            <CustomInput
+              placeholder="Enter password"
+              color={Colors.placeholder}
+              value={unlockValue.password}
+              onChangeText={(text: string) =>
+                setUnlockValue((p) => ({ ...p, password: text }))
+              }
+              isPassword
+            />
 
-              <View style={dynamicStyles.counter}>
-                {[5, 10, 20, 30, 50].map((min) => (
-                  <TouchableOpacity
-                    key={min}
+            <Text style={dynamicStyles.timeText}>Unlock for minutes</Text>
+
+            <View style={dynamicStyles.counter}>
+              {[5, 10, 20, 30, 50].map((min) => (
+                <TouchableOpacity
+                  key={min}
+                  style={[
+                    dynamicStyles.counterTime,
+                    unlockValue.unlockMinutes === min &&
+                      dynamicStyles.counterActive,
+                  ]}
+                  onPress={() =>
+                    setUnlockValue((p) => ({ ...p, unlockMinutes: min }))
+                  }
+                >
+                  <Text
                     style={[
-                      dynamicStyles.counterTime,
+                      dynamicStyles.time,
                       unlockValue.unlockMinutes === min &&
-                        dynamicStyles.counterActive,
+                        dynamicStyles.textActive,
                     ]}
-                    onPress={() =>
-                      setUnlockValue((p) => ({ ...p, unlockMinutes: min }))
-                    }
                   >
-                    <Text
-                      style={[
-                        dynamicStyles.time,
-                        unlockValue.unlockMinutes === min &&
-                          dynamicStyles.textActive,
-                      ]}
-                    >
-                      {min}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+                    {min}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
-              <TouchableOpacity
-                onPress={handleUnlock}
-                style={dynamicStyles.pressable}
-              >
-                <Text style={dynamicStyles.pressableText}>Unlock</Text>
-              </TouchableOpacity>
-            </KeyboardAwareScrollView>
-          </Modal>
-        </View>
-      )}
+            <TouchableOpacity
+              onPress={handleUnlock}
+              style={dynamicStyles.pressable}
+            >
+              <Text style={dynamicStyles.pressableText}>Unlock</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
     </>
   );
 }

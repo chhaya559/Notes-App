@@ -52,6 +52,7 @@ export default function NotesPassword({
     const parsed = Linking.parse(url);
     return parsed.queryParams?.token as string | null;
   }, [url]);
+
   const dispatch = useDispatch();
 
   const noteID = route?.params?.noteID;
@@ -63,7 +64,6 @@ export default function NotesPassword({
       if (hasCommonPassword) {
         const response = await resetNotesApi({
           newNotesPassword: data.password,
-          token: resetToken,
         }).unwrap();
         if (response.success) {
           Toast.show({
@@ -116,7 +116,7 @@ export default function NotesPassword({
           swipeable: false,
           onPress: () => Toast.hide(),
         });
-      console.log(error);
+      console.log(error, "gsghrth");
     }
   }
   const { dynamicStyles } = useStyles(styles);

@@ -53,8 +53,8 @@ const styles = (Colors: ThemeColors) =>
       alignItems: "center",
       marginTop: 15,
       backgroundColor: "white",
-      borderColor: Colors.primaryBorder,
-      borderWidth: 1,
+      borderColor: Colors.primary,
+      borderWidth: 3,
     },
     name: {
       textAlign: "center",

@@ -59,7 +59,7 @@ const styles = (Colors: ThemeColors) =>
 
     add: {
       position: "absolute",
-
+      zIndex: 100,
       bottom: 20,
       //left: 20,
       right: 15,

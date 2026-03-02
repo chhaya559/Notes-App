@@ -29,6 +29,13 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    logout: builder.mutation({
+      query: (fcmToken) => ({
+        url: "/auth/logout",
+        method: "POST",
+        body: fcmToken,
+      }),
+    }),
     profileImage: builder.mutation<any, FormData>({
       query: (body) => ({
         url: "/users/me/profile-image",
@@ -151,4 +158,5 @@ export const {
   useDeleteImageMutation,
   useResetNotesPasswordMutation,
   useForgotNotesPasswordMutation,
+  useLogoutMutation,
 } = authApi;

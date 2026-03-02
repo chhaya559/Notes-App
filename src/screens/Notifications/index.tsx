@@ -74,6 +74,9 @@ export default function Notifications() {
     if (!item.isRead) {
       try {
         await markReadApi({ id: item.id }).unwrap();
+        setAllNotifications((prev) =>
+          prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n)),
+        );
       } catch (err) {
         console.log("Failed to mark as read", err);
       }
@@ -82,6 +85,14 @@ export default function Notifications() {
   async function readAll() {
     try {
       await readAllApi().unwrap();
+
+      setAllNotifications((prev) =>
+        prev.map((item) => ({
+          ...item,
+          isRead: true,
+        })),
+      );
+
       refetch();
     } catch (err) {
       console.error("Failed to mark all read:", err);

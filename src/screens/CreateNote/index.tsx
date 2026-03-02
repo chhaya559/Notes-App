@@ -21,6 +21,7 @@ import {
 } from "react-native-pell-rich-editor";
 import {
   useAiSummaryMutation,
+  useDeleteMutation,
   useGetNoteByIdQuery,
   useRemoveFileMutation,
   useSaveNoteMutation,
@@ -50,12 +51,13 @@ import {
 import Reminder from "@components/atoms/Reminder";
 import Summary from "@components/atoms/Summary";
 import SaveNoteButton from "@components/atoms/SaveNoteButton";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useRoute } from "@react-navigation/native";
 import useDebounce from "src/debounce/debounce";
 import FileViewer from "react-native-file-viewer";
 import useTheme from "@hooks/useTheme";
 import useStyles from "@hooks/useStyles";
 import { pendingNotes } from "src/db/pendingNotes/schema";
+import { PERMISSIONS, request, RESULTS } from "react-native-permissions";
 
 type CreateNoteProps = NativeStackScreenProps<RootStackParamList, "CreateNote">;
 
@@ -94,12 +96,12 @@ export default function CreateNote({
   const notesRef = useRef<any>(null);
   const noteIdRef = useRef<string | null>(route?.params?.id ?? null);
   const handleSaveRef = useRef<any>(null);
+  const isDeletingRef = useRef(false);
   const [saveApi] = useSaveNoteMutation();
   const [editApi] = useUpdateMutation();
   const [uploadApi, { isLoading: fileUploading }] = useUploadFileMutation();
   const [deleteFile] = useRemoveFileMutation();
 
-  console.log(route?.params?.content, "contentget");
   const [notes, setNotes] = useState({
     id: "",
     title: route?.params?.title ?? "",
@@ -149,16 +151,26 @@ export default function CreateNote({
           swipeable: false,
           onPress: () => Toast.hide(),
         });
+        handleToggle("summary");
         return;
       }
 
-      setAiSummary(response?.data?.summary ?? "");
+      setAiSummary(response?.data?.summary);
     } catch (error) {
       console.log("Error generating AI summary:", error);
     }
   }
 
   const isEditMode = !!noteId;
+
+  const onReminderSet = (noteId: string) => {
+    Toast.show({
+      text1: "Reminder set successfully",
+      type: "success",
+      swipeable: false,
+      onPress: () => Toast.hide(),
+    });
+  };
 
   const [existingFiles, setExistingFiles] = useState<string[]>([]);
   const [files, setFiles] = useState<DocumentPickerResponse[]>([]);
@@ -331,6 +343,42 @@ export default function CreateNote({
   }
 
   async function pickFile() {
+    let permissionResult;
+    if (Platform.OS === "android") {
+      if (Platform.Version >= 33) {
+        permissionResult = await request(PERMISSIONS.ANDROID.READ_MEDIA_IMAGES);
+      } else {
+        permissionResult = await request(
+          PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE,
+        );
+      }
+    } else {
+      permissionResult = await request(PERMISSIONS.IOS.MEDIA_LIBRARY);
+    }
+    switch (permissionResult) {
+      case RESULTS.GRANTED:
+        console.log("You can use the media images");
+        break;
+      case RESULTS.DENIED:
+        Toast.show({
+          text1: "Permission denied to access images",
+          type: "info",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
+        console.log("Permission denied to access images");
+        return;
+      case RESULTS.UNAVAILABLE:
+        Toast.show({
+          text1: "Feature not available on this device",
+          type: "info",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
+        console.log("Feature not available on this device.");
+        return;
+    }
+
     const result = await pick({
       allowMultiSelection: false,
       type: ["image/*"],
@@ -404,11 +452,33 @@ export default function CreateNote({
       setFiles((prev) => [...prev, file]);
     }
   }
+  const saveCompletedRef = useRef(false);
 
   async function handleSave(navigate = true) {
+    if (isDeletingRef.current) return;
+    if (saveCompletedRef.current && navigate === false) {
+      return;
+    }
     console.log("saving");
+    if (isGuest) {
+      console.log("Guest note - skipping backend save");
+      return;
+    }
+
     const isNetConnected = isConnected;
     try {
+      if (!notesRef.current?.title.trim() || existingFiles.length > 0) {
+        notesRef.current.title = "New Note";
+      }
+      if (!notesRef.current?.title && !notesRef.current?.content) {
+        Toast.show({
+          text1: "Your note needs at least a title or content",
+          type: "info",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
+        return;
+      }
       if (navigate) {
         if (!notesRef.current?.title.trim() || existingFiles.length > 0) {
           notesRef.current.title = "New Note";
@@ -434,6 +504,7 @@ export default function CreateNote({
 
       const payload = {
         id: id,
+        userId: String(userId),
         title: notesRef.current?.title,
         content: notesRef.current?.content ?? "",
         isPasswordProtected: notesRef.current?.isPasswordProtected,
@@ -483,6 +554,7 @@ export default function CreateNote({
         }
       }
       if (navigate) {
+        saveCompletedRef.current = true;
         console.log("goback");
         navigation.goBack();
       }
@@ -547,7 +619,7 @@ export default function CreateNote({
       isReminderSet: isReminder,
       filePaths: files,
     },
-    4000,
+    2000,
   );
 
   useEffect(() => {
@@ -583,6 +655,7 @@ export default function CreateNote({
       hideSubscription.remove();
     };
   });
+  const [deleteApi] = useDeleteMutation();
 
   const combinedFiles = [
     ...(existingFiles || []).map((uri) => ({
@@ -596,72 +669,72 @@ export default function CreateNote({
     })),
   ].filter((file) => !/\.(jpg|jpeg|png|webp|gif)$/i.test(file.uri));
 
-
   async function handleDelete() {
-      try {
-        if (!userId) return;
-        if (isConnected) {
-          await deleteApi({ id: props.id }).unwrap();
-          await db.delete(notesTable).where(eq(notesTable.id, props.id));
-        } else {
-          await pendingDb
-            .insert(pendingNotes)
-            .values({
-              id: props.id,
-              userId,
+    try {
+      isDeletingRef.current = true;
+      if (isConnected) {
+        await deleteApi({ id: notesRef.current.id }).unwrap();
+        await db
+          .delete(notesTable)
+          .where(eq(notesTable.id, notesRef.current.id));
+      } else {
+        await pendingDb
+          .insert(pendingNotes)
+          .values({
+            id: notesRef.current.id,
+            userId,
+            syncStatus: 3,
+          })
+          .onConflictDoUpdate({
+            target: pendingNotes.id,
+            set: {
               syncStatus: 3,
-            })
-            .onConflictDoUpdate({
-              target: pendingNotes.id,
-              set: {
-                syncStatus: 3,
-              },
-            });
-          console.log(
-            "pendingdelete",
-            await pendingDb.select().from(pendingNotes),
-          );
-          await db.delete(notesTable).where(eq(notesTable.id, props.id));
-          console.log("notes in local", await db.select().from(notesTable));
-        }
-        if (props.onDeleteSuccess) {
-          await props.onDeleteSuccess();
-        }
-  
-        Toast.show({
-          text1: "Note Deleted",
-          type: "success",
-          swipeable: false,
-          onPress: () => Toast.hide(),
-        });
-      } catch (error: any) {
-        console.log("Delete error:", error);
-        Toast.show({
-          text1: error?.data?.message,
-          type: "error",
-          swipeable: false,
-          onPress: () => Toast.hide(),
-        });
-      }
-    }
-    
-   function confirmDelete() {
-      Alert.alert(
-        "Delete Note",
-        "This action is permanent. Are you sure?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: async () => {
-              await handleDelete();
             },
-          },
-        ],
-        { cancelable: true },
-      );
+          });
+        console.log(
+          "pendingdelete",
+          await pendingDb.select().from(pendingNotes),
+        );
+        await db
+          .delete(notesTable)
+          .where(eq(notesTable.id, notesRef.current.id));
+        console.log("notes in local", await db.select().from(notesTable));
+      }
+      navigation.goBack();
+      Toast.show({
+        text1: "Note Deleted",
+        type: "success",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
+    } catch (error: any) {
+      console.log("Delete error:", error);
+      Toast.show({
+        text1: error?.data?.message,
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
     }
+  }
+
+  function confirmDelete() {
+    Alert.alert(
+      "Delete Note",
+      "This action is permanent. Are you sure?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            await handleDelete();
+          },
+        },
+      ],
+      { cancelable: true },
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -712,12 +785,10 @@ export default function CreateNote({
                 });
               }}
               onCursorPosition={(scrollY) => {
-                if (scrollY > 100) {
-                  scrollRef.current?.scrollTo({
-                    y: scrollY - 50,
-                    animated: true,
-                  });
-                }
+                scrollRef.current?.scrollTo({
+                  y: scrollY,
+                  animated: true,
+                });
               }}
               editorStyle={{
                 backgroundColor: Colors.background,
@@ -841,8 +912,14 @@ export default function CreateNote({
             id={String(noteId)}
             onClose={() => setActiveOption(null)}
             onReminderSet={async (id) => {
+              Toast.show({
+                text1: "Reminder set successfully",
+                type: "success",
+              });
+
               setIsReminder(true);
               setActiveOption(null);
+
               if (isConnected && id) {
                 await editApi({
                   id,

@@ -4,7 +4,7 @@ import {
   useGuestConversionMutation,
   usePushNotificationMutation,
 } from "@redux/api/authApi";
-import { conversion, isGuest } from "@redux/slice/authSlice";
+import { conversion, fcmToken, isGuest } from "@redux/slice/authSlice";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -71,7 +71,7 @@ export default function GuestConversion({
 
     const token = await messaging().getToken();
     console.log(token, "FCM token");
-
+    dispatch(fcmToken(String(token)));
     if (enabled) {
       handleTokenSend(token);
       console.log("Authorization status:", authStatus);

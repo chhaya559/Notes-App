@@ -16,26 +16,27 @@ const styles = (Colors: ThemeColors) =>
       top: 4,
     },
     profileCover: {
-      height: 32,
-      width: 32,
-      borderRadius: 50,
-      backgroundColor: Colors.textOnPrimary,
-      borderWidth: 1,
-      borderColor: Colors.primaryBorder,
+      height: 40,
+      width: 40,
+      borderRadius: 20,
+      backgroundColor: "white",
+      borderWidth: 2,
+      borderColor: Colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
     },
 
-    image: {
-      position: "absolute",
-      right: 15,
-      top: 7,
-    },
     profile: {
-      height: 30,
-      width: 30,
-      borderRadius: 50,
+      height: 35,
+      width: 35,
+      borderRadius: 17,
       resizeMode: "cover",
     },
-
+    image: {
+      // position: "absolute",
+      // right: 15,
+      // top: 7,
+    },
     badge: {
       position: "absolute",
       top: -3,

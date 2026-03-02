@@ -50,7 +50,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [allNotes, setAllNotes] = useState<any[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const userId = useSelector((state: RootState) => state.auth.identifier || state.auth.token);
+  const userId = useSelector((state: RootState) => state.auth.token);
   const { isConnected } = useNetInfo();
   const [page, setPage] = useState(1);
   const { dynamicStyles } = useStyles(styles);
@@ -59,7 +59,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [deleteApi] = useDeleteMutation();
   const { Colors } = useTheme();
   const dispatch = useDispatch();
-  const [noteLoaded, setNoteLoaded] = useState(false);
   function clearSearchText() {
     setSearchText("");
   }
@@ -68,10 +67,10 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     createTable();
     createPendingTable();
   }, []);
-
+  const pageSize = 10;
   const { data, isFetching } = useGetQuery<any>(
     {
-      pageSize: 10,
+      pageSize: pageSize,
       pageNumber: page,
     },
     {
@@ -80,6 +79,16 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     },
   );
 
+  useEffect(() => {
+    if (!data?.data) return;
+
+    if (page === 1) {
+      setAllNotes(data.data);
+    } else {
+      setAllNotes((prev) => [...prev, ...data.data]);
+    }
+  }, [data]);
+
   const token = useSelector((state: RootState) => state.auth.token);
 
   const notesUnlockUntil = useSelector(
@@ -87,10 +96,15 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   );
 
   const loadMore = () => {
-    if (!isSearching && !isFetching && data?.data?.length === 10) {
+    if (!isSearching && !isFetching && data?.data?.length === pageSize) {
       setPage((prev) => prev + 1);
     }
   };
+  useFocusEffect(
+    useCallback(() => {
+      setPage(1);
+    }, []),
+  );
 
   useEffect(() => {
     if (!notesUnlockUntil) return;
@@ -122,7 +136,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
 
   async function syncOnlineFlow() {
     await syncPendingNotesToBackend();
-    setAllNotes(data?.data);
+    // setAllNotes(data?.data);
     await fetchBackendAndStoreLocal();
   }
   const [getNoteById] = useLazyGetNoteByIdQuery();
@@ -273,6 +287,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         new Date(b.updatedAt || b.createdAt).getTime() -
         new Date(a.updatedAt || a.createdAt).getTime(),
     );
+    console.log(merged, "wjw");
     setAllNotes(merged);
   }
 
@@ -337,7 +352,16 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     ? (SearchedNotes?.data ?? [])
     : (allNotes ?? []);
 
-  if (isFetching) {
+  const [firstLoad, setFirstLoad] = useState(true);
+
+  useEffect(() => {
+    if (!isFetching && firstLoad) {
+      setFirstLoad(false);
+    }
+  }, [isFetching]);
+
+  if (isFetching && firstLoad) {
+    setFirstLoad(false);
     return (
       <View
         style={{

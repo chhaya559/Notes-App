@@ -50,12 +50,14 @@ const styles = (Colors: ThemeColors) =>
     },
     modal: {
       backgroundColor: Colors.surfaceSoft,
+      justifyContent: "center",
       width: screenWidth * 0.9,
       marginTop: isSmallScreen ? screenHeight * 0.25 : screenHeight * 0.3,
       marginBottom: isSmallScreen ? screenHeight * 0.25 : screenHeight * 0.3,
       borderRadius: 10,
       borderWidth: 1,
       borderColor: Colors.inputFocusBorder,
+      paddingTop: 0,
     },
 
     unlockHeading: {
@@ -122,7 +124,7 @@ const styles = (Colors: ThemeColors) =>
     },
     swipeAction: {
       flexDirection: "row",
-      gap: 10,
+      gap: 5,
       height: 90,
       alignItems: "center",
       justifyContent: "center",
@@ -144,6 +146,16 @@ const styles = (Colors: ThemeColors) =>
       borderRadius: 16,
       justifyContent: "center",
       alignItems: "center",
+    },
+
+    modalContainer: {
+      maxHeight: "80%",
+      borderRadius: 12,
+    },
+
+    scrollContent: {
+      //: 20,
+      paddingBottom: 40,
     },
   });
 export default styles;

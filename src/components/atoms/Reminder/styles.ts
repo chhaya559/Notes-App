@@ -16,6 +16,10 @@ const styles = (Colors: ThemeColors) =>
       paddingBottom: 10,
       paddingTop: 8,
     },
+    modalContainer: {
+      borderRadius: 12,
+      padding: 20,
+    },
     line: {
       height: 1,
       borderColor: Colors.border,

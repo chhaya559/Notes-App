@@ -39,6 +39,7 @@ export default function Reminder({
   const { dynamicStyles } = useStyles(styles);
   const [description, setDescription] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   useEffect(() => {
     if (ReminderData?.data) {
       const remindAt = new Date(ReminderData.data.remindAt);
@@ -69,21 +70,12 @@ export default function Reminder({
   async function setReminder() {
     try {
       if (!date) {
-        Toast.show({
-          text1: "Please select date & time",
-          type: "error",
-          swipeable: false,
-          onPress: () => Toast.hide(),
-        });
+        setErrorMessage("Please select date & time");
         return;
       }
       if (!isConnected) {
-        Toast.show({
-          text1: "Internet connection required",
-          type: "info",
-          swipeable: false,
-          onPress: () => Toast.hide(),
-        });
+        setErrorMessage("Internet connection required");
+        return;
       }
 
       const utcISOString = new Date(date).toISOString();
@@ -95,25 +87,18 @@ export default function Reminder({
         remindAt: utcISOString,
       }).unwrap();
       console.log(res);
+
       if (res.success) {
-        Toast.show({
-          text1: "Reminder set successfully",
-          type: "success",
-          swipeable: false,
-          onPress: () => Toast.hide(),
-        });
+        onReminderSet(id);
+        setTimeout(() => {
+          onClose();
+        }, 100);
       }
-      onReminderSet(id);
-      onClose();
+
       navigation.setParams({ reminderSet: true });
     } catch (error: any) {
       console.log(error);
-      Toast.show({
-        text1: error?.data?.message || "Failed to set reminder",
-        type: "error",
-        swipeable: false,
-        onPress: () => Toast.hide(),
-      });
+      setErrorMessage(error?.data?.message || "Failed to set reminder");
     }
   }
 
@@ -138,10 +123,20 @@ export default function Reminder({
       console.log("error deleting reminder", error);
     }
   }
+  useEffect(() => {
+    if (errorMessage) {
+      Toast.show({
+        text1: errorMessage,
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
+    }
+  }, [errorMessage]);
   const { Colors } = useTheme();
   const getInitialTime = () => {
     const now = new Date();
-    return new Date(now.getTime() + 2 * 60000); // 60000ms = 1 minute
+    return new Date(now.getTime() + 2 * 60000);
   };
 
   const [time, getTime] = useState(getInitialTime());
@@ -256,9 +251,9 @@ export default function Reminder({
           <TouchableOpacity
             style={[
               dynamicStyles.pressable,
-              (!date || isLoading) && { opacity: 0.5 },
+              (!date || !name || isLoading) && { opacity: 0.5 },
             ]}
-            disabled={!date || isLoading}
+            disabled={!date || !name || isLoading}
             onPress={setReminder}
           >
             <Text style={dynamicStyles.setText}>

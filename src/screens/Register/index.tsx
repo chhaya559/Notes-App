@@ -22,7 +22,7 @@ import {
   useRegisterMutation,
 } from "@redux/api/authApi";
 import { useDispatch } from "react-redux";
-import { register, google } from "@redux/slice/authSlice";
+import { register, google, fcmToken } from "@redux/slice/authSlice";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { registerSchema } from "src/validations/registerSchema";
@@ -32,6 +32,7 @@ import messaging from "@react-native-firebase/messaging";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
 import { useNetInfo } from "@react-native-community/netinfo";
+import { formatName } from "@utils/utility";
 type RegisterProps = NativeStackScreenProps<RootStackParamList, "Register">;
 export default function Register({ navigation }: Readonly<RegisterProps>) {
   const dispatch = useDispatch();
@@ -77,7 +78,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
 
     const token = await messaging().getToken();
     console.log(token, "FCM token");
-
+    dispatch(fcmToken(String(token)));
     if (enabled) {
       handleTokenSend(token);
       console.log("Authorization status:", authStatus);
@@ -122,12 +123,13 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
         google({
           token: response.data.token,
           email: userInfo.data.user.email,
-          firstName: userInfo.data.user.name,
+          firstName:
+            formatName(response.data.firstName) ?? userInfo.data.user.name,
+          lastName: formatName(response.data.lastName) ?? null,
+          username: response.data.userName,
           profileImageUrl: userInfo.data.user.photo,
           isCommonPasswordSet: response.data.isCommonPasswordSet,
           isNotesUnlocked: response.data.isNotesUnlocked,
-          lastName: response.data.lastName,
-          username: response.data.userName,
         }),
       );
       Toast.show({

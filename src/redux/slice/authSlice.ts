@@ -15,6 +15,7 @@ export type AuthState = {
   notesUnlockUntil: number | null;
   isGoogle: boolean;
   theme: THEME;
+  fcmToken: string | null;
 };
 const initialState: AuthState = {
   identifier: null,
@@ -30,6 +31,7 @@ const initialState: AuthState = {
   notesUnlockUntil: null,
   isGoogle: false,
   theme: THEME.DEVICE,
+  fcmToken: null,
 };
 
 const authSlice = createSlice({
@@ -75,6 +77,9 @@ const authSlice = createSlice({
     },
     setTheme(state, action: PayloadAction<THEME>) {
       state.theme = action.payload;
+    },
+    fcmToken(state, action: PayloadAction<string>) {
+      state.fcmToken = action.payload;
     },
     register: (
       state,
@@ -201,5 +206,6 @@ export const {
   isGuest,
   profileImageUrl,
   setTheme,
+  fcmToken,
 } = authSlice.actions;
 export default authSlice.reducer;
