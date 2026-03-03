@@ -4,17 +4,22 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import styles from "./styles";
 import { Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import messaging from "@react-native-firebase/messaging";
+
 import { useGetNotificationsCountQuery } from "@redux/api/noteApi";
 import { RootState } from "@redux/store";
 import { useSelector } from "react-redux";
+
 import useTheme from "@hooks/useTheme";
 import useStyles from "@hooks/useStyles";
 
 export default function DashboardHeader() {
   const navigation = useNavigation<any>();
+
   const { toggleTheme, darkMode, Colors } = useTheme();
   const { dynamicStyles } = useStyles(styles);
+
   const isGuest = useSelector((state: RootState) => state.auth.isGuest);
+
   const profileImage = useSelector(
     (state: RootState) => state.auth.profileImageUrl,
   );
@@ -26,8 +31,38 @@ export default function DashboardHeader() {
       refetchOnMountOrArgChange: true,
     },
   );
+  useEffect(() => {
+    // Foreground notification
+    const unsubscribeForeground = messaging().onMessage(() => {
+      refetch();
+    });
 
-  const unreadCount = countResponse?.data.unreadCount ?? countResponse ?? 0;
+    // App opened from notification
+    const unsubscribeOpened = messaging().onNotificationOpenedApp(() => {
+      refetch();
+    });
+
+    // App opened from killed state
+    messaging()
+      .getInitialNotification()
+      .then((remoteMessage) => {
+        if (remoteMessage) {
+          refetch();
+        }
+      });
+
+    return () => {
+      unsubscribeForeground();
+      unsubscribeOpened();
+    };
+  }, [refetch]);
+  /* ✅ Correct unreadCount mapping */
+
+  const unreadCount = countResponse?.data?.unreadCount;
+
+  console.log(unreadCount, "unreadCount");
+
+  /* ✅ Refetch on screen focus */
 
   useFocusEffect(
     useCallback(() => {
@@ -35,8 +70,10 @@ export default function DashboardHeader() {
     }, [refetch]),
   );
 
+  /* ✅ Refetch on push notification */
+
   useEffect(() => {
-    const unsubscribe = messaging().onMessage(async () => {
+    const unsubscribe = messaging().onMessage(() => {
       refetch();
     });
 
@@ -45,6 +82,8 @@ export default function DashboardHeader() {
 
   return (
     <View style={dynamicStyles.outer}>
+      {/* NOTIFICATIONS */}
+
       <TouchableOpacity
         onPress={() => navigation.navigate("Notifications")}
         style={{ opacity: isGuest ? 0.5 : 1 }}
@@ -52,8 +91,8 @@ export default function DashboardHeader() {
       >
         <Ionicons
           name="notifications-circle-outline"
+          size={32}
           color={Colors.iconPrimary}
-          size={30}
         />
 
         {unreadCount > 0 && (
@@ -65,17 +104,21 @@ export default function DashboardHeader() {
         )}
       </TouchableOpacity>
 
+      {/* THEME BUTTON */}
+
       <TouchableOpacity onPress={toggleTheme}>
         {darkMode ? (
           <MaterialIcons
             name="dark-mode"
-            size={26}
+            size={28}
             color={Colors.iconPrimary}
           />
         ) : (
-          <Entypo name="light-up" size={24} color={Colors.iconPrimary} />
+          <Entypo name="light-up" size={26} color={Colors.iconPrimary} />
         )}
       </TouchableOpacity>
+
+      {/* PROFILE */}
 
       <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
         <View style={dynamicStyles.profileCover}>

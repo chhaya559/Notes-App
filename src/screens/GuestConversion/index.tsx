@@ -24,6 +24,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import messaging from "@react-native-firebase/messaging";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
+import { useNetInfo } from "@react-native-community/netinfo";
 
 type ConversionProps = NativeStackScreenProps<
   RootStackParamList,
@@ -46,7 +47,18 @@ export default function GuestConversion({
       password: "",
     },
   });
-
+  const { isConnected } = useNetInfo();
+  useEffect(() => {
+    if (!isConnected) {
+      Toast.show({
+        text1: "Connection error",
+        text2: "Please check your internet",
+        type: "info",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
+    }
+  }, [isConnected]);
   const [pushApi] = usePushNotificationMutation();
 
   async function handleTokenSend(token: string) {
@@ -87,6 +99,15 @@ export default function GuestConversion({
   const [conversionApi] = useGuestConversionMutation();
 
   async function handleConversion(data: any) {
+    if (!isConnected) {
+      Toast.show({
+        text1: "Connection error",
+        text2: "Please check your internet",
+        type: "info",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
+    }
     try {
       console.log(data, "ftyjf");
       const response = await conversionApi({

@@ -5,8 +5,6 @@ import {
   Pressable,
   Alert,
   useWindowDimensions,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import styles from "./styles";
 import { AntDesign, Entypo, Feather, MaterialIcons } from "@expo/vector-icons";
@@ -141,7 +139,7 @@ export default function Card(props: any) {
     }
 
     try {
-      const res = await unlockNote({
+      await unlockNote({
         password: unlockValue.password,
         unlockMinutes: unlockValue.unlockMinutes,
       }).unwrap();
@@ -423,7 +421,6 @@ export default function Card(props: any) {
   }
 
   const contentToShow = props.preview;
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const swipeRef = useRef<SwipeableMethods>(null);
   return (
     <>
@@ -491,73 +488,77 @@ export default function Card(props: any) {
         onBackdropPress={() => setShowLockedModal(false)}
         onBackButtonPress={() => setShowLockedModal(false)}
       >
-        <KeyboardAvoidingView style={dynamicStyles.modalContainer}>
+        <KeyboardAwareScrollView style={{ flex: 1 }}>
           <ScrollView
-            bounces={false}
-            showsVerticalScrollIndicator={false}
-            // keyboardShouldPersistTaps="handled"
-            // scrollEnabled={keyboardHeight > 0}
-            keyboardDismissMode="interactive"
-            contentContainerStyle={dynamicStyles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: "center",
+              paddingBottom: 40,
+            }}
           >
-            <Text style={dynamicStyles.unlockHeading}>Unlock Notes</Text>
+            <View style={dynamicStyles.modalContainer}>
+              <Text style={dynamicStyles.unlockHeading}>Unlock Notes</Text>
 
-            <TouchableOpacity>
-              <AntDesign
-                name="close"
-                size={24}
-                color={Colors.iconPrimary}
-                style={dynamicStyles.close}
-                onPress={() => setShowLockedModal(false)}
+              <TouchableOpacity onPress={() => setShowLockedModal(false)}>
+                <AntDesign
+                  name="close"
+                  size={24}
+                  color={Colors.iconPrimary}
+                  style={dynamicStyles.close}
+                />
+              </TouchableOpacity>
+
+              <CustomInput
+                placeholder="Enter password"
+                color={Colors.placeholder}
+                value={unlockValue.password}
+                onChangeText={(text: string) =>
+                  setUnlockValue((p) => ({ ...p, password: text }))
+                }
+                isPassword
               />
-            </TouchableOpacity>
 
-            <CustomInput
-              placeholder="Enter password"
-              color={Colors.placeholder}
-              value={unlockValue.password}
-              onChangeText={(text: string) =>
-                setUnlockValue((p) => ({ ...p, password: text }))
-              }
-              isPassword
-            />
+              <Text style={dynamicStyles.timeText}>Unlock for minutes</Text>
 
-            <Text style={dynamicStyles.timeText}>Unlock for minutes</Text>
-
-            <View style={dynamicStyles.counter}>
-              {[5, 10, 20, 30, 50].map((min) => (
-                <TouchableOpacity
-                  key={min}
-                  style={[
-                    dynamicStyles.counterTime,
-                    unlockValue.unlockMinutes === min &&
-                      dynamicStyles.counterActive,
-                  ]}
-                  onPress={() =>
-                    setUnlockValue((p) => ({ ...p, unlockMinutes: min }))
-                  }
-                >
-                  <Text
+              <View style={dynamicStyles.counter}>
+                {[5, 10, 20, 30, 50].map((min) => (
+                  <TouchableOpacity
+                    key={min}
                     style={[
-                      dynamicStyles.time,
+                      dynamicStyles.counterTime,
                       unlockValue.unlockMinutes === min &&
-                        dynamicStyles.textActive,
+                        dynamicStyles.counterActive,
                     ]}
+                    onPress={() =>
+                      setUnlockValue((p) => ({
+                        ...p,
+                        unlockMinutes: min,
+                      }))
+                    }
                   >
-                    {min}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+                    <Text
+                      style={[
+                        dynamicStyles.time,
+                        unlockValue.unlockMinutes === min &&
+                          dynamicStyles.textActive,
+                      ]}
+                    >
+                      {min}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-            <TouchableOpacity
-              onPress={handleUnlock}
-              style={dynamicStyles.pressable}
-            >
-              <Text style={dynamicStyles.pressableText}>Unlock</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleUnlock}
+                style={dynamicStyles.pressable}
+              >
+                <Text style={dynamicStyles.pressableText}>Unlock</Text>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
-        </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
       </Modal>
     </>
   );

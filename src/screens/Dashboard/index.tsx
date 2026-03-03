@@ -18,6 +18,7 @@ import {
   useSaveNoteMutation,
   useSearchNotesQuery,
   useUpdateMutation,
+  useUploadFileMutation,
 } from "@redux/api/noteApi";
 import Card from "@components/atoms/Card";
 import { db, pendingDb } from "src/db/notes";
@@ -57,6 +58,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [editApi] = useUpdateMutation();
   const [saveApi] = useSaveNoteMutation();
   const [deleteApi] = useDeleteMutation();
+  const [uploadApi] = useUploadFileMutation();
   const { Colors } = useTheme();
   const dispatch = useDispatch();
   function clearSearchText() {
@@ -123,9 +125,15 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     return () => clearTimeout(timer);
   }, [notesUnlockUntil]);
 
+  const isGuest = useSelector((state: RootState) => state.auth.isGuest);
   // notes load flow based on connection
   useFocusEffect(
     useCallback(() => {
+      if (isGuest) {
+        showNotesFromCombinedDB();
+        return;
+      }
+
       if (isConnected) {
         syncOnlineFlow();
       } else {
@@ -146,54 +154,84 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       .select()
       .from(pendingNotes)
       .where(eq(pendingNotes.userId, String(userId)));
+
     if (!notesToSendBackend.length) return;
+
     for (const note of notesToSendBackend) {
       try {
-        switch (note.syncStatus) {
-          case 1: {
-            console.log(note, "note to save");
-            const res = await saveApi({
-              title: note.title,
-              content: note.content,
-              filePaths: JSON.parse(note.filePaths || "[]"),
-            }).unwrap();
-            console.log(res, "es form save");
-            break;
+        let content = note.content || "";
+
+        const imageUris =
+          content.match(/(file:\/\/|content:\/\/|ph:\/\/)[^"]+/g) || [];
+
+        const uploadedPaths = [];
+
+        for (const uri of imageUris) {
+          try {
+            const formData = new FormData();
+
+            formData.append("file", {
+              uri,
+              type: "image/jpeg",
+              name: "offline-image.jpg",
+            });
+
+            const response = await uploadApi(formData).unwrap();
+
+            const serverPath = response?.data?.path;
+
+            if (serverPath) {
+              content = content.replace(uri, serverPath);
+              uploadedPaths.push(serverPath);
+            }
+          } catch (e) {
+            console.log("Offline image upload failed", e);
           }
+        }
+
+        const filePaths =
+          uploadedPaths.length > 0
+            ? uploadedPaths
+            : JSON.parse(note.filePaths || "[]");
+
+        switch (note.syncStatus) {
+          case 1:
+            await saveApi({
+              id: note.id,
+              title: note.title,
+              content,
+              filePaths,
+            }).unwrap();
+            break;
+
           case 2: {
-            console.log(note, "note to edit");
-            try {
-              const idExists = await getNoteById({ id: note.id });
-              console.log(idExists, "fregetgt");
-              if (idExists.data?.success) {
-                const res = await editApi({
-                  id: note.id,
-                  title: note.title,
-                  content: note.content,
-                  filePaths: JSON.parse(note.filePaths || "[]"),
-                }).unwrap();
-                console.log(res, "edit");
-              } else {
-                const res = await saveApi({
-                  title: note.title,
-                  content: note.content,
-                  filePaths: JSON.parse(note.filePaths || "[]"),
-                }).unwrap();
-                console.log(res, "es form save");
-              }
-            } catch (error) {
-              console.log(error);
+            const idExists = await getNoteById({ id: note.id }).unwrap();
+
+            if (idExists?.success) {
+              await editApi({
+                id: note.id,
+                title: note.title,
+                content,
+                filePaths,
+              }).unwrap();
+            } else {
+              await saveApi({
+                id: note.id,
+                title: note.title,
+                content,
+                filePaths,
+              }).unwrap();
             }
             break;
           }
-          case 3: {
-            console.log("note to delete", note);
-            const res = await deleteApi({ id: note.id }).unwrap();
-            console.log(res, "resres");
+
+          case 3:
+            await deleteApi({ id: note.id }).unwrap();
+
             await db.delete(notesTable).where(eq(notesTable.id, note.id));
             break;
-          }
         }
+
         if (note.syncStatus !== 3) {
           await pendingDb
             .delete(pendingNotes)
@@ -204,7 +242,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       }
     }
   }
-
   async function fetchBackendAndStoreLocal() {
     if (!data?.data) return;
 
@@ -297,7 +334,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         new Date(b.updatedAt || b.createdAt).getTime() -
         new Date(a.updatedAt || a.createdAt).getTime(),
     );
-    console.log(merged, "wjw");
     setAllNotes(merged);
   }
 
@@ -437,11 +473,11 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       <FlatList
         data={displayNotes}
         bounces={false}
-        keyExtractor={(item) => item.id}
-        //scrollEnabled={displayNotes.length > 4}
+        keyExtractor={(item, index) =>
+          item?.id ? String(item.id) : `note-${index}`
+        } //scrollEnabled={displayNotes.length > 4}
         renderItem={({ item }) => (
           <Card
-            key={item.id}
             id={item.id}
             title={item.title}
             content={item.content}

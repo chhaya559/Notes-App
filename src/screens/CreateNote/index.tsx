@@ -51,7 +51,7 @@ import {
 import Reminder from "@components/atoms/Reminder";
 import Summary from "@components/atoms/Summary";
 import SaveNoteButton from "@components/atoms/SaveNoteButton";
-import { useFocusEffect, useRoute } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import useDebounce from "src/debounce/debounce";
 import FileViewer from "react-native-file-viewer";
 import useTheme from "@hooks/useTheme";
@@ -132,7 +132,9 @@ export default function CreateNote({
 
   async function generateSummary() {
     try {
+      console.log(isConnected);
       if (!isConnected) {
+        handleToggle("summary");
         Toast.show({
           text1: "You need internet to generate AI summary",
           type: "info",
@@ -175,8 +177,35 @@ export default function CreateNote({
   const [existingFiles, setExistingFiles] = useState<string[]>([]);
   const [files, setFiles] = useState<DocumentPickerResponse[]>([]);
 
-  const richText = useRef<RichEditor | null>(null);
+  const shownOfflinePopup = useRef(false);
 
+  useEffect(() => {
+    const isOffline = isConnected === false;
+    if (isOffline && !shownOfflinePopup.current) {
+      const hasImageInContent = notes?.content?.includes("<img") || false;
+
+      const hasImages =
+        existingFiles.length > 0 || files.length > 0 || hasImageInContent;
+
+      if (hasImages) {
+        shownOfflinePopup.current = true;
+
+        Toast.show({
+          text1: "Restore Internet",
+          text2: "This note contains images. Connect to internet to view them.",
+        });
+      }
+    }
+
+    if (isConnected) {
+      shownOfflinePopup.current = false;
+    }
+  }, [isConnected, notes.content, existingFiles, files]);
+
+  const richText = useRef<RichEditor | null>(null);
+  useEffect(() => {
+    richText.current?.focusContentEditor();
+  }, []);
   useEffect(() => {
     if (!NotesData?.data) return;
 
@@ -343,6 +372,12 @@ export default function CreateNote({
   }
 
   async function pickFile() {
+    if (!isConnected) {
+      Toast.show({
+        text1: "Please connect to internet to upload image",
+      });
+      return;
+    }
     let permissionResult;
     if (Platform.OS === "android") {
       if (Platform.Version >= 33) {
@@ -424,8 +459,16 @@ export default function CreateNote({
    "/>
    `;
 
+      //richText.current?.insertHTML(imgMarkup);
       richText.current?.insertHTML(imgMarkup);
 
+      // Close keyboard
+      Keyboard.dismiss();
+
+      // Important: don't blur editor permanently
+      setTimeout(() => {
+        richText.current?.blurContentEditor?.();
+      }, 100);
       setExistingFiles((prev) => [...prev, path]);
     } else {
       Toast.show({
@@ -765,32 +808,25 @@ export default function CreateNote({
         <ScrollView
           bounces={false}
           ref={scrollRef}
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={{
             flexGrow: 1,
             paddingBottom: keyboardHeight + 40,
           }}
         >
-          <View style={[dynamicStyles.editorContainer]}>
+          <View style={dynamicStyles.editorContainer}>
             <RichEditor
               ref={richText}
               useContainer={true}
-              initialFocus={true}
+              //  initialFocus={true}
               initialContentHTML={route?.params?.content || ""}
-              initialHeight={50}
+              initialHeight={500}
               onChange={(val) =>
                 setNotes((prev) => ({ ...prev, content: val }))
               }
-              onMessage={(event) => {
-                const uri = event.nativeEvent.data;
-
-                openFile({
-                  uri,
-                  type: "image/jpeg",
-                });
-              }}
               onCursorPosition={(scrollY) => {
                 scrollRef.current?.scrollTo({
-                  y: scrollY,
+                  y: scrollY - 120,
                   animated: true,
                 });
               }}
@@ -799,7 +835,6 @@ export default function CreateNote({
                 color: Colors.textPrimary,
                 caretColor: Colors.primary,
                 placeholderColor: Colors.placeholder,
-                // contentCSSText: "font-size: 10px;", // Custom CSS styles
               }}
               placeholder="Type Here..."
             />
@@ -1012,7 +1047,12 @@ export default function CreateNote({
                 { opacity: isEditMode && !isGuest ? 1 : 0.5 },
               ]}
               onPress={() => {
-                handleToggle("reminder");
+                if (!isConnected) {
+                  Toast.show({
+                    text1: "You need internet connection to set reminder",
+                    swipeable: false,
+                  });
+                } else handleToggle("reminder");
               }}
               disabled={isGuest || !isEditMode}
             >

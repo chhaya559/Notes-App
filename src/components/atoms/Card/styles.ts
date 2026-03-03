@@ -49,15 +49,8 @@ const styles = (Colors: ThemeColors) =>
       top: 26,
     },
     modal: {
-      backgroundColor: Colors.surfaceSoft,
-      justifyContent: "center",
-      width: screenWidth * 0.9,
-      marginTop: isSmallScreen ? screenHeight * 0.25 : screenHeight * 0.3,
-      marginBottom: isSmallScreen ? screenHeight * 0.25 : screenHeight * 0.3,
-      borderRadius: 10,
-      borderWidth: 1,
-      borderColor: Colors.inputFocusBorder,
-      paddingTop: 0,
+      justifyContent: "flex-start",
+      margin: 0,
     },
 
     unlockHeading: {
@@ -149,8 +142,14 @@ const styles = (Colors: ThemeColors) =>
     },
 
     modalContainer: {
-      maxHeight: "80%",
+      backgroundColor: Colors.surfaceSoft,
       borderRadius: 12,
+      paddingBottom: 40,
+      paddingTop: 20,
+      marginTop: isSmallScreen ? screenHeight * 0.25 : screenHeight * 0.3,
+      marginHorizontal: 20,
+      borderWidth: 1,
+      borderColor: Colors.inputFocusBorder,
     },
 
     scrollContent: {

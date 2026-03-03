@@ -24,6 +24,7 @@ import Reanimated, {
 } from "react-native-reanimated";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
+import { index } from "drizzle-orm/gel-core";
 export default function Notifications() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
@@ -73,9 +74,9 @@ export default function Notifications() {
     console.log(item, "itemitemitem");
     if (!item.IsRead) {
       try {
-        await markReadApi({ id: item.Id }).unwrap();
+        await markReadApi({ id: item.id }).unwrap();
         setAllNotifications((prev) =>
-          prev.map((n) => (n.id === item.Id ? { ...n, isRead: true } : n)),
+          prev.map((n) => (n.id === item.id ? { ...n, IsRead: true } : n)),
         );
       } catch (err) {
         console.log("Failed to mark as read", err);
@@ -130,7 +131,7 @@ export default function Notifications() {
 
     return (
       <Reanimated.View style={[animatedStyle, dynamicStyles.swipe]}>
-        <TouchableOpacity onPress={() => deleteNotification(item.Id)}>
+        <TouchableOpacity onPress={() => deleteNotification(item.id)}>
           <MaterialIcons
             name="delete-outline"
             size={38}
@@ -225,7 +226,9 @@ export default function Notifications() {
       <FlatList
         data={filteredNotifications}
         bounces={false}
-        keyExtractor={(item, index) => item.Id?.toString() || index.toString()}
+        keyExtractor={(item, index) =>
+          item?.id ? String(item.id) : `notification-${index}`
+        }
         renderItem={({ item }) => (
           <ReanimatedSwipeable
             enableTrackpadTwoFingerGesture

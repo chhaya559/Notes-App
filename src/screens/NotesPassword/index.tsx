@@ -56,8 +56,6 @@ export default function NotesPassword({
   const dispatch = useDispatch();
 
   const noteID = route?.params?.noteID;
-  const title = route?.params?.title ?? "";
-  const content = route?.params?.content ?? "";
 
   async function handle(data: any) {
     try {

@@ -18,14 +18,15 @@ export default function Onboarding({ navigation }: Readonly<OnboardingProps>) {
   async function handleGuestLogin() {
     if (!isConnected) {
       Toast.show({
-        text1: "No internet connection",
+        text1: "Connection error",
+        text2: "Please check your internet",
         type: "info",
         swipeable: false,
         onPress: () => Toast.hide(),
       });
     }
     const response = await guestApi().unwrap();
-    console.log(response);
+    console.log(response, "ihergihtr;o");
     dispatch(
       guest({
         token: response.data.token,

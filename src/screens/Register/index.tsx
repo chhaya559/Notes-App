@@ -55,7 +55,18 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
     },
   });
   const [pushApi] = usePushNotificationMutation();
-
+  const { isConnected } = useNetInfo();
+  useEffect(() => {
+    if (!isConnected) {
+      Toast.show({
+        text1: "Connection error",
+        text2: "Please check your internet",
+        type: "info",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
+    }
+  }, [isConnected]);
   async function handleTokenSend(token: string) {
     try {
       const response = await pushApi({
@@ -102,22 +113,34 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
   }, []);
   async function handleGoogleSignin() {
     try {
+      if (!isConnected) {
+        Toast.show({
+          type: "info",
+          text1: "No internet connection",
+          text2: "Please check your network",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
+        return;
+      }
+
       await GoogleSignin.hasPlayServices();
+
       const userInfo = await GoogleSignin.signIn();
+
       if (!isSuccessResponse(userInfo)) {
-        Alert.alert("Google Sign-Up failed");
+        Alert.alert("Google Sign-In failed");
         return;
       }
 
       const idToken = userInfo.data.idToken;
 
       if (!idToken) {
-        Alert.alert("Error", "No ID token found from Googe");
+        Alert.alert("Error", "No ID token found from Google");
         return;
       }
 
       const response = await googleApi({ idToken }).unwrap();
-      console.log("response", response);
 
       dispatch(
         google({
@@ -132,36 +155,26 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
           isNotesUnlocked: response.data.isNotesUnlocked,
         }),
       );
+
       Toast.show({
         type: "success",
-        text1: "Logged in with google",
+        text1: "Logged in with Google",
         swipeable: false,
         onPress: () => Toast.hide(),
       });
-      requestUserPermission();
-    } catch (error: any) {
-      console.log("Google Sign-In Error:", error);
-      const errorText = String(error);
 
-      if (errorText.includes("NETWORK_ERROR")) {
-        Toast.show({
-          text1: "No internet connection",
-          text2: "Please check your network",
-          type: "info",
-          swipeable: false,
-          onPress: () => Toast.hide(),
-        });
-      } else {
-        Toast.show({
-          text1: "Google signup failed",
-          type: "error",
-          swipeable: false,
-          onPress: () => Toast.hide(),
-        });
-      }
+      requestUserPermission();
+    } catch (error) {
+      console.log("Google Sign-In Error:", error);
+
+      Toast.show({
+        text1: "Google login failed",
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
     }
   }
-  const { isConnected } = useNetInfo();
 
   async function handleSignup(data: any) {
     if (!isConnected) {

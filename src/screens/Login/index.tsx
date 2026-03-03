@@ -54,7 +54,22 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
     },
   });
 
+  const { isConnected } = useNetInfo();
   const [pushApi] = usePushNotificationMutation();
+  useEffect(() => {
+    console.log(isConnected, "isisisi");
+    if (isConnected === null) return;
+
+    if (!isConnected) {
+      Toast.show({
+        text1: "Connection error",
+        text2: "Please check your internet",
+        type: "info",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
+    }
+  }, [isConnected]);
 
   async function handleTokenSend(token: string) {
     try {
@@ -96,21 +111,24 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     });
   }, []);
-  const { isConnected } = useNetInfo();
 
   async function handleGoogleSignin() {
     try {
-      await GoogleSignin.hasPlayServices();
-      console.log(isConnected, "connection");
       if (!isConnected) {
         Toast.show({
-          text1: "You appear to be offline. Please try again!",
           type: "info",
+          text1: "No internet connection",
+          text2: "Please check your network",
           swipeable: false,
           onPress: () => Toast.hide(),
         });
+        return;
       }
+
+      await GoogleSignin.hasPlayServices();
+
       const userInfo = await GoogleSignin.signIn();
+
       if (!isSuccessResponse(userInfo)) {
         Alert.alert("Google Sign-In failed");
         return;
@@ -119,12 +137,11 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       const idToken = userInfo.data.idToken;
 
       if (!idToken) {
-        Alert.alert("Error", "No ID token found from Googe");
+        Alert.alert("Error", "No ID token found from Google");
         return;
       }
 
       const response = await googleApi({ idToken }).unwrap();
-      console.log("responsefromgooglr", response.data);
 
       dispatch(
         google({
@@ -139,34 +156,24 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
           isNotesUnlocked: response.data.isNotesUnlocked,
         }),
       );
+
       Toast.show({
         type: "success",
-        text1: "Logged in with google",
+        text1: "Logged in with Google",
         swipeable: false,
         onPress: () => Toast.hide(),
       });
 
       requestUserPermission();
-    } catch (error: any) {
+    } catch (error) {
       console.log("Google Sign-In Error:", error);
-      const errorText = String(error);
 
-      if (errorText.includes("NETWORK_ERROR")) {
-        Toast.show({
-          text1: "No internet connection",
-          text2: "Please check your network",
-          type: "info",
-          swipeable: false,
-          onPress: () => Toast.hide(),
-        });
-      } else {
-        Toast.show({
-          text1: "Google login failed",
-          type: "error",
-          swipeable: false,
-          onPress: () => Toast.hide(),
-        });
-      }
+      Toast.show({
+        text1: "Google login failed",
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
     }
   }
   async function handleLogin(data: any) {

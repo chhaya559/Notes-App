@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import styles from "./styles";
 import useTheme from "@hooks/useTheme";
 import useStyles from "@hooks/useStyles";
+import { useNetInfo } from "@react-native-community/netinfo";
 
 export default function Header({
   navigation,
@@ -13,34 +14,36 @@ export default function Header({
   const { Colors } = useTheme();
   const { dynamicStyles } = useStyles(styles);
   return (
-    <View
-      style={[
-        dynamicStyles.header,
-        {
-          backgroundColor:
-            options?.headerStyle?.backgroundColor ?? Colors.background,
-        },
-      ]}
-    >
-      <View style={dynamicStyles.left}>
-        {options.headerLeft
-          ? options.headerLeft({})
-          : back && (
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={dynamicStyles.headerButton}
-              >
-                <Ionicons
-                  name="arrow-back-outline"
-                  size={26}
-                  color={Colors.iconPrimary}
-                  style={{ padding: 5 }}
-                />
-              </TouchableOpacity>
-            )}
+    <View>
+      <View
+        style={[
+          dynamicStyles.header,
+          {
+            backgroundColor:
+              options?.headerStyle?.backgroundColor ?? Colors.background,
+          },
+        ]}
+      >
+        <View style={dynamicStyles.left}>
+          {options.headerLeft
+            ? options.headerLeft({})
+            : back && (
+                <TouchableOpacity
+                  onPress={() => navigation.goBack()}
+                  style={dynamicStyles.headerButton}
+                >
+                  <Ionicons
+                    name="arrow-back-outline"
+                    size={26}
+                    color={Colors.iconPrimary}
+                    style={{ padding: 5 }}
+                  />
+                </TouchableOpacity>
+              )}
+        </View>
+        <Text style={dynamicStyles.title}>{options?.title}</Text>
+        <View style={dynamicStyles.right}>{options.headerRight?.({})}</View>
       </View>
-      <Text style={dynamicStyles.title}>{options?.title}</Text>
-      <View style={dynamicStyles.right}>{options.headerRight?.({})}</View>
     </View>
   );
 }
