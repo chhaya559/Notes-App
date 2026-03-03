@@ -460,14 +460,13 @@ export default function CreateNote({
       return;
     }
     console.log("saving");
-    if (isGuest) {
-      console.log("Guest note - skipping backend save");
-      return;
-    }
 
     const isNetConnected = isConnected;
     try {
-      if (!notesRef.current?.title.trim() || existingFiles.length > 0) {
+      // if (!notesRef.current?.title.trim() || existingFiles.length > 0) {
+      //   notesRef.current.title = "New Note";
+      // }
+      if (!notesRef.current?.title.trim()) {
         notesRef.current.title = "New Note";
       }
       if (!notesRef.current?.title && !notesRef.current?.content) {
@@ -548,7 +547,7 @@ export default function CreateNote({
           console.log(res, "save response");
           setNoteId(res?.data?.id);
         } else {
-          const id = saveToPendingDB(1, filePaths);
+          const id = await saveToPendingDB(1, filePaths);
           console.log(id, "ididididid");
           setOfflineId(id);
         }
@@ -623,7 +622,7 @@ export default function CreateNote({
   );
 
   useEffect(() => {
-    if (!noteLoaded && noteId) return;
+    if (noteId && !noteLoaded) return;
 
     const hasContent =
       debouncedNotes.title?.trim() ||
@@ -681,14 +680,19 @@ export default function CreateNote({
         await pendingDb
           .insert(pendingNotes)
           .values({
-            id: notesRef.current.id,
-            userId,
+            id: String(notesRef.current.id),
+            userId: String(userId),
+            title: "",
+            content: "",
+            updatedAt: new Date().toISOString(),
+            filePaths: "[]",
             syncStatus: 3,
           })
           .onConflictDoUpdate({
             target: pendingNotes.id,
             set: {
               syncStatus: 3,
+              updatedAt: new Date().toISOString(),
             },
           });
         console.log(

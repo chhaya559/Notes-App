@@ -64,6 +64,7 @@ export default function NotesPassword({
       if (hasCommonPassword) {
         const response = await resetNotesApi({
           newNotesPassword: data.password,
+          token: resetToken,
         }).unwrap();
         if (response.success) {
           Toast.show({

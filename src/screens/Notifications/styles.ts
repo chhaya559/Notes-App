@@ -128,7 +128,7 @@ const styles = (Colors: ThemeColors) =>
     message: {
       textAlign: "center",
       fontWeight: "500",
-      marginBottom: 8,
+      // marginBottom: 8,
       color: Colors.textSecondary,
     },
     messageDescription: {

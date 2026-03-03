@@ -13,6 +13,7 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { db, pendingDb } from "src/db/notes";
 import { notesTable } from "src/db/schema";
 import { pendingNotes } from "src/db/pendingNotes/schema";
+import { useNetInfo } from "@react-native-community/netinfo";
 
 type props = {
   hasCommonPassword: boolean;
@@ -39,8 +40,15 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
       { cancelable: true },
     );
   }
+  const { isConnected } = useNetInfo();
   async function handleDelete() {
     try {
+      if (!isConnected) {
+        Toast.show({
+          text1: "Internet connection required",
+          swipeable: false,
+        });
+      }
       const response = await deleteApi(" ").unwrap();
       dispatch(logout());
       GoogleSignin.signOut();

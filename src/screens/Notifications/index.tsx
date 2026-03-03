@@ -71,11 +71,11 @@ export default function Notifications() {
     setSelectedNotification(item);
     setShowDetailedNotification(true);
     console.log(item, "itemitemitem");
-    if (!item.isRead) {
+    if (!item.IsRead) {
       try {
-        await markReadApi({ id: item.id }).unwrap();
+        await markReadApi({ id: item.Id }).unwrap();
         setAllNotifications((prev) =>
-          prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n)),
+          prev.map((n) => (n.id === item.Id ? { ...n, isRead: true } : n)),
         );
       } catch (err) {
         console.log("Failed to mark as read", err);
@@ -89,7 +89,7 @@ export default function Notifications() {
       setAllNotifications((prev) =>
         prev.map((item) => ({
           ...item,
-          isRead: true,
+          IsRead: true,
         })),
       );
 
@@ -130,7 +130,7 @@ export default function Notifications() {
 
     return (
       <Reanimated.View style={[animatedStyle, dynamicStyles.swipe]}>
-        <TouchableOpacity onPress={() => deleteNotification(item.id)}>
+        <TouchableOpacity onPress={() => deleteNotification(item.Id)}>
           <MaterialIcons
             name="delete-outline"
             size={38}
@@ -225,7 +225,7 @@ export default function Notifications() {
       <FlatList
         data={filteredNotifications}
         bounces={false}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => item.Id?.toString() || index.toString()}
         renderItem={({ item }) => (
           <ReanimatedSwipeable
             enableTrackpadTwoFingerGesture
@@ -240,9 +240,9 @@ export default function Notifications() {
               }}
               style={dynamicStyles.card}
             >
-              <Text style={dynamicStyles.reminderName}>{item.title}</Text>
-              <Text style={dynamicStyles.reminderText}>{item.noteTitle}</Text>
-              {!item.isRead && (
+              <Text style={dynamicStyles.reminderName}>{item.Title}</Text>
+              <Text style={dynamicStyles.reminderText}>{item.NoteTitle}</Text>
+              {!item.IsRead && (
                 <Entypo
                   name="dot-single"
                   size={26}
@@ -327,12 +327,12 @@ export default function Notifications() {
             style={dynamicStyles.icon}
           />
 
-          <Text style={dynamicStyles.title}>{selectedNotification?.title}</Text>
+          <Text style={dynamicStyles.title}>{selectedNotification?.Title}</Text>
           <Text style={dynamicStyles.message}>
-            {selectedNotification?.message}
+            {selectedNotification?.Message}
           </Text>
           <Text style={dynamicStyles.messageDescription}>
-            {selectedNotification?.description}
+            {selectedNotification?.Description}
           </Text>
         </View>
       </Modal>

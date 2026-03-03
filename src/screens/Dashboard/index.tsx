@@ -194,9 +194,11 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             break;
           }
         }
-        await pendingDb
-          .delete(pendingNotes)
-          .where(eq(pendingNotes.id, note.id));
+        if (note.syncStatus !== 3) {
+          await pendingDb
+            .delete(pendingNotes)
+            .where(eq(pendingNotes.id, note.id));
+        }
       } catch (error) {
         console.log(error);
       }
@@ -225,6 +227,9 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
           updatedAt: note.updatedAt,
           filePaths: JSON.stringify(note.filePaths ?? []),
           syncStatus: "synced",
+          isLocked: note.isLocked,
+          isPasswordProtected: note.isPasswordProtected,
+          isReminderSet: note.isReminderSet,
         })
         .onConflictDoUpdate({
           target: notesTable.id,
@@ -234,6 +239,9 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             updatedAt: note.updatedAt,
             filePaths: JSON.stringify(note.filePaths ?? []),
             syncStatus: "synced",
+            isLocked: note.isLocked,
+            isPasswordProtected: note.isPasswordProtected,
+            isReminderSet: note.isReminderSet,
           },
         });
     }
@@ -249,7 +257,9 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       .from(pendingNotes)
       .where(eq(pendingNotes.userId, String(userId)));
 
-    const deletedSet = new Set();
+    const deletedSet = new Set(
+      pending.filter((n) => n.syncStatus === 3).map((n) => String(n.id)),
+    );
     const pendingMap = new Map();
 
     pending.forEach((note) => {
@@ -271,7 +281,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     for (const local of localNotes) {
       if (local.userId !== String(userId)) continue;
 
-      if (deletedSet.has(local.id)) continue;
+      if (deletedSet.has(String(local.id))) continue;
 
       finalMap.set(local.id, local);
     }

@@ -103,6 +103,15 @@ export default function Card(props: any) {
   //},[notesUnlockUntil, dispatch]);
 
   async function handleUnlock() {
+    if (!isConnected) {
+      Toast.show({
+        text1: "This feature requires internet",
+        text1Style: { color: "#000000ff" },
+        type: "info",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
+    }
     if (!unlockValue.password && !unlockValue.unlockMinutes) {
       Toast.show({
         text1: "Enter password & select time",
@@ -130,16 +139,9 @@ export default function Card(props: any) {
       });
       return;
     }
-    if (!isConnected) {
-      Toast.show({
-        text1: "This feature requires internet",
-        type: "info",
-        swipeable: false,
-        onPress: () => Toast.hide(),
-      });
-    }
+
     try {
-      await unlockNote({
+      const res = await unlockNote({
         password: unlockValue.password,
         unlockMinutes: unlockValue.unlockMinutes,
       }).unwrap();
@@ -156,17 +158,30 @@ export default function Card(props: any) {
         content: props.content,
       });
     } catch (error: any) {
-      Toast.show({
-        text1: error?.data?.message,
-        type: "error",
-        swipeable: false,
-        onPress: () => Toast.hide(),
-      });
+      console.log(error.error);
+      if (error.error.includes("TypeError: Network request failed")) {
+        Toast.show({
+          text1: "Unable to unlock. Check your connection and try again.",
+        });
+      } else {
+        Toast.show({
+          text1: error?.data?.message,
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
+      }
     }
   }
 
   async function handleDelete() {
     try {
+      if (!isConnected && props.isLocked) {
+        Toast.show({
+          text1: "Unlock the note to delete it",
+        });
+        return;
+      }
       if (!userId) return;
       if (isConnected) {
         await deleteApi({ id: props.id }).unwrap();
@@ -449,7 +464,7 @@ export default function Card(props: any) {
               )}
 
               <View style={dynamicStyles.iconsWrap}>
-                {props.isPasswordProtected ? (
+                {props.isPasswordProtected || props.isLocked ? (
                   <Pressable>
                     <Entypo name="lock" size={24} color={Colors.iconPrimary} />
                   </Pressable>
@@ -476,15 +491,12 @@ export default function Card(props: any) {
         onBackdropPress={() => setShowLockedModal(false)}
         onBackButtonPress={() => setShowLockedModal(false)}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={dynamicStyles.modalContainer}
-        >
+        <KeyboardAvoidingView style={dynamicStyles.modalContainer}>
           <ScrollView
             bounces={false}
             showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            scrollEnabled={keyboardHeight > 0}
+            // keyboardShouldPersistTaps="handled"
+            // scrollEnabled={keyboardHeight > 0}
             keyboardDismissMode="interactive"
             contentContainerStyle={dynamicStyles.scrollContent}
           >
