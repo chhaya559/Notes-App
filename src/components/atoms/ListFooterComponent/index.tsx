@@ -1,21 +1,28 @@
 import useTheme from "@hooks/useTheme";
 import { ActivityIndicator, View } from "react-native";
 
-type props = {
+type Props = {
   isFetching: boolean;
   page: number;
 };
+
 export default function ListFooterComponent({
   isFetching,
   page,
-}: Readonly<props>) {
+}: Readonly<Props>) {
   const { Colors } = useTheme();
 
-  return isFetching && page > 1 ? (
-    <View style={{ padding: 20 }}>
+  if (!isFetching || page === 1) return null;
+
+  return (
+    <View
+      style={{
+        paddingVertical: 20,
+        // alignItems: "center",
+        // justifyContent: "center",
+      }}
+    >
       <ActivityIndicator size="small" color={Colors.primary} />
     </View>
-  ) : (
-    <View style={{ height: 0 }} />
   );
 }

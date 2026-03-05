@@ -57,6 +57,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
   const [pushApi] = usePushNotificationMutation();
   const { isConnected } = useNetInfo();
   useEffect(() => {
+    if (isConnected == null) return;
     if (!isConnected) {
       Toast.show({
         text1: "Connection error",

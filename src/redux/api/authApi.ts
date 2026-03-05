@@ -1,14 +1,28 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "../store/index";
 export const authApi = createApi({
+  // baseQuery: fetchBaseQuery({
+  //   baseUrl: "https://cloudnotes.clashhub.online/api",
+  //   prepareHeaders: (headers, { getState }) => {
+  //     const token = (getState() as RootState).auth.token;
+
+  //     if (token) {
+  //       headers.set("Authorization", `Bearer ${token}`);
+  //     }
+  //     headers.set("Content-Type", "application/json");
+  //     return headers;
+  //   },
+  // }),
   baseQuery: fetchBaseQuery({
     baseUrl: "https://cloudnotes.clashhub.online/api",
-    prepareHeaders: (headers, { getState }) => {
+    prepareHeaders: (headers, { getState, endpoint }) => {
       const token = (getState() as RootState).auth.token;
 
-      if (token) {
+      // Skip auth for reset notes password
+      if (endpoint !== "resetNotesPassword" && token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
+
       headers.set("Content-Type", "application/json");
       return headers;
     },
@@ -43,7 +57,7 @@ export const authApi = createApi({
         body,
       }),
     }),
-    deleteImage: builder.mutation({
+    deleteImage: builder.mutation<void, void>({
       query: () => ({
         url: "/users/me/profile-image",
         method: "DELETE",
@@ -124,13 +138,23 @@ export const authApi = createApi({
         body: data,
       }),
     }),
-    resetNotesPassword: builder.mutation({
-      query: (data) => ({
+    resetNotesPassword: builder.mutation<
+      any,
+      { newNotesPassword: string; token: string }
+    >({
+      query: ({ newNotesPassword, token }) => ({
         url: "/auth/reset-notes-password",
         method: "POST",
-        body: data,
+        body: { newNotesPassword },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }),
+      extraOptions: {
+        skipAuth: true,
+      },
     }),
+
     pushNotification: builder.mutation({
       query: (data) => ({
         url: "/push/register",

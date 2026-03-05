@@ -99,7 +99,7 @@ export default function CreateNote({
   const isDeletingRef = useRef(false);
   const [saveApi] = useSaveNoteMutation();
   const [editApi] = useUpdateMutation();
-  const [uploadApi, { isLoading: fileUploading }] = useUploadFileMutation();
+  const [uploadApi] = useUploadFileMutation();
   const [deleteFile] = useRemoveFileMutation();
 
   const [notes, setNotes] = useState({
@@ -164,16 +164,6 @@ export default function CreateNote({
   }
 
   const isEditMode = !!noteId;
-
-  const onReminderSet = (noteId: string) => {
-    Toast.show({
-      text1: "Reminder set successfully",
-      type: "success",
-      swipeable: false,
-      onPress: () => Toast.hide(),
-    });
-  };
-
   const [existingFiles, setExistingFiles] = useState<string[]>([]);
   const [files, setFiles] = useState<DocumentPickerResponse[]>([]);
 
@@ -203,9 +193,7 @@ export default function CreateNote({
   }, [isConnected, notes.content, existingFiles, files]);
 
   const richText = useRef<RichEditor | null>(null);
-  useEffect(() => {
-    richText.current?.focusContentEditor();
-  }, []);
+
   useEffect(() => {
     if (!NotesData?.data) return;
 
@@ -455,17 +443,13 @@ export default function CreateNote({
    height:400px;
    border-radius:12px;
    object-fit:cover;
-   margin-top:10px;
+     display: block;
+      margin: 10px 0;
    "/>
    `;
 
-      //richText.current?.insertHTML(imgMarkup);
       richText.current?.insertHTML(imgMarkup);
 
-      // Close keyboard
-      Keyboard.dismiss();
-
-      // Important: don't blur editor permanently
       setTimeout(() => {
         richText.current?.blurContentEditor?.();
       }, 100);
@@ -486,7 +470,8 @@ export default function CreateNote({
    height:400px;
    border-radius:12px;
    object-fit:cover;
-   margin-top:10px;
+     display: block;
+      margin: 10px 0;
    "/>
    `;
 
@@ -497,8 +482,9 @@ export default function CreateNote({
   }
   const saveCompletedRef = useRef(false);
 
-  async function handleSave(navigate = true) {
+  async function handleSave(navigate = true, autoSave?: boolean) {
     if (isDeletingRef.current) return;
+    if (!notesRef.current.content && !notesRef.current.title) return;
     if (saveCompletedRef.current && navigate === false) {
       return;
     }
@@ -506,20 +492,19 @@ export default function CreateNote({
 
     const isNetConnected = isConnected;
     try {
-      // if (!notesRef.current?.title.trim() || existingFiles.length > 0) {
-      //   notesRef.current.title = "New Note";
-      // }
-      if (!notesRef.current?.title.trim()) {
-        notesRef.current.title = "New Note";
-      }
-      if (!notesRef.current?.title && !notesRef.current?.content) {
-        Toast.show({
-          text1: "Your note needs at least a title or content",
-          type: "info",
-          swipeable: false,
-          onPress: () => Toast.hide(),
-        });
-        return;
+      if (!autoSave) {
+        if (!notesRef.current?.title.trim()) {
+          notesRef.current.title = "New Note";
+        }
+        if (!notesRef.current?.title && !notesRef.current?.content) {
+          Toast.show({
+            text1: "Your note needs at least a title or content",
+            type: "info",
+            swipeable: false,
+            onPress: () => Toast.hide(),
+          });
+          return;
+        }
       }
       if (navigate) {
         if (!notesRef.current?.title.trim() || existingFiles.length > 0) {
@@ -620,11 +605,16 @@ export default function CreateNote({
     }
   }
 
+  const renderSaveButton = useCallback(
+    () => <SaveNoteButton handleSave={handleSave} />,
+    [handleSave],
+  );
+
   useEffect(() => {
     navigation.setOptions({
-      headerRight: () => <SaveNoteButton handleSave={handleSave} />,
+      headerRight: renderSaveButton,
     });
-  }, [navigation, handleSave]);
+  }, [navigation, renderSaveButton]);
 
   useEffect(() => {
     handleSaveRef.current = handleSave;
@@ -632,7 +622,6 @@ export default function CreateNote({
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
-      // Avoid saving on explicit cancel or dismiss if any, but GO_BACK is standard
       if (handleSaveRef.current) {
         handleSaveRef.current(false);
       }
@@ -673,7 +662,7 @@ export default function CreateNote({
 
     if (!hasContent) return;
 
-    handleSave(false);
+    handleSave(false, true);
   }, [debouncedNotes.title, debouncedNotes.content]);
 
   const scrollRef = useRef<ScrollView | null>(null);
@@ -774,8 +763,8 @@ export default function CreateNote({
         {
           text: "Delete",
           style: "destructive",
-          onPress: async () => {
-            await handleDelete();
+          onPress: () => {
+            handleDelete();
           },
         },
       ],
@@ -818,7 +807,7 @@ export default function CreateNote({
             <RichEditor
               ref={richText}
               useContainer={true}
-              //  initialFocus={true}
+              initialFocus={true}
               initialContentHTML={route?.params?.content || ""}
               initialHeight={500}
               onChange={(val) =>
@@ -925,6 +914,9 @@ export default function CreateNote({
               selectedIconTint={Colors.textPrimary}
               iconTint={Colors.primary}
               style={dynamicStyles.toolbar}
+              onPress={(action: string) => {
+                richText.current?.sendAction(action, "", undefined, true);
+              }}
             />
 
             <TouchableOpacity
@@ -1023,16 +1015,16 @@ export default function CreateNote({
               />
             </TouchableOpacity>
             <TouchableOpacity
-              style={[
-                dynamicStyles.optionButton,
-                { opacity: isEditMode && !isGuest ? 1 : 0.5 },
-              ]}
               onPress={() => {
                 generateSummary();
                 handleToggle("summary");
                 richText.current?.dismissKeyboard();
                 Keyboard.dismiss();
               }}
+              style={[
+                dynamicStyles.optionButton,
+                { opacity: isEditMode && !isGuest ? 1 : 0.5 },
+              ]}
               disabled={!isEditMode || isGuest}
             >
               <Ionicons
@@ -1047,12 +1039,15 @@ export default function CreateNote({
                 { opacity: isEditMode && !isGuest ? 1 : 0.5 },
               ]}
               onPress={() => {
-                if (!isConnected) {
-                  Toast.show({
-                    text1: "You need internet connection to set reminder",
-                    swipeable: false,
-                  });
-                } else handleToggle("reminder");
+                if (isConnected) {
+                  handleToggle("reminder");
+                  return;
+                }
+
+                Toast.show({
+                  text1: "You need internet connection to set reminder",
+                  swipeable: false,
+                });
               }}
               disabled={isGuest || !isEditMode}
             >
@@ -1068,7 +1063,7 @@ export default function CreateNote({
                 { opacity: isEditMode ? 1 : 0.5 },
               ]}
               onPress={() => confirmDelete()}
-              disabled={isGuest || !isEditMode}
+              disabled={!isEditMode}
             >
               <MaterialIcons
                 name="delete-outline"

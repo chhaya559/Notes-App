@@ -57,7 +57,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   const [image, setImage] = useState(profileImage);
   console.log(image, "gg");
   const FCM = useSelector((state: RootState) => state.auth.fcmToken);
-  console.log(FCM, "fc,fc,fc,fc,f");
+
   useEffect(() => {
     setImage(profileImage);
   }, [profileImage, image]);
@@ -74,11 +74,13 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
     try {
       const res = await logoutApi({ fcmToken: FCM });
       console.log("result from logout", res);
-      await db.delete(notesTable).where(eq(notesTable.userId, username));
+      if (username) {
+        await db.delete(notesTable).where(eq(notesTable.userId, username));
 
-      await pendingDb
-        .delete(pendingNotes)
-        .where(eq(pendingNotes.userId, username));
+        await pendingDb
+          .delete(pendingNotes)
+          .where(eq(pendingNotes.userId, username));
+      }
       console.log("dbdeleted");
       GoogleSignin.signOut();
       dispatch(logout());
@@ -93,7 +95,13 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       "Are you sure you want to log out?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Log out", style: "destructive", onPress: handleLogout },
+        {
+          text: "Log out",
+          style: "destructive",
+          onPress: () => {
+            handleLogout();
+          },
+        },
       ],
       { cancelable: true },
     );
@@ -105,7 +113,13 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       "This action is permanent. Are you sure?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: handleDelete },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            handleDelete();
+          },
+        },
       ],
       { cancelable: true },
     );
@@ -167,7 +181,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       android: PERMISSIONS.ANDROID.CAMERA,
     });
     try {
-      const permissionResult = await request(permissionType);
+      const permissionResult = await request(permissionType!);
       switch (permissionResult) {
         case RESULTS.GRANTED:
           console.log("You can use the camera");
@@ -218,7 +232,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
     } catch (error) {
       console.log("Error uploading file", error);
       Toast.show({
-        text1: error?.data?.errors[0],
+        text1: (error as any)?.data?.errors[0],
         type: "error",
         swipeable: false,
         onPress: () => Toast.hide(),
@@ -302,9 +316,9 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       console.log(response);
     } catch (error) {
       console.log("Error uploading file", error);
-      if (error?.data?.errors[0]) {
+      if ((error as any)?.data?.errors[0]) {
         Toast.show({
-          text1: error?.data?.errors[0],
+          text1: (error as any)?.data?.errors[0],
           type: "error",
           swipeable: false,
           onPress: () => Toast.hide(),

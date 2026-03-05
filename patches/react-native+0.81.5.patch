@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
-index 1e95eb6..14299e2 100644
+index 1e95eb6..c400d91 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 @@ -884,7 +884,7 @@ const TextInput: component(
@@ -11,8 +11,17 @@ index 1e95eb6..14299e2 100644
    rejectResponderTermination = true,
    underlineColorAndroid = 'transparent',
    autoComplete,
+@@ -903,7 +903,7 @@ const TextInput: component(
+ }) {
+   return (
+     <InternalTextInput
+-      allowFontScaling={allowFontScaling}
++      allowFontScaling={false}
+       rejectResponderTermination={rejectResponderTermination}
+       underlineColorAndroid={underlineColorAndroid}
+       editable={readOnly !== undefined ? !readOnly : editable}
 diff --git a/node_modules/react-native/Libraries/Text/Text.js b/node_modules/react-native/Libraries/Text/Text.js
-index b08b8f3..3603140 100644
+index b08b8f3..b6267ce 100644
 --- a/node_modules/react-native/Libraries/Text/Text.js
 +++ b/node_modules/react-native/Libraries/Text/Text.js
 @@ -43,7 +43,7 @@ const TextImpl: component(
@@ -20,7 +29,16 @@ index b08b8f3..3603140 100644
    accessibilityLabel,
    accessibilityState,
 -  allowFontScaling,
-+  allowFontScaling=false,
++  allowFontScaling = false,
    'aria-busy': ariaBusy,
    'aria-checked': ariaChecked,
    'aria-disabled': ariaDisabled,
+@@ -283,7 +283,7 @@ const TextImpl: component(
+         accessibilityLabel={_accessibilityLabel}
+         accessibilityState={_accessibilityState}
+         accessible={_accessible}
+-        allowFontScaling={allowFontScaling !== false}
++        allowFontScaling={false}
+         disabled={_disabled}
+         ellipsizeMode={ellipsizeMode ?? 'tail'}
+         nativeID={_nativeID}

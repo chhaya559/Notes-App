@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import Modal from "react-native-modal";
-import { AntDesign, Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { AntDesign, Entypo, Ionicons } from "@expo/vector-icons";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import styles from "./styles";
 import {
@@ -18,52 +18,72 @@ import {
   useDeleteNotificationMutation,
 } from "@redux/api/noteApi";
 import { useFocusEffect } from "@react-navigation/native";
-import Reanimated, {
-  SharedValue,
-  useAnimatedStyle,
-} from "react-native-reanimated";
 import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
-import { index } from "drizzle-orm/gel-core";
+import RightAction from "@components/atoms/RightActionNotificatin";
+import { useNetInfo } from "@react-native-community/netinfo";
+
 export default function Notifications() {
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const pageSize = 20;
 
-  const { data, isFetching, refetch } = useGetNotificationsQuery(
+  const { data, isFetching, isLoading, refetch } = useGetNotificationsQuery(
     { pageNumber: page, pageSize },
     {
       refetchOnFocus: true,
       refetchOnMountOrArgChange: true,
     },
   );
+  console.log(data, "datadatadata");
 
   const [allNotifications, setAllNotifications] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(true);
+
   const [deleteNotificationApi] = useDeleteNotificationMutation();
   const [readAllApi] = useReadAllNotificationMutation();
   const [clearAllApi] = useClearAllNotificationMutation();
   const [markReadApi] = useMarkNoificationReadMutation();
+
   const [showDetailedNotification, setShowDetailedNotification] =
     useState(false);
   const [selectedNotification, setSelectedNotification] = useState<any>(null);
 
+  const { dynamicStyles } = useStyles(styles);
+  const { Colors } = useTheme();
+
+  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [isReadPressed, setIsReadPressed] = useState(false);
+  const [isClearPressed, setIsClearPressed] = useState(false);
+
   useEffect(() => {
-    if (data) {
-      const newNotifications = data?.data?.notifications ?? data;
+    if (data?.data?.notifications) {
+      const newNotifications = data.data.notifications.map((n: any) => ({
+        id: n.id ?? n.Id,
+        noteId: n.noteId ?? n.NoteId,
+        noteTitle: n.noteTitle ?? n.NoteTitle,
+        title: n.title ?? n.Title,
+        message: n.message ?? n.Message,
+        isRead: n.isRead ?? n.IsRead,
+        createdAt: n.createdAt ?? n.CreatedAt,
+      }));
 
       if (page === 1) {
         setAllNotifications(newNotifications);
       } else {
         setAllNotifications((prev) => [...prev, ...newNotifications]);
       }
+
       if (newNotifications.length < pageSize) {
         setHasMore(false);
       }
     }
   }, [data]);
+  console.log(allNotifications, "allallallall");
 
   useFocusEffect(
     useCallback(() => {
+      setPage(1);
+      setHasMore(true);
       refetch();
     }, [refetch]),
   );
@@ -71,18 +91,20 @@ export default function Notifications() {
   async function openDetails(item: any) {
     setSelectedNotification(item);
     setShowDetailedNotification(true);
-    console.log(item, "itemitemitem");
-    if (!item.IsRead) {
+
+    if (!item.isRead) {
       try {
         await markReadApi({ id: item.id }).unwrap();
+
         setAllNotifications((prev) =>
-          prev.map((n) => (n.id === item.id ? { ...n, IsRead: true } : n)),
+          prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n)),
         );
       } catch (err) {
         console.log("Failed to mark as read", err);
       }
     }
   }
+
   async function readAll() {
     try {
       await readAllApi().unwrap();
@@ -90,7 +112,7 @@ export default function Notifications() {
       setAllNotifications((prev) =>
         prev.map((item) => ({
           ...item,
-          IsRead: true,
+          isRead: true,
         })),
       );
 
@@ -99,14 +121,17 @@ export default function Notifications() {
       console.error("Failed to mark all read:", err);
     }
   }
+
   async function deleteNotification(id: string) {
     try {
-      const respone = await deleteNotificationApi({ id: id }).unwrap();
-      console.log(respone, "response from delete notification");
+      await deleteNotificationApi({ id }).unwrap();
+
+      setAllNotifications((prev) => prev.filter((item) => item.id !== id));
     } catch (error) {
       console.log("Error deleting: ", error);
     }
   }
+
   async function clearAll() {
     try {
       await clearAllApi().unwrap();
@@ -115,53 +140,59 @@ export default function Notifications() {
       console.error("Failed to clear notifications:", err);
     }
   }
+  const { isConnected } = useNetInfo();
 
   const loadMore = () => {
-    if (!isFetching && hasMore) {
-      setPage((prev) => prev + 1);
-    }
+    if (isFetching || !hasMore) return;
+    setPage((prev) => prev + 1);
   };
-
-  function RightAction(translation: SharedValue<number>, item: any) {
-    const animatedStyle = useAnimatedStyle(() => {
-      return {
-        translateX: translation.value + 80,
-      };
-    });
-
-    return (
-      <Reanimated.View style={[animatedStyle, dynamicStyles.swipe]}>
-        <TouchableOpacity onPress={() => deleteNotification(item.id)}>
-          <MaterialIcons
-            name="delete-outline"
-            size={38}
-            color={Colors.danger}
-            style={dynamicStyles.delete}
-          />
-        </TouchableOpacity>
-      </Reanimated.View>
-    );
-  }
-  const { dynamicStyles } = useStyles(styles);
-  const { Colors } = useTheme();
-  const [filter, setFilter] = useState<"all" | "unread">("all");
-  const [isReadPressed, setIsReadPressed] = useState(false);
-  const [isClearPressed, setIsClearPressed] = useState(false);
 
   const filteredNotifications =
     filter === "all"
       ? allNotifications
       : allNotifications.filter((item) => !item.isRead);
 
-  const [firstLoad, setFirstLoad] = useState(true);
+  let footerContent = null;
 
-  useEffect(() => {
-    if (!isFetching) {
-      setFirstLoad(false);
-    }
-  }, [isFetching]);
+  if (isFetching && page > 1) {
+    footerContent = (
+      <View style={{ paddingVertical: 20 }}>
+        <ActivityIndicator size="small" color={Colors.primary} />
+      </View>
+    );
+  } else if (filteredNotifications.length > 0) {
+    footerContent = (
+      <View style={dynamicStyles.operations}>
+        <TouchableOpacity
+          style={
+            isReadPressed
+              ? dynamicStyles.activeOperation
+              : dynamicStyles.operationsButton
+          }
+          onPress={readAll}
+          onPressIn={() => setIsReadPressed(true)}
+          onPressOut={() => setIsReadPressed(false)}
+        >
+          <Text style={dynamicStyles.operationsText}>Read All</Text>
+        </TouchableOpacity>
 
-  if (isFetching && firstLoad) {
+        <TouchableOpacity
+          style={
+            isClearPressed
+              ? dynamicStyles.activeOperation
+              : dynamicStyles.operationsButton
+          }
+          onPress={clearAll}
+          onPressIn={() => setIsClearPressed(true)}
+          onPressOut={() => setIsClearPressed(false)}
+        >
+          <Text style={dynamicStyles.operationsText}>Clear All</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (isLoading) {
     return (
       <View
         style={{
@@ -175,146 +206,141 @@ export default function Notifications() {
       </View>
     );
   }
+
   return (
     <View style={dynamicStyles.container}>
-      {allNotifications.length > 0 && (
-        <View style={dynamicStyles.buttonsWrapper}>
-          <View style={dynamicStyles.buttons}>
-            {/* ALL FILTER */}
-            <TouchableOpacity
-              style={[
-                dynamicStyles.touchable,
-                filter === "all" && dynamicStyles.activeTouchable,
-              ]}
-              onPress={() => {
-                setFilter("all");
-              }}
-            >
-              <Text
-                style={[
-                  dynamicStyles.text,
-                  filter === "all" && dynamicStyles.activeText,
-                ]}
-              >
-                All
-              </Text>
-            </TouchableOpacity>
-
-            {/* UNREAD FILTER */}
-            <TouchableOpacity
-              style={[
-                dynamicStyles.touchable,
-                filter === "unread" && dynamicStyles.activeTouchable,
-              ]}
-              onPress={() => {
-                setFilter("unread");
-              }}
-            >
-              <Text
-                style={[
-                  dynamicStyles.text,
-                  filter === "unread" && dynamicStyles.activeText,
-                ]}
-              >
-                Unread
-              </Text>
-            </TouchableOpacity>
-          </View>
+      {isConnected === false ? (
+        <View style={dynamicStyles.offline}>
+          <Text style={dynamicStyles.OfflineText}>No Internet Connection</Text>
+          <Text style={dynamicStyles.SecondaryText}>
+            Notifications are only available online
+          </Text>
         </View>
+      ) : (
+        <>
+          {allNotifications.length > 0 && (
+            <View style={dynamicStyles.buttonsWrapper}>
+              <View style={dynamicStyles.buttons}>
+                <TouchableOpacity
+                  style={[
+                    dynamicStyles.touchable,
+                    filter === "all" && dynamicStyles.activeTouchable,
+                  ]}
+                  onPress={() => setFilter("all")}
+                >
+                  <Text
+                    style={[
+                      dynamicStyles.text,
+                      filter === "all" && dynamicStyles.activeText,
+                    ]}
+                  >
+                    All
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    dynamicStyles.touchable,
+                    filter === "unread" && dynamicStyles.activeTouchable,
+                  ]}
+                  onPress={() => setFilter("unread")}
+                >
+                  <Text
+                    style={[
+                      dynamicStyles.text,
+                      filter === "unread" && dynamicStyles.activeText,
+                    ]}
+                  >
+                    Unread
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          <FlatList
+            data={filteredNotifications}
+            bounces={false}
+            keyExtractor={(item, index) =>
+              item?.id?.toString() || index.toString()
+            }
+            renderItem={({ item }) => (
+              <ReanimatedSwipeable
+                renderRightActions={(progress, translation) => (
+                  <RightAction
+                    translation={translation}
+                    item={item}
+                    deleteNotification={deleteNotification}
+                    dynamicStyles={dynamicStyles}
+                  />
+                )}
+                rightThreshold={10}
+              >
+                <TouchableOpacity
+                  onPress={() => openDetails(item)}
+                  style={dynamicStyles.card}
+                >
+                  <Text style={dynamicStyles.reminderName}>{item.title}</Text>
+                  <Text style={dynamicStyles.reminderText}>
+                    {item.noteTitle}
+                  </Text>
+
+                  {!item.isRead && (
+                    <Entypo
+                      name="dot-single"
+                      size={26}
+                      color={Colors.primary}
+                      style={{ position: "absolute", right: 5, top: 7 }}
+                    />
+                  )}
+                </TouchableOpacity>
+              </ReanimatedSwipeable>
+            )}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.3}
+            ListEmptyComponent={() => {
+              if (isFetching && page === 1) {
+                return (
+                  <View
+                    style={{
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginTop: 80,
+                    }}
+                  >
+                    <ActivityIndicator size="large" color={Colors.primary} />
+                  </View>
+                );
+              }
+
+              if (!isFetching && filteredNotifications.length === 0) {
+                return (
+                  <View style={dynamicStyles.emptyComponent}>
+                    <Ionicons
+                      name="notifications-off-circle"
+                      size={200}
+                      color={Colors.iconPrimary}
+                    />
+                    <Text style={dynamicStyles.noText}>No notifications</Text>
+                    <Text style={dynamicStyles.emptyMessage}>
+                      You're all caught up!
+                    </Text>
+                  </View>
+                );
+              }
+
+              return null;
+            }}
+            ListFooterComponent={footerContent}
+          />
+        </>
       )}
 
-      <FlatList
-        data={filteredNotifications}
-        bounces={false}
-        keyExtractor={(item, index) =>
-          item?.id ? String(item.id) : `notification-${index}`
-        }
-        renderItem={({ item }) => (
-          <ReanimatedSwipeable
-            enableTrackpadTwoFingerGesture
-            renderRightActions={(progress, translation) =>
-              RightAction(translation, item)
-            }
-            rightThreshold={10}
-          >
-            <TouchableOpacity
-              onPress={() => {
-                openDetails(item);
-              }}
-              style={dynamicStyles.card}
-            >
-              <Text style={dynamicStyles.reminderName}>{item.Title}</Text>
-              <Text style={dynamicStyles.reminderText}>{item.NoteTitle}</Text>
-              {!item.IsRead && (
-                <Entypo
-                  name="dot-single"
-                  size={26}
-                  color={Colors.primary}
-                  style={{ position: "absolute", right: 5, top: 7 }}
-                />
-              )}
-            </TouchableOpacity>
-          </ReanimatedSwipeable>
-        )}
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.5}
-        ListEmptyComponent={
-          // !isLoading && (
-          <View style={dynamicStyles.emptyComponent}>
-            <Ionicons
-              name="notifications-off-circle"
-              size={200}
-              color={Colors.iconPrimary}
-            />
-            <Text style={dynamicStyles.noText}>No notifications</Text>
-            <Text style={dynamicStyles.emptyMessage}>
-              You're all caught up!
-            </Text>
-          </View>
-          //  )
-        }
-        ListFooterComponent={
-          filteredNotifications.length > 0 ? (
-            <View style={dynamicStyles.operations}>
-              <TouchableOpacity
-                style={
-                  isReadPressed
-                    ? dynamicStyles.activeOperation
-                    : dynamicStyles.operationsButton
-                }
-                onPress={() => {
-                  readAll();
-                }}
-                onPressIn={() => setIsReadPressed(true)}
-                onPressOut={() => setIsReadPressed(false)}
-              >
-                <Text style={[dynamicStyles.operationsText]}>Read All</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={
-                  isClearPressed
-                    ? dynamicStyles.activeOperation
-                    : dynamicStyles.operationsButton
-                }
-                onPress={() => {
-                  clearAll();
-                }}
-                onPressIn={() => setIsClearPressed(true)}
-                onPressOut={() => setIsClearPressed(false)}
-              >
-                <Text style={[dynamicStyles.operationsText]}>Clear All</Text>
-              </TouchableOpacity>
-            </View>
-          ) : null
-        }
-      />
-
+      {/* Modal */}
       <Modal
         isVisible={showDetailedNotification}
         backdropOpacity={0.5}
         onBackdropPress={() => setShowDetailedNotification(false)}
-        onBackButtonPress={() => setShowDetailedNotification(false)}
       >
         <View style={dynamicStyles.modal}>
           <TouchableOpacity
@@ -323,6 +349,7 @@ export default function Notifications() {
           >
             <AntDesign name="close" size={22} color={Colors.iconPrimary} />
           </TouchableOpacity>
+
           <Ionicons
             name="notifications-circle"
             size={50}
@@ -330,12 +357,12 @@ export default function Notifications() {
             style={dynamicStyles.icon}
           />
 
-          <Text style={dynamicStyles.title}>{selectedNotification?.Title}</Text>
+          <Text style={dynamicStyles.title}>{selectedNotification?.title}</Text>
           <Text style={dynamicStyles.message}>
-            {selectedNotification?.Message}
+            Reminder for Note: {selectedNotification?.noteTitle}
           </Text>
-          <Text style={dynamicStyles.messageDescription}>
-            {selectedNotification?.Description}
+          <Text style={dynamicStyles.message}>
+            {selectedNotification?.message}
           </Text>
         </View>
       </Modal>

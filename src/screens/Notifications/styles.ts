@@ -115,6 +115,8 @@ const styles = (Colors: ThemeColors) =>
       textAlign: "center",
       fontWeight: "700",
       margin: 10,
+      marginBottom: 5,
+      paddingBottom: 5,
       color: Colors.textPrimary,
       fontSize: 20,
     },
@@ -128,13 +130,14 @@ const styles = (Colors: ThemeColors) =>
     message: {
       textAlign: "center",
       fontWeight: "500",
-      // marginBottom: 8,
+      paddingBottom: 8,
       color: Colors.textSecondary,
     },
     messageDescription: {
       textAlign: "center",
       fontWeight: "500",
       paddingTop: 10,
+      paddingBottom: 10,
       color: Colors.textMuted,
     },
     emptyComponent: {
@@ -165,6 +168,20 @@ const styles = (Colors: ThemeColors) =>
       marginLeft: 5,
       marginRight: 5,
       height: 70,
+    },
+    offline: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    OfflineText: {
+      fontWeight: "600",
+      fontSize: 24,
+      margin: 10,
+    },
+    SecondaryText: {
+      fontSize: 20,
+      fontWeight: "500",
     },
   });
 

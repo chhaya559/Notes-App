@@ -34,7 +34,9 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
         {
           text: "Delete",
           style: "destructive",
-          onPress: handleDelete,
+          onPress: () => {
+            handleDelete();
+          },
         },
       ],
       { cancelable: true },

@@ -34,7 +34,6 @@ export default function ChangePassword({
   navigation,
 }: Readonly<ResetPasswordProps>) {
   const authToken = useSelector((state: RootState) => state.auth.token);
-  // const [isVisible, setIsVisible] = useState(false);
 
   const schema = authToken ? changePasswordSchema : resetPasswordSchema;
 
@@ -73,6 +72,8 @@ export default function ChangePassword({
       });
     }
   }, [url, resetToken, authToken]);
+  console.log(url, "urlurl");
+  console.log(resetToken, "resetreset");
 
   const onResetPassword = async (data: FormValues) => {
     try {
@@ -125,7 +126,7 @@ export default function ChangePassword({
           swipeable: false,
           onPress: () => Toast.hide(),
         });
-        navigation.replace("Login");
+        navigation.replace("Dashboard");
       }
     } catch (error: any) {
       console.log(error);

@@ -1,34 +1,138 @@
-  //------------------------------- save on app in background & back-----------------------
-  // const appState = useRef(AppState.currentState);
-  // useEffect(() => {
-  //   const subscription = AppState.addEventListener("change", (nextState) => {
-  //     if (isSavedRef.current) {
-  //       return;
-  //     }
-  //     if (nextState.match(/inactive|background/)) {
-  //       console.log("listener");
-  //       handleSave(false);
-  //     }
-  //     appState.current = nextState;
-  //   });
+import React, { useMemo, useEffect } from "react";
+import { Linking } from "react-native";
+import { useDispatch } from "react-redux";
+import Toast from "react-native-toast-message";
 
-  //   return () => {
-  //     subscription.remove();
-  //   };
-  // }, [handleSave]);
+const SetNotesPasswordScreen = ({ navigation, route }: any) => {
+  const dispatch = useDispatch();
 
-  //---------------------------- save on back -----------------------
-  // useEffect(() => {
-  //   const unsubscribe = navigation.addListener("beforeRemove", () => {
-  //     if (isSavedRef.current) return;
- //     const isEmpty =
-  //       !notesRef.current?.title?.trim() &&
-  //       !notesRef.current?.content?.replaceAll(/<(.|\n)*?>/g, "").trim();
+  const noteID = route?.params?.noteID;
 
-  //     if (isEmpty) return;
+  // Get deep link URL
+  const url = Linking.useLinkingURL();
 
-  //     handleSave(false);
-  //   });
+  // Extract token safely
+  const resetToken = useMemo(() => {
+    if (!url) return null;
 
-  //   return unsubscribe;
-  // }, [navigation, handleSave]);
+    try {
+      const parsed = Linking.parse(url);
+      return parsed?.queryParams?.token
+        ? String(parsed.queryParams.token)
+        : null;
+    } catch (err) {
+      console.log("Token parsing error:", err);
+      return null;
+    }
+  }, [url]);
+
+  console.log("Deep link URL:", url);
+  console.log("Reset Token:", resetToken);
+
+  // Show error if link invalid
+  useEffect(() => {
+    if (url && !resetToken) {
+      Toast.show({
+        type: "error",
+        text1: "Reset link expired or invalid",
+      });
+    }
+  }, [url, resetToken]);
+
+  async function handle(data: any) {
+    try {
+      /**
+       * CASE 1
+       * Reset notes password using deep link token
+       */
+      if (hasCommonPassword) {
+        if (!resetToken) {
+          Toast.show({
+            type: "error",
+            text1: "Invalid reset link",
+          });
+          return;
+        }
+
+        const response = await resetNotesApi({
+          newNotesPassword: data.password,
+          token: resetToken,
+        }).unwrap();
+
+        if (response?.success) {
+          Toast.show({
+            text1: "Password set successfully!",
+            type: "success",
+            swipeable: false,
+            onPress: () => Toast.hide(),
+          });
+
+          navigation.goBack();
+        }
+      }
+
+      /**
+       * CASE 2
+       * First time setting notes password
+       */
+      else {
+        console.log("Setting notes password:", noteID, data.password);
+
+        const response = await lockApi({
+          id: noteID,
+          isPasswordProtected: true,
+          password: data.password,
+        }).unwrap();
+
+        console.log("Lock API response:", response);
+
+        if (response?.success) {
+          dispatch(setCommonPasswordSet(true));
+
+          await db
+            .update(notesTable)
+            .set({
+              isPasswordProtected: 1,
+              updatedAt: new Date().toISOString(),
+            })
+            .where(eq(notesTable.id, noteID));
+
+          Toast.show({
+            text1: "Password set successfully!",
+            type: "success",
+            swipeable: false,
+            onPress: () => Toast.hide(),
+          });
+
+          navigation.goBack();
+        }
+      }
+    } catch (error: any) {
+      console.log("Notes password error:", error);
+
+      if (error?.data?.message) {
+        Toast.show({
+          text1: error.data.message,
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Failed to set password",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
+      }
+    }
+  }
+
+  return (
+    <>
+      {/* Your form UI here */}
+    </>
+  );
+};
+
+export default SetNotesPasswordScreen;

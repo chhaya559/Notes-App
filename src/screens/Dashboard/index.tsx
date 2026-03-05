@@ -46,7 +46,11 @@ import Animated, {
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
-
+async function removePendingNote(note: any) {
+  if (note.syncStatus !== 3) {
+    await pendingDb.delete(pendingNotes).where(eq(pendingNotes.id, note.id));
+  }
+}
 export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [allNotes, setAllNotes] = useState<any[]>([]);
   const [isFocused, setIsFocused] = useState(false);
@@ -64,6 +68,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   function clearSearchText() {
     setSearchText("");
   }
+  const [loadingLocalNotes, setLoadingLocalNotes] = useState(true);
 
   useEffect(() => {
     createTable();
@@ -144,7 +149,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
 
   async function syncOnlineFlow() {
     await syncPendingNotesToBackend();
-    // setAllNotes(data?.data);
     await fetchBackendAndStoreLocal();
   }
   const [getNoteById] = useLazyGetNoteByIdQuery();
@@ -174,7 +178,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
               uri,
               type: "image/jpeg",
               name: "offline-image.jpg",
-            });
+            } as any);
 
             const response = await uploadApi(formData).unwrap();
 
@@ -242,6 +246,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       }
     }
   }
+
   async function fetchBackendAndStoreLocal() {
     if (!data?.data) return;
 
@@ -285,56 +290,66 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   }
 
   async function showNotesFromCombinedDB() {
-    const localNotes = await db
-      .select()
-      .from(notesTable)
-      .where(eq(notesTable.userId, String(userId)));
-    const pending = await pendingDb
-      .select()
-      .from(pendingNotes)
-      .where(eq(pendingNotes.userId, String(userId)));
+    try {
+      setLoadingLocalNotes(true);
 
-    const deletedSet = new Set(
-      pending.filter((n) => n.syncStatus === 3).map((n) => String(n.id)),
-    );
-    const pendingMap = new Map();
+      const localNotes = await db
+        .select()
+        .from(notesTable)
+        .where(eq(notesTable.userId, String(userId)));
 
-    pending.forEach((note) => {
-      if (note.userId !== String(userId)) return;
+      const pending = await pendingDb
+        .select()
+        .from(pendingNotes)
+        .where(eq(pendingNotes.userId, String(userId)));
 
-      if (note.syncStatus === 3) {
-        deletedSet.add(note.id);
-        return;
+      const deletedSet = new Set(
+        pending.filter((n) => n.syncStatus === 3).map((n) => String(n.id)),
+      );
+
+      const pendingMap = new Map();
+
+      pending.forEach((note) => {
+        if (note.userId !== String(userId)) return;
+
+        if (note.syncStatus === 3) {
+          deletedSet.add(note.id);
+          return;
+        }
+
+        pendingMap.set(note.id, {
+          ...note,
+          filePaths: JSON.parse(note.filePaths || "[]"),
+        });
+      });
+
+      const finalMap = new Map();
+
+      for (const local of localNotes) {
+        if (local.userId !== String(userId)) continue;
+        if (deletedSet.has(String(local.id))) continue;
+
+        finalMap.set(local.id, local);
       }
 
-      pendingMap.set(note.id, {
-        ...note,
-        filePaths: JSON.parse(note.filePaths || "[]"),
+      pendingMap.forEach((note, id) => {
+        finalMap.set(id, note);
       });
-    });
 
-    const finalMap = new Map();
+      const merged = Array.from(finalMap.values());
 
-    for (const local of localNotes) {
-      if (local.userId !== String(userId)) continue;
+      merged.sort(
+        (a, b) =>
+          new Date(b.updatedAt || b.createdAt).getTime() -
+          new Date(a.updatedAt || a.createdAt).getTime(),
+      );
 
-      if (deletedSet.has(String(local.id))) continue;
-
-      finalMap.set(local.id, local);
+      setAllNotes(merged);
+    } catch (e) {
+      console.log("Error loading local notes", e);
+    } finally {
+      setLoadingLocalNotes(false);
     }
-
-    pendingMap.forEach((note, id) => {
-      finalMap.set(id, note);
-    });
-
-    const merged = Array.from(finalMap.values());
-
-    merged.sort(
-      (a, b) =>
-        new Date(b.updatedAt || b.createdAt).getTime() -
-        new Date(a.updatedAt || a.createdAt).getTime(),
-    );
-    setAllNotes(merged);
   }
 
   useEffect(() => {
@@ -398,16 +413,9 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     ? (SearchedNotes?.data ?? [])
     : (allNotes ?? []);
 
-  const [firstLoad, setFirstLoad] = useState(true);
+  const [firstLoad] = useState(true);
 
-  useEffect(() => {
-    if (!isFetching && firstLoad) {
-      setFirstLoad(false);
-    }
-  }, [isFetching]);
-
-  if (isFetching && firstLoad) {
-    setFirstLoad(false);
+  if (loadingLocalNotes && firstLoad) {
     return (
       <View
         style={{
@@ -421,7 +429,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       </View>
     );
   }
-
   return (
     <View style={dynamicStyles.container}>
       <View style={dynamicStyles.static}>
@@ -475,7 +482,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
         bounces={false}
         keyExtractor={(item, index) =>
           item?.id ? String(item.id) : `note-${index}`
-        } //scrollEnabled={displayNotes.length > 4}
+        }
         renderItem={({ item }) => (
           <Card
             id={item.id}

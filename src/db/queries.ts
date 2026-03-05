@@ -1,6 +1,6 @@
 import { db } from "./notes";
 import { notesTable } from "./schema";
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 export async function getLocalNotesPaginated(userId: string, page: number) {
   const limit = 10;

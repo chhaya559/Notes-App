@@ -101,7 +101,7 @@ export const noteApi = createApi({
       any,
       { pageNumber: number; pageSize: number }
     >({
-      query: ({ pageNumber = 1, pageSize = 10 }) => ({
+      query: ({ pageNumber = 1, pageSize = 20 }) => ({
         url: "/notifications",
         method: "GET",
         params: { pageNumber, pageSize },

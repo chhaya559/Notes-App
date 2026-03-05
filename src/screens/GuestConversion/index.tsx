@@ -49,6 +49,7 @@ export default function GuestConversion({
   });
   const { isConnected } = useNetInfo();
   useEffect(() => {
+    if (isConnected == null) return;
     if (!isConnected) {
       Toast.show({
         text1: "Connection error",

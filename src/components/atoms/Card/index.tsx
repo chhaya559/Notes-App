@@ -16,7 +16,7 @@ import Toast from "react-native-toast-message";
 import { RenderHTML } from "react-native-render-html";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
-import { setNotesUnlocked, lockNotes } from "@redux/slice/authSlice";
+import { setNotesUnlocked, lockNotes, isGuest } from "@redux/slice/authSlice";
 import {
   useDeleteMutation,
   useNoteLockMutation,
@@ -58,6 +58,7 @@ export default function Card(props: any) {
   const dispatch = useDispatch();
   const userId = useSelector((state: RootState) => state.auth.token);
   const { isConnected } = useNetInfo();
+  const isGuest = useSelector((state: RootState) => state.auth.isGuest);
   const [deleteApi] = useDeleteMutation();
   const [lockApi] = useNoteLockMutation();
   const [removeLockApi] = useRemoveLockMutation();
@@ -98,7 +99,6 @@ export default function Card(props: any) {
 
     return () => clearTimeout(timer);
   }, [notesUnlockUntil, dispatch]);
-  //},[notesUnlockUntil, dispatch]);
 
   async function handleUnlock() {
     if (!isConnected) {
@@ -231,6 +231,17 @@ export default function Card(props: any) {
       isNotesUnlocked && notesUnlockUntil && Date.now() < notesUnlockUntil;
 
     if ((props.isLocked || props.isPasswordProtected) && !isStillUnlocked) {
+      if (!isConnected) {
+        if (isConnected == null) return;
+        Toast.show({
+          text1: "Can’t open this note while offline",
+          text2: "Connect to the internet to continue",
+          type: "info",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
+        return;
+      }
       setShowLockedModal(true);
       return;
     }
@@ -258,6 +269,7 @@ export default function Card(props: any) {
   });
   async function unLockNote() {
     if (!isConnected) {
+      if (isConnected == null) return;
       Toast.show({
         text1: "This feature requires internet",
         type: "info",
@@ -304,12 +316,22 @@ export default function Card(props: any) {
   async function lockNote() {
     try {
       if (!isConnected) {
+        if (isConnected == null) return;
         Toast.show({
           text1: "This feature requires internet",
           type: "info",
           swipeable: false,
           onPress: () => Toast.hide(),
         });
+      }
+      if (isGuest) {
+        Toast.show({
+          text1: "Guest users cannot password protect notes",
+          type: "info",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
+        return;
       }
 
       if (!hasCommonPassword) {
@@ -375,8 +397,8 @@ export default function Card(props: any) {
         {
           text: "Delete",
           style: "destructive",
-          onPress: async () => {
-            await handleDelete();
+          onPress: () => {
+            handleDelete();
             swipeRef.current?.close();
           },
         },

@@ -1,4 +1,10 @@
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Keyboard,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import styles from "./styles";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import DatePicker from "react-native-date-picker";
@@ -123,6 +129,7 @@ export default function Reminder({
       console.log("error deleting reminder", error);
     }
   }
+
   useEffect(() => {
     if (errorMessage) {
       Toast.show({
@@ -138,9 +145,9 @@ export default function Reminder({
     const now = new Date();
     return new Date(now.getTime() + 2 * 60000);
   };
-
   const [time, getTime] = useState(getInitialTime());
-  const descriptionRef = useRef(null);
+
+  const descriptionRef = useRef<TextInput>(null);
   return (
     <Modal
       isVisible={true}
@@ -176,6 +183,7 @@ export default function Reminder({
               onConfirm={(selectedDate) => {
                 setOpenDateModal(false);
                 setDate(selectedDate);
+                Keyboard.dismiss();
                 setOpenTimeModal(true);
               }}
               onCancel={() => setOpenDateModal(false)}

@@ -67,9 +67,9 @@ export default function EditProfile({
       }
     } catch (error) {
       console.log(error);
-      if (error?.data?.message) {
+      if ((error as any)?.data?.message) {
         Toast.show({
-          text1: error?.data?.message,
+          text1: (error as any)?.data?.message,
           type: "error",
           swipeable: false,
           onPress: () => Toast.hide(),

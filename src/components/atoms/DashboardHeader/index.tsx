@@ -56,21 +56,14 @@ export default function DashboardHeader() {
       unsubscribeOpened();
     };
   }, [refetch]);
-  /* ✅ Correct unreadCount mapping */
 
   const unreadCount = countResponse?.data?.unreadCount;
-
-  console.log(unreadCount, "unreadCount");
-
-  /* ✅ Refetch on screen focus */
 
   useFocusEffect(
     useCallback(() => {
       refetch();
     }, [refetch]),
   );
-
-  /* ✅ Refetch on push notification */
 
   useEffect(() => {
     const unsubscribe = messaging().onMessage(() => {

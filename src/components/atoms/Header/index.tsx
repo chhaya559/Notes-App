@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import styles from "./styles";
 import useTheme from "@hooks/useTheme";
 import useStyles from "@hooks/useStyles";
-import { useNetInfo } from "@react-native-community/netinfo";
 
 export default function Header({
   navigation,
@@ -13,14 +12,17 @@ export default function Header({
 }: Readonly<NativeStackHeaderProps>) {
   const { Colors } = useTheme();
   const { dynamicStyles } = useStyles(styles);
+  const headerStyle = options?.headerStyle as
+    | { backgroundColor?: string }
+    | undefined;
+
   return (
     <View>
       <View
         style={[
           dynamicStyles.header,
           {
-            backgroundColor:
-              options?.headerStyle?.backgroundColor ?? Colors.background,
+            backgroundColor: headerStyle?.backgroundColor ?? Colors.background,
           },
         ]}
       >

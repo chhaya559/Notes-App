@@ -1,4 +1,4 @@
-import { pendingDB, sqlite } from "../notes";
+import { pendingDB } from "../notes";
 
 export async function createPendingTable() {
   await pendingDB.execAsync(`
