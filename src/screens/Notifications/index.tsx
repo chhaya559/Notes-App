@@ -192,7 +192,7 @@ export default function Notifications() {
     );
   }
 
-  if (isLoading) {
+  if (isLoading && page === 1) {
     return (
       <View
         style={{
@@ -299,7 +299,7 @@ export default function Notifications() {
             onEndReached={loadMore}
             onEndReachedThreshold={0.3}
             ListEmptyComponent={() => {
-              if (isFetching && page === 1) {
+              if (isFetching && page === 1 && !isLoading) {
                 return (
                   <View
                     style={{

@@ -66,7 +66,10 @@ function MainApp() {
             edges={["bottom"]}
           >
             <RootNavigator />
-            <StatusBar style={darkMode ? "light" : "dark"} />
+            <StatusBar
+              key={darkMode ? "dark" : "light"}
+              style={darkMode ? "light" : "dark"}
+            />
             <Toast />
           </SafeAreaView>
         </KeyboardProvider>

@@ -101,7 +101,11 @@ export default function CreateNote({
   const [editApi] = useUpdateMutation();
   const [uploadApi] = useUploadFileMutation();
   const [deleteFile] = useRemoveFileMutation();
-
+  const keepKeyboardOpen = () => {
+    setTimeout(() => {
+      richText.current?.focusContentEditor();
+    }, 80);
+  };
   const [notes, setNotes] = useState({
     id: "",
     title: route?.params?.title ?? "",
@@ -391,6 +395,15 @@ export default function CreateNote({
         });
         console.log("Permission denied to access images");
         return;
+      case RESULTS.LIMITED:
+        console.log("You can use the media images");
+        break;
+      case RESULTS.BLOCKED:
+        Toast.show({
+          text1: "Permission blocked. Enable it from settings.",
+          type: "info",
+        });
+        return;
       case RESULTS.UNAVAILABLE:
         Toast.show({
           text1: "Feature not available on this device",
@@ -399,6 +412,8 @@ export default function CreateNote({
           onPress: () => Toast.hide(),
         });
         console.log("Feature not available on this device.");
+        return;
+      default:
         return;
     }
 
@@ -480,6 +495,7 @@ export default function CreateNote({
       setFiles((prev) => [...prev, file]);
     }
   }
+
   const saveCompletedRef = useRef(false);
 
   async function handleSave(navigate = true, autoSave?: boolean) {
@@ -507,7 +523,8 @@ export default function CreateNote({
         }
       }
       if (navigate) {
-        if (!notesRef.current?.title.trim() || existingFiles.length > 0) {
+        //if (!notesRef.current?.title.trim() || existingFiles.length > 0) {
+        if (!notesRef.current?.title.trim()) {
           notesRef.current.title = "New Note";
         }
         if (!notesRef.current?.title && !notesRef.current?.content) {
@@ -810,9 +827,10 @@ export default function CreateNote({
               initialFocus={true}
               initialContentHTML={route?.params?.content || ""}
               initialHeight={500}
-              onChange={(val) =>
-                setNotes((prev) => ({ ...prev, content: val }))
-              }
+              onChange={(val) => {
+                setNotes((prev) => ({ ...prev, content: val }));
+                keepKeyboardOpen();
+              }}
               onCursorPosition={(scrollY) => {
                 scrollRef.current?.scrollTo({
                   y: scrollY - 120,
@@ -992,7 +1010,10 @@ export default function CreateNote({
             ]}
           >
             <TouchableOpacity
-              onPress={() => handleToggle("text")}
+              onPress={() => {
+                handleToggle("text");
+                keepKeyboardOpen();
+              }}
               style={dynamicStyles.optionButton}
             >
               <MaterialCommunityIcons

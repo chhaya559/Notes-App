@@ -156,19 +156,14 @@ export default function Card(props: any) {
         content: props.content,
       });
     } catch (error: any) {
-      console.log(error.error);
-      if (error.error.includes("TypeError: Network request failed")) {
-        Toast.show({
-          text1: "Unable to unlock. Check your connection and try again.",
-        });
-      } else {
-        Toast.show({
-          text1: error?.data?.message,
-          type: "error",
-          swipeable: false,
-          onPress: () => Toast.hide(),
-        });
-      }
+      console.log(error.data.message, "error");
+
+      Toast.show({
+        text1: error?.data?.message,
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
     }
   }
 
@@ -230,7 +225,7 @@ export default function Card(props: any) {
     const isStillUnlocked =
       isNotesUnlocked && notesUnlockUntil && Date.now() < notesUnlockUntil;
 
-    if ((props.isLocked || props.isPasswordProtected) && !isStillUnlocked) {
+    if (!isStillUnlocked && (props.isLocked || props.isPasswordProtected)) {
       if (!isConnected) {
         if (isConnected == null) return;
         Toast.show({
@@ -245,6 +240,7 @@ export default function Card(props: any) {
       setShowLockedModal(true);
       return;
     }
+
     console.log(props.content, "contentcontent");
     navigation.navigate("CreateNote", {
       id: props.id,
@@ -297,7 +293,7 @@ export default function Card(props: any) {
         Toast.show({
           text1: error?.data?.message,
           type: "error",
-          topOffset: 0,
+
           swipeable: false,
           onPress: () => Toast.hide(),
         });
@@ -353,6 +349,16 @@ export default function Card(props: any) {
         );
         return;
       }
+      const sessionUnlocked = notesUnlockUntil && Date.now() < notesUnlockUntil;
+
+      if (sessionUnlocked) {
+        Toast.show({
+          text1: "Notes are currently unlocked",
+          text2: "You can lock notes after the unlock session ends",
+          type: "info",
+        });
+        return;
+      }
       const response = await lockApi({
         id: String(props.id),
         isPasswordProtected: true,
@@ -366,6 +372,7 @@ export default function Card(props: any) {
           swipeable: false,
           onPress: () => Toast.hide(),
         });
+        props.onDeleteSuccess?.();
         swipeRef.current?.close();
       }
     } catch (error: any) {

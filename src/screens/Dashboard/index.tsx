@@ -112,6 +112,12 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
       setPage(1);
     }, []),
   );
+  useFocusEffect(
+    useCallback(() => {
+      setSearchText("");
+      setIsFocused(false);
+    }, []),
+  );
 
   useEffect(() => {
     if (!notesUnlockUntil) return;
@@ -458,7 +464,10 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             onFocus={() => setIsFocused(true)}
             onBlur={() => {
               setIsFocused(false);
-              clearSearchText();
+              // clearSearchText();
+            }}
+            onSubmitEditing={() => {
+              searchInputRef.current?.blur();
             }}
             autoCorrect={false}
             cursorColor={Colors.primary}
