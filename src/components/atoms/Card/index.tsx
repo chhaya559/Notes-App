@@ -164,6 +164,7 @@ export default function Card(props: any) {
     }
   }
 
+  // ------------------ navigation on clicking card --------------
   function handlePress() {
     const isStillUnlocked =
       isNotesUnlocked && notesUnlockUntil && Date.now() < notesUnlockUntil;
@@ -196,6 +197,7 @@ export default function Card(props: any) {
     });
   }
 
+  // ------------------- animation style ---------------
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => {
     return {

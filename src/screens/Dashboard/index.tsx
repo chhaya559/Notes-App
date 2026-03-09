@@ -155,97 +155,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     await fetchBackendAndStoreLocal();
   }
 
-  async function uploadOfflineImages(content: string) {
-    const imageUris =
-      content.match(/(file:\/\/|content:\/\/|ph:\/\/)[^"]+/g) || [];
-    const uploadedPaths: string[] = [];
-    let updatedContent = content;
-
-    for (const uri of imageUris) {
-      try {
-        const formData = new FormData();
-
-        formData.append("file", {
-          uri,
-          type: "image/jpeg",
-          name: "offline-image.jpg",
-        } as any);
-
-        const response = await uploadApi(formData).unwrap();
-        const serverPath = response?.data?.path;
-
-        if (serverPath) {
-          updatedContent = updatedContent.replace(uri, serverPath);
-          uploadedPaths.push(serverPath);
-        }
-      } catch (error) {
-        console.log("Offline image upload failed", error);
-      }
-    }
-
-    return { updatedContent, uploadedPaths };
-  }
-
-  async function handleSave(note: any, content: string, filePaths: string[]) {
-    await saveApi({
-      id: note.id,
-      title: note.title,
-      content,
-      filePaths,
-    }).unwrap();
-  }
-
-  async function handleEdit(note: any, content: string, filePaths: string[]) {
-    const idExists = await getNoteById({ id: note.id }).unwrap();
-
-    if (idExists?.success) {
-      await editApi({
-        id: note.id,
-        title: note.title,
-        content,
-        filePaths,
-      }).unwrap();
-    } else {
-      await handleSave(note, content, filePaths);
-    }
-  }
-
-  async function handleDelete(note: any) {
-    await deleteApi({ id: note.id }).unwrap();
-    await db.delete(notesTable).where(eq(notesTable.id, note.id));
-  }
-
-  async function processNote(note: any) {
-    let content = note.content || "";
-
-    const { updatedContent, uploadedPaths } =
-      await uploadOfflineImages(content);
-    content = updatedContent;
-
-    const filePaths =
-      uploadedPaths.length > 0
-        ? uploadedPaths
-        : JSON.parse(note.filePaths || "[]");
-
-    switch (note.syncStatus) {
-      case 1:
-        await handleSave(note, content, filePaths);
-        break;
-
-      case 2:
-        await handleEdit(note, content, filePaths);
-        break;
-
-      case 3:
-        await handleDelete(note);
-        break;
-    }
-
-    if (note.syncStatus !== 3) {
-      await pendingDb.delete(pendingNotes).where(eq(pendingNotes.id, note.id));
-    }
-  }
-
   async function syncPendingNotesToBackend() {
     const notesToSendBackend = await pendingDb
       .select()
@@ -256,7 +165,84 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
 
     for (const note of notesToSendBackend) {
       try {
-        await processNote(note);
+        let content = note.content || "";
+
+        const imageUris =
+          content.match(/(file:\/\/|content:\/\/|ph:\/\/)[^"]+/g) || [];
+
+        const uploadedPaths = [];
+
+        for (const uri of imageUris) {
+          try {
+            const formData = new FormData();
+
+            formData.append("file", {
+              uri,
+              type: "image/jpeg",
+              name: "offline-image.jpg",
+            } as any);
+
+            const response = await uploadApi(formData).unwrap();
+
+            const serverPath = response?.data?.path;
+
+            if (serverPath) {
+              content = content.replace(uri, serverPath);
+              uploadedPaths.push(serverPath);
+            }
+          } catch (e) {
+            console.log("Offline image upload failed", e);
+          }
+        }
+
+        const filePaths =
+          uploadedPaths.length > 0
+            ? uploadedPaths
+            : JSON.parse(note.filePaths || "[]");
+
+        switch (note.syncStatus) {
+          case 1:
+            await saveApi({
+              id: note.id,
+              title: note.title,
+              content,
+              filePaths,
+            }).unwrap();
+            break;
+
+          case 2: {
+            const idExists = await getNoteById({ id: note.id }).unwrap();
+
+            if (idExists?.success) {
+              await editApi({
+                id: note.id,
+                title: note.title,
+                content,
+                filePaths,
+              }).unwrap();
+            } else {
+              await saveApi({
+                id: note.id,
+                title: note.title,
+                content,
+                filePaths,
+              }).unwrap();
+            }
+            break;
+          }
+
+          case 3:
+            await deleteApi({ id: note.id }).unwrap();
+
+            await db.delete(notesTable).where(eq(notesTable.id, note.id));
+            break;
+        }
+
+        if (note.syncStatus !== 3) {
+          await pendingDb
+            .delete(pendingNotes)
+            .where(eq(pendingNotes.id, note.id));
+        }
       } catch (error) {
         console.log(error);
       }

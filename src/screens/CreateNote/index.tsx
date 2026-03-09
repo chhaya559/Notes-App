@@ -903,7 +903,7 @@ export default function CreateNote({
             </View>
           </Modal>
         )}
-        {activeOption == "text" && (
+        {activeOption === "text" && (
           <View
             style={[
               dynamicStyles.modal,
@@ -955,7 +955,7 @@ export default function CreateNote({
         )}
         <View style={dynamicStyles.line} />
         {/* show reminder */}
-        {activeOption == "reminder" ? (
+        {activeOption === "reminder" ? (
           <Reminder
             id={String(noteId)}
             onClose={() => setActiveOption(null)}
@@ -982,7 +982,7 @@ export default function CreateNote({
         ) : null}
         {/* show summary */}
 
-        {activeOption == "summary" ? (
+        {activeOption === "summary" ? (
           <Summary
             id={notes.id}
             onClose={() => setActiveOption(null)}
@@ -991,7 +991,7 @@ export default function CreateNote({
           />
         ) : null}
         {/* Options bottom  */}
-        {activeOption == "text" ? null : (
+        {activeOption === "text" ? null : (
           <View
             style={[
               dynamicStyles.options,
