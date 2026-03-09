@@ -34,9 +34,7 @@ export default function ChangePassword({
   navigation,
 }: Readonly<ResetPasswordProps>) {
   const authToken = useSelector((state: RootState) => state.auth.token);
-
   const schema = authToken ? changePasswordSchema : resetPasswordSchema;
-
   const {
     control,
     handleSubmit,
@@ -54,6 +52,7 @@ export default function ChangePassword({
   const [changeApi, { isLoading: isChangeLoading }] =
     useChangePasswordMutation();
 
+  //  ----------------- deep linking ------------------
   const url = Linking.useLinkingURL();
   const { dynamicStyles } = useStyles(styles);
   const resetToken = useMemo(() => {
@@ -75,6 +74,7 @@ export default function ChangePassword({
   console.log(url, "urlurl");
   console.log(resetToken, "resetreset");
 
+  // ------------------ reset password ------------------
   const onResetPassword = async (data: FormValues) => {
     try {
       if (!resetToken) {
@@ -112,6 +112,7 @@ export default function ChangePassword({
     }
   };
 
+  // ----------------- change password ------------------
   const onChangePassword = async (data: FormValues) => {
     try {
       const response = await changeApi({
@@ -147,6 +148,8 @@ export default function ChangePassword({
       }
     }
   };
+
+  // ----------------- header title ---------------------
   navigation.setOptions({
     title: authToken ? "Change Password" : "Create New Password",
   });

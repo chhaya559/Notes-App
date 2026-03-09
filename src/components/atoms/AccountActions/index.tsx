@@ -18,12 +18,15 @@ import { useNetInfo } from "@react-native-community/netinfo";
 type props = {
   hasCommonPassword: boolean;
 };
+
 export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
   const [deleteApi] = useDeleteUserMutation();
   const dispatch = useDispatch<AppDispatch>();
   const isGoogle = useSelector((state: RootState) => state.auth.isGoogle);
   const { dynamicStyles } = useStyles(styles);
   const navigation = useNavigation<any>();
+  const { isConnected } = useNetInfo();
+  const { Colors } = useTheme();
 
   function confirmDelete() {
     Alert.alert(
@@ -42,7 +45,7 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
       { cancelable: true },
     );
   }
-  const { isConnected } = useNetInfo();
+
   async function handleDelete() {
     try {
       if (!isConnected) {
@@ -77,7 +80,6 @@ export default function AccountActions({ hasCommonPassword }: Readonly<props>) {
     }
   }
 
-  const { Colors } = useTheme();
   return (
     <View style={dynamicStyles.container}>
       <TouchableOpacity

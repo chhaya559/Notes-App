@@ -28,7 +28,6 @@ import Toast from "react-native-toast-message";
 import RBSheet from "react-native-raw-bottom-sheet";
 import {
   useDeleteImageMutation,
-  useDeleteUserMutation,
   useLogoutMutation,
   useProfileImageMutation,
 } from "@redux/api/authApi";
@@ -57,19 +56,20 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
   const [image, setImage] = useState(profileImage);
   console.log(image, "gg");
   const FCM = useSelector((state: RootState) => state.auth.fcmToken);
-
-  useEffect(() => {
-    setImage(profileImage);
-  }, [profileImage, image]);
   const hasCommonPassword = useSelector(
     (state: RootState) => state.auth.isCommonPasswordSet,
   );
-  const [deleteApi] = useDeleteUserMutation();
+  const { dynamicStyles } = useStyles(styles);
   const [uploadProfile] = useProfileImageMutation();
   const [deleteProfileImage] = useDeleteImageMutation();
   const [logoutApi] = useLogoutMutation();
   const bottomSheetRef = useRef<any>(null);
 
+  useEffect(() => {
+    setImage(profileImage);
+  }, [profileImage, image]);
+
+  //  ------------------- logout ---------------------------
   async function handleLogout() {
     try {
       const res = await logoutApi({ fcmToken: FCM });
@@ -88,7 +88,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
       console.log("Logout failed", error);
     }
   }
-
+  // -------------------- confirm logout popup ---------------
   function confirmLogout() {
     Alert.alert(
       "Log out",
@@ -107,48 +107,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
     );
   }
 
-  function confirmDelete() {
-    Alert.alert(
-      "Delete Account",
-      "This action is permanent. Are you sure?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            handleDelete();
-          },
-        },
-      ],
-      { cancelable: true },
-    );
-  }
-
-  async function handleDelete() {
-    try {
-      const response = await deleteApi("").unwrap();
-      dispatch(logout());
-
-      if (response.success) {
-        Toast.show({
-          text1: "Account Deleted Successfully!",
-          visibilityTime: 1000,
-          type: "success",
-          swipeable: false,
-          onPress: () => Toast.hide(),
-        });
-      }
-    } catch (error) {
-      console.log(error);
-      Toast.show({
-        text1: "Not able to delete account",
-        type: "error",
-        swipeable: false,
-        onPress: () => Toast.hide(),
-      });
-    }
-  }
+  // ------------------ remove profile image -----------------
   async function deleteProfile() {
     try {
       const response = await deleteProfileImage().unwrap();
@@ -175,6 +134,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
     setImage(profileImage);
   }, [profileImage]);
 
+  // ---------------- image upload from camera -------------------
   async function openCamera() {
     const permissionType = Platform.select({
       ios: PERMISSIONS.IOS.CAMERA,
@@ -240,6 +200,7 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
     }
   }
 
+  // ----------------- image upload from gallery -----------------
   async function pickImage() {
     try {
       let permissionResult;
@@ -334,7 +295,6 @@ export default function Profile({ navigation }: Readonly<ProfileProps>) {
     }
   }
 
-  const { dynamicStyles } = useStyles(styles);
   if (!username) {
     return (
       <View style={{ backgroundColor: Colors.background, height: "100%" }}>

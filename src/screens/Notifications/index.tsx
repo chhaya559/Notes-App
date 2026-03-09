@@ -22,11 +22,11 @@ import useStyles from "@hooks/useStyles";
 import useTheme from "@hooks/useTheme";
 import RightAction from "@components/atoms/RightActionNotificatin";
 import { useNetInfo } from "@react-native-community/netinfo";
+import NotificationsEmptyComponent from "@components/atoms/NotificationsEmptyComponent";
 
 export default function Notifications() {
   const [page, setPage] = useState(1);
   const pageSize = 20;
-
   const { data, isFetching, isLoading, refetch } = useGetNotificationsQuery(
     { pageNumber: page, pageSize },
     {
@@ -34,25 +34,20 @@ export default function Notifications() {
       refetchOnMountOrArgChange: true,
     },
   );
-  console.log(data, "datadatadata");
-
   const [allNotifications, setAllNotifications] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(true);
-
   const [deleteNotificationApi] = useDeleteNotificationMutation();
   const [readAllApi] = useReadAllNotificationMutation();
   const [clearAllApi] = useClearAllNotificationMutation();
   const [markReadApi] = useMarkNoificationReadMutation();
-
   const [showDetailedNotification, setShowDetailedNotification] =
     useState(false);
   const [selectedNotification, setSelectedNotification] = useState<any>(null);
-
   const { dynamicStyles } = useStyles(styles);
   const { Colors } = useTheme();
-
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [isReadPressed, setIsReadPressed] = useState(false);
+  const { isConnected } = useNetInfo();
   const [isClearPressed, setIsClearPressed] = useState(false);
 
   useEffect(() => {
@@ -78,7 +73,6 @@ export default function Notifications() {
       }
     }
   }, [data]);
-  console.log(allNotifications, "allallallall");
 
   useFocusEffect(
     useCallback(() => {
@@ -88,6 +82,7 @@ export default function Notifications() {
     }, [refetch]),
   );
 
+  // ------------------- notifications preview --------------------
   async function openDetails(item: any) {
     setSelectedNotification(item);
     setShowDetailedNotification(true);
@@ -105,6 +100,7 @@ export default function Notifications() {
     }
   }
 
+  // ------------------ read all notifications -------------------
   async function readAll() {
     try {
       await readAllApi().unwrap();
@@ -122,6 +118,7 @@ export default function Notifications() {
     }
   }
 
+  // ----------------- delete single notification ------------------
   async function deleteNotification(id: string) {
     try {
       await deleteNotificationApi({ id }).unwrap();
@@ -132,6 +129,7 @@ export default function Notifications() {
     }
   }
 
+  // ----------------- delete all notifications --------------------
   async function clearAll() {
     try {
       await clearAllApi().unwrap();
@@ -140,7 +138,6 @@ export default function Notifications() {
       console.error("Failed to clear notifications:", err);
     }
   }
-  const { isConnected } = useNetInfo();
 
   const loadMore = () => {
     if (isFetching || !hasMore) return;
@@ -152,6 +149,7 @@ export default function Notifications() {
       ? allNotifications
       : allNotifications.filter((item) => !item.isRead);
 
+  // ---------------- footer component -----------------------
   let footerContent = null;
 
   if (isFetching && page > 1) {
@@ -192,6 +190,7 @@ export default function Notifications() {
     );
   }
 
+  // ---------------- notifications loading -----------------
   if (isLoading && page === 1) {
     return (
       <View
@@ -298,39 +297,14 @@ export default function Notifications() {
             )}
             onEndReached={loadMore}
             onEndReachedThreshold={0.3}
-            ListEmptyComponent={() => {
-              if (isFetching && page === 1 && !isLoading) {
-                return (
-                  <View
-                    style={{
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginTop: 80,
-                    }}
-                  >
-                    <ActivityIndicator size="large" color={Colors.primary} />
-                  </View>
-                );
-              }
-
-              if (!isFetching && filteredNotifications.length === 0) {
-                return (
-                  <View style={dynamicStyles.emptyComponent}>
-                    <Ionicons
-                      name="notifications-off-circle"
-                      size={200}
-                      color={Colors.iconPrimary}
-                    />
-                    <Text style={dynamicStyles.noText}>No notifications</Text>
-                    <Text style={dynamicStyles.emptyMessage}>
-                      You're all caught up!
-                    </Text>
-                  </View>
-                );
-              }
-
-              return null;
-            }}
+            ListEmptyComponent={
+              <NotificationsEmptyComponent
+                isFetching={isFetching}
+                isLoading={isLoading}
+                filteredNotifications={filteredNotifications}
+                page={page}
+              />
+            }
             ListFooterComponent={footerContent}
           />
         </>

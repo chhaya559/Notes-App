@@ -38,7 +38,6 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
   const dispatch = useDispatch();
   const [registerApi, { isLoading }] = useRegisterMutation();
   const [googleApi, { isLoading: isGoogleLoading }] = useGoogleMutation();
-
   const {
     control,
     handleSubmit,
@@ -55,7 +54,11 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
     },
   });
   const [pushApi] = usePushNotificationMutation();
+  const { dynamicStyles } = useStyles(styles);
+  const { Colors } = useTheme();
   const { isConnected } = useNetInfo();
+
+  // ----------------- network check ---------------------
   useEffect(() => {
     if (isConnected == null) return;
     if (!isConnected) {
@@ -68,6 +71,8 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
       });
     }
   }, [isConnected]);
+
+  // ----------------- send FCM token -----------------
   async function handleTokenSend(token: string) {
     try {
       const response = await pushApi({
@@ -82,6 +87,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
     }
   }
 
+  // ---------------- permissions ---------------------
   async function requestUserPermission() {
     const authStatus = await messaging().requestPermission();
     const enabled =
@@ -103,15 +109,18 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
     );
   }, []);
 
+  //  ---------------- header title -----------------------
   navigation.setOptions({
     title: "Create Account",
   });
 
+  // ---------------- google login -------------------------
   useEffect(() => {
     GoogleSignin.configure({
       webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     });
   }, []);
+
   async function handleGoogleSignin() {
     try {
       if (!isConnected) {
@@ -177,6 +186,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
     }
   }
 
+  // ---------------- Regular signUp -----------------------
   async function handleSignup(data: any) {
     if (!isConnected) {
       Toast.show({
@@ -231,8 +241,7 @@ export default function Register({ navigation }: Readonly<RegisterProps>) {
       }
     }
   }
-  const { dynamicStyles } = useStyles(styles);
-  const { Colors } = useTheme();
+
   return (
     <KeyboardAwareScrollView style={[dynamicStyles.container]}>
       {/* <ScrollView contentContainerStyle={styles.container} scrollEnabled={true}> */}

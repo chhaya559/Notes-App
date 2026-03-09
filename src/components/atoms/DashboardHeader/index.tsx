@@ -4,26 +4,20 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import styles from "./styles";
 import { Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import messaging from "@react-native-firebase/messaging";
-
 import { useGetNotificationsCountQuery } from "@redux/api/noteApi";
 import { RootState } from "@redux/store";
 import { useSelector } from "react-redux";
-
 import useTheme from "@hooks/useTheme";
 import useStyles from "@hooks/useStyles";
 
 export default function DashboardHeader() {
   const navigation = useNavigation<any>();
-
   const { toggleTheme, darkMode, Colors } = useTheme();
   const { dynamicStyles } = useStyles(styles);
-
   const isGuest = useSelector((state: RootState) => state.auth.isGuest);
-
   const profileImage = useSelector(
     (state: RootState) => state.auth.profileImageUrl,
   );
-
   const { data: countResponse, refetch } = useGetNotificationsCountQuery(
     undefined,
     {
@@ -31,18 +25,15 @@ export default function DashboardHeader() {
       refetchOnMountOrArgChange: true,
     },
   );
+  const unreadCount = countResponse?.data?.unreadCount;
+
   useEffect(() => {
-    // Foreground notification
     const unsubscribeForeground = messaging().onMessage(() => {
       refetch();
     });
-
-    // App opened from notification
     const unsubscribeOpened = messaging().onNotificationOpenedApp(() => {
       refetch();
     });
-
-    // App opened from killed state
     messaging()
       .getInitialNotification()
       .then((remoteMessage) => {
@@ -56,8 +47,6 @@ export default function DashboardHeader() {
       unsubscribeOpened();
     };
   }, [refetch]);
-
-  const unreadCount = countResponse?.data?.unreadCount;
 
   useFocusEffect(
     useCallback(() => {
@@ -75,8 +64,7 @@ export default function DashboardHeader() {
 
   return (
     <View style={dynamicStyles.outer}>
-      {/* NOTIFICATIONS */}
-
+      {/* Notification */}
       <TouchableOpacity
         onPress={() => navigation.navigate("Notifications")}
         style={{ opacity: isGuest ? 0.5 : 1 }}
@@ -97,7 +85,7 @@ export default function DashboardHeader() {
         )}
       </TouchableOpacity>
 
-      {/* THEME BUTTON */}
+      {/* Theme */}
 
       <TouchableOpacity onPress={toggleTheme}>
         {darkMode ? (
@@ -111,7 +99,7 @@ export default function DashboardHeader() {
         )}
       </TouchableOpacity>
 
-      {/* PROFILE */}
+      {/* Profile */}
 
       <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
         <View style={dynamicStyles.profileCover}>

@@ -7,7 +7,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import styles from "./styles";
-import { AntDesign, Entypo, Feather, MaterialIcons } from "@expo/vector-icons";
+import { AntDesign, Entypo, Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useState, useEffect, useRef } from "react";
 import CustomInput from "../CustomInput";
@@ -16,7 +16,7 @@ import Toast from "react-native-toast-message";
 import { RenderHTML } from "react-native-render-html";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
-import { setNotesUnlocked, lockNotes, isGuest } from "@redux/slice/authSlice";
+import { setNotesUnlocked, lockNotes } from "@redux/slice/authSlice";
 import {
   useDeleteMutation,
   useNoteLockMutation,
@@ -25,7 +25,6 @@ import {
 } from "@redux/api/noteApi";
 import { db, pendingDb } from "src/db/notes";
 import Animated, {
-  SharedValue,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -41,6 +40,7 @@ import useTheme from "@hooks/useTheme";
 import { pendingNotes } from "src/db/pendingNotes/schema";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { ScrollView } from "react-native-gesture-handler";
+import RightActionCard from "../RightActionCard";
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString(undefined, {
@@ -53,14 +53,18 @@ function formatDate(dateString: string) {
 export default function Card(props: any) {
   const { Colors } = useTheme();
   const { dynamicStyles } = useStyles(styles);
-
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
+  const hasCommonPassword = useSelector(
+    (state: RootState) => state.auth.isCommonPasswordSet,
+  );
   const userId = useSelector((state: RootState) => state.auth.token);
   const { isConnected } = useNetInfo();
   const isGuest = useSelector((state: RootState) => state.auth.isGuest);
   const [deleteApi] = useDeleteMutation();
   const [lockApi] = useNoteLockMutation();
+  const contentToShow = props.preview;
+  const swipeRef = useRef<SwipeableMethods>(null);
   const [removeLockApi] = useRemoveLockMutation();
   const notesUnlockUntil = useSelector(
     (state: RootState) => state.auth.notesUnlockUntil,
@@ -68,11 +72,8 @@ export default function Card(props: any) {
   const isNotesUnlocked = useSelector(
     (state: RootState) => state.auth.isNotesUnlocked,
   );
-
   const [unlockNote] = useUnlockNoteMutation();
-
   const [showLockedModal, setShowLockedModal] = useState(false);
-
   const [unlockValue, setUnlockValue] = useState<{
     password: string;
     unlockMinutes: number | null;
@@ -80,26 +81,22 @@ export default function Card(props: any) {
     password: "",
     unlockMinutes: null,
   });
-
   const { width } = useWindowDimensions();
 
   useEffect(() => {
     if (!notesUnlockUntil) return;
-
     const remaining = notesUnlockUntil - Date.now();
-
     if (remaining <= 0) {
       dispatch(lockNotes());
       return;
     }
-
     const timer = setTimeout(() => {
       dispatch(lockNotes());
     }, remaining);
-
     return () => clearTimeout(timer);
   }, [notesUnlockUntil, dispatch]);
 
+  //-------------------- Unlock Note ----------------------
   async function handleUnlock() {
     if (!isConnected) {
       Toast.show({
@@ -167,60 +164,6 @@ export default function Card(props: any) {
     }
   }
 
-  async function handleDelete() {
-    try {
-      if (!isConnected && props.isLocked) {
-        Toast.show({
-          text1: "Unlock the note to delete it",
-        });
-        return;
-      }
-      if (!userId) return;
-      if (isConnected) {
-        await deleteApi({ id: props.id }).unwrap();
-        await db.delete(notesTable).where(eq(notesTable.id, props.id));
-      } else {
-        await pendingDb
-          .insert(pendingNotes)
-          .values({
-            id: props.id,
-            userId,
-            syncStatus: 3,
-          })
-          .onConflictDoUpdate({
-            target: pendingNotes.id,
-            set: {
-              syncStatus: 3,
-            },
-          });
-        console.log(
-          "pendingdelete",
-          await pendingDb.select().from(pendingNotes),
-        );
-        await db.delete(notesTable).where(eq(notesTable.id, props.id));
-        console.log("notes in local", await db.select().from(notesTable));
-      }
-      if (props.onDeleteSuccess) {
-        await props.onDeleteSuccess();
-      }
-
-      Toast.show({
-        text1: "Note Deleted",
-        type: "success",
-        swipeable: false,
-        onPress: () => Toast.hide(),
-      });
-    } catch (error: any) {
-      console.log("Delete error:", error);
-      Toast.show({
-        text1: error?.data?.message,
-        type: "error",
-        swipeable: false,
-        onPress: () => Toast.hide(),
-      });
-    }
-  }
-
   function handlePress() {
     const isStillUnlocked =
       isNotesUnlocked && notesUnlockUntil && Date.now() < notesUnlockUntil;
@@ -253,16 +196,14 @@ export default function Card(props: any) {
     });
   }
 
-  const hasCommonPassword = useSelector(
-    (state: RootState) => state.auth.isCommonPasswordSet,
-  );
-
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: scale.value }],
     };
   });
+
+  //-------------------- Remove Lock --------------------
   async function unLockNote() {
     if (!isConnected) {
       if (isConnected == null) return;
@@ -309,6 +250,7 @@ export default function Card(props: any) {
     }
   }
 
+  //-------------------- Lock Note ----------------------
   async function lockNote() {
     try {
       if (!isConnected) {
@@ -395,6 +337,62 @@ export default function Card(props: any) {
     }
   }
 
+  //-------------------- Delete Note --------------------
+
+  async function handleDelete() {
+    try {
+      if (!isConnected && props.isLocked) {
+        Toast.show({
+          text1: "Unlock the note to delete it",
+        });
+        return;
+      }
+      if (!userId) return;
+      if (isConnected) {
+        await deleteApi({ id: props.id }).unwrap();
+        await db.delete(notesTable).where(eq(notesTable.id, props.id));
+      } else {
+        await pendingDb
+          .insert(pendingNotes)
+          .values({
+            id: props.id,
+            userId,
+            syncStatus: 3,
+          })
+          .onConflictDoUpdate({
+            target: pendingNotes.id,
+            set: {
+              syncStatus: 3,
+            },
+          });
+        console.log(
+          "pendingdelete",
+          await pendingDb.select().from(pendingNotes),
+        );
+        await db.delete(notesTable).where(eq(notesTable.id, props.id));
+        console.log("notes in local", await db.select().from(notesTable));
+      }
+      if (props.onDeleteSuccess) {
+        await props.onDeleteSuccess();
+      }
+
+      Toast.show({
+        text1: "Note Deleted",
+        type: "success",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
+    } catch (error: any) {
+      console.log("Delete error:", error);
+      Toast.show({
+        text1: error?.data?.message,
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
+    }
+  }
+
   function confirmDelete() {
     Alert.alert(
       "Delete Note",
@@ -414,49 +412,20 @@ export default function Card(props: any) {
     );
   }
 
-  function RightAction(
-    progress: SharedValue<number>,
-    translation: SharedValue<number>,
-  ) {
-    const animatedStyle = useAnimatedStyle(() => {
-      return {
-        translateX: translation.value + 145,
-      };
-    });
-
-    return (
-      <Animated.View style={[dynamicStyles.swipeAction, animatedStyle]}>
-        <TouchableOpacity
-          onPress={confirmDelete}
-          style={dynamicStyles.deleteBg}
-        >
-          <MaterialIcons
-            name="delete-outline"
-            size={42}
-            color={Colors.danger}
-          />
-        </TouchableOpacity>
-        {props.isPasswordProtected ? (
-          <TouchableOpacity onPress={unLockNote} style={dynamicStyles.lockBg}>
-            <Entypo name="lock-open" size={42} color={Colors.iconPrimary} />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity onPress={lockNote} style={dynamicStyles.lockBg}>
-            <Entypo name="lock" size={42} color={Colors.iconPrimary} />
-          </TouchableOpacity>
-        )}
-      </Animated.View>
-    );
-  }
-
-  const contentToShow = props.preview;
-  const swipeRef = useRef<SwipeableMethods>(null);
   return (
     <>
       <View>
         <ReanimatedSwipeable
           enableTrackpadTwoFingerGesture
-          renderRightActions={RightAction}
+          renderRightActions={(progress, translation) => (
+            <RightActionCard
+              translation={translation}
+              confirmDelete={confirmDelete}
+              isPasswordProtected={props.isPasswordProtected}
+              unLockNote={unLockNote}
+              lockNote={lockNote}
+            />
+          )}
           rightThreshold={10}
           ref={swipeRef}
         >

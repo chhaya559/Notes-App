@@ -28,6 +28,8 @@ export default function EditProfile({
   const lastName = useSelector((state: RootState) => state.auth.lastName);
   const [editApi, { isLoading }] = useEditUserMutation();
   const dispatch = useDispatch<AppDispatch>();
+  const { dynamicStyles } = useStyles(styles);
+  const { Colors } = useTheme();
   const {
     control,
     handleSubmit,
@@ -40,6 +42,8 @@ export default function EditProfile({
       username: username ?? "",
     },
   });
+
+  // -----------Submit function -------------
   async function handle(data: any) {
     try {
       const response = await editApi({
@@ -84,8 +88,7 @@ export default function EditProfile({
       }
     }
   }
-  const { dynamicStyles } = useStyles(styles);
-  const { Colors } = useTheme();
+
   return (
     <KeyboardAwareScrollView style={dynamicStyles.container}>
       <Text style={dynamicStyles.text}>Update your profile details</Text>

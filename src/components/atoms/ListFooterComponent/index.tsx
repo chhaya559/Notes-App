@@ -18,8 +18,6 @@ export default function ListFooterComponent({
     <View
       style={{
         paddingVertical: 20,
-        // alignItems: "center",
-        // justifyContent: "center",
       }}
     >
       <ActivityIndicator size="small" color={Colors.primary} />

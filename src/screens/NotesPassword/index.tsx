@@ -30,9 +30,13 @@ export default function NotesPassword({
 }: Readonly<NotesPasswordProps>) {
   const [resetNotesApi, { isLoading }] = useResetNotesPasswordMutation();
   const [lockApi] = useNoteLockMutation();
+  const dispatch = useDispatch();
+  const noteID = route?.params?.noteID;
+  const { dynamicStyles } = useStyles(styles);
   const hasCommonPassword = useSelector(
     (state: RootState) => state.auth.isCommonPasswordSet,
   );
+
   const {
     control,
     handleSubmit,
@@ -44,10 +48,11 @@ export default function NotesPassword({
       confirmPassword: "",
     },
   });
+
+  // --------------- deep link --------------
   const url = Linking.useLinkingURL();
   const resetToken = useMemo(() => {
     if (!url) return null;
-
     try {
       const parsed = Linking.parse(url);
       return parsed?.queryParams?.token
@@ -59,9 +64,6 @@ export default function NotesPassword({
     }
   }, [url]);
 
-  console.log("Deep link URL:", url);
-  console.log("Reset Token:", resetToken);
-  const dispatch = useDispatch();
   useEffect(() => {
     if (url && !resetToken) {
       Toast.show({
@@ -70,82 +72,10 @@ export default function NotesPassword({
       });
     }
   }, [url, resetToken]);
-  const noteID = route?.params?.noteID;
 
-  // async function handle(data: any) {
-  //   try {
-  //     if (hasCommonPassword) {
-  //       if (!resetToken) {
-  //         Toast.show({
-  //           type: "error",
-  //           text1: "Invalid reset link",
-  //         });
-  //         return;
-  //       }
-  //       const response = await resetNotesApi({
-  //         newNotesPassword: data.password,
-  //         token: resetToken,
-  //       }).unwrap();
-  //       if (response.success) {
-  //         Toast.show({
-  //           text1: "Password set successfully!",
-  //           type: "success",
-  //           swipeable: false,
-  //           onPress: () => Toast.hide(),
-  //         });
-  //         navigation.goBack();
-  //       }
-  //     } else {
-  //       console.log(noteID, data.password, "freugfherikg");
-  //       const response = await lockApi({
-  //         id: noteID,
-  //         isPasswordProtected: true,
-  //         password: data.password,
-  //       }).unwrap();
-
-  //       console.log(response, "response from lock api");
-  //       if (response.success) {
-  //         dispatch(setCommonPasswordSet(true));
-  //         await db
-  //           .update(notesTable)
-  //           .set({
-  //             isPasswordProtected: 1,
-  //             updatedAt: new Date().toISOString(),
-  //           })
-  //           .where(eq(notesTable.id, noteID));
-  //         Toast.show({
-  //           text1: "Password set successfully!",
-  //           type: "success",
-  //           swipeable: false,
-  //           onPress: () => Toast.hide(),
-  //         });
-  //         navigation.goBack();
-  //       }
-  //     }
-  //   } catch (error: any) {
-  //     if (error?.data?.message) {
-  //       Toast.show({
-  //         text1: error?.data?.message,
-  //         type: "error",
-  //         swipeable: false,
-  //         onPress: () => Toast.hide(),
-  //       });
-  //     } else
-  //       Toast.show({
-  //         type: "error",
-  //         text1: "Failed to set password",
-  //         swipeable: false,
-  //         onPress: () => Toast.hide(),
-  //       });
-  //     console.log(error, "gsghrth");
-  //   }
-  // }
+  // ----------------------- submit - set or reset ---------------------
   async function handle(data: any) {
     try {
-      /**
-       * CASE 1
-       * Reset notes password using deep link token
-       */
       if (hasCommonPassword) {
         if (!resetToken) {
           Toast.show({
@@ -171,10 +101,6 @@ export default function NotesPassword({
           navigation.goBack();
         }
       } else {
-        /**
-         * CASE 2
-         * First time setting notes password
-         */
         console.log("Setting notes password:", noteID, data.password);
 
         const response = await lockApi({
@@ -227,7 +153,6 @@ export default function NotesPassword({
     }
   }
 
-  const { dynamicStyles } = useStyles(styles);
   return (
     <KeyboardAwareScrollView style={dynamicStyles.container}>
       <Controller

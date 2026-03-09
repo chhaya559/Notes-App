@@ -1,18 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "../store/index";
 export const authApi = createApi({
-  // baseQuery: fetchBaseQuery({
-  //   baseUrl: "https://cloudnotes.clashhub.online/api",
-  //   prepareHeaders: (headers, { getState }) => {
-  //     const token = (getState() as RootState).auth.token;
-
-  //     if (token) {
-  //       headers.set("Authorization", `Bearer ${token}`);
-  //     }
-  //     headers.set("Content-Type", "application/json");
-  //     return headers;
-  //   },
-  // }),
   baseQuery: fetchBaseQuery({
     baseUrl: "https://cloudnotes.clashhub.online/api",
     prepareHeaders: (headers, { getState, endpoint }) => {
@@ -29,6 +17,7 @@ export const authApi = createApi({
   }),
   reducerPath: "authApi",
   endpoints: (builder) => ({
+    // ------------------------- Login -------------------------
     login: builder.mutation({
       query: (data) => ({
         url: "/auth/login",
@@ -36,6 +25,7 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    // ------------------------- Register -------------------------
     register: builder.mutation({
       query: (data) => ({
         url: "/auth/register",
@@ -43,6 +33,7 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    // ------------------------- Logout  -------------------------
     logout: builder.mutation({
       query: (fcmToken) => ({
         url: "/auth/logout",
@@ -50,6 +41,7 @@ export const authApi = createApi({
         body: fcmToken,
       }),
     }),
+    // ------------------------- Set Profile Image -------------------------
     profileImage: builder.mutation<any, FormData>({
       query: (body) => ({
         url: "/users/me/profile-image",
@@ -57,12 +49,14 @@ export const authApi = createApi({
         body,
       }),
     }),
+    // ------------------------- Remove Profile Image -------------------------
     deleteImage: builder.mutation<void, void>({
       query: () => ({
         url: "/users/me/profile-image",
         method: "DELETE",
       }),
     }),
+    // ------------------------- Google Login  -------------------------
     google: builder.mutation({
       query: (data) => ({
         url: "/auth/google",
@@ -70,12 +64,14 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    // ------------------------- Guest Login -------------------------
     guest: builder.mutation<any, void>({
       query: () => ({
         url: "/auth/guest",
         method: "POST",
       }),
     }),
+    // ------------------------- Forgot Password - user : send email -------------------------
     forgotpassword: builder.mutation({
       query: (data) => ({
         url: "/auth/forgot-password",
@@ -83,6 +79,7 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    // ------------------------- Change Password - user -------------------------
     changePassword: builder.mutation({
       query: (data) => ({
         url: "/auth/change-password",
@@ -90,6 +87,7 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    // ------------------------- Reset Password - user -------------------------
     resetPassword: builder.mutation<
       any,
       { newPassword: string; token: string }
@@ -103,7 +101,7 @@ export const authApi = createApi({
         },
       }),
     }),
-
+    // ------------------------- Guest Conversion -------------------------
     guestConversion: builder.mutation({
       query: (data) => ({
         url: "/auth/convert-guest",
@@ -111,6 +109,7 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    // ------------------------- Edit User Profile -------------------------
     editUser: builder.mutation({
       query: (data) => ({
         url: "/users/me",
@@ -118,19 +117,21 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    // ------------------------- Delete User Account -------------------------
     deleteUser: builder.mutation({
       query: () => ({
         url: "/users/me",
         method: "DELETE",
       }),
     }),
-
+    // ------------------------- User Read -------------------------
     getUser: builder.query({
       query: () => ({
         url: "/users/me",
         method: "GET",
       }),
     }),
+    // ------------------------- Forgot Password - notes : send email -------------------------
     forgotNotesPassword: builder.mutation({
       query: (data) => ({
         url: "/auth/forgot-notes-password",
@@ -138,6 +139,7 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    // ------------------------- Reset Password - notes -------------------------
     resetNotesPassword: builder.mutation<
       any,
       { newNotesPassword: string; token: string }
@@ -154,7 +156,7 @@ export const authApi = createApi({
         skipAuth: true,
       },
     }),
-
+    // --------------------- Push notifications registration : FCM send --------------
     pushNotification: builder.mutation({
       query: (data) => ({
         url: "/push/register",

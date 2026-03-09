@@ -14,7 +14,9 @@ export default function Onboarding({ navigation }: Readonly<OnboardingProps>) {
   const dispatch = useDispatch<AppDispatch>();
   const [guestApi, { isLoading }] = useGuestMutation();
   const { isConnected } = useNetInfo();
+  const { dynamicStyles } = useStyles(styles);
 
+  // --------------------- guest login --------------
   async function handleGuestLogin() {
     if (!isConnected) {
       Toast.show({
@@ -35,8 +37,6 @@ export default function Onboarding({ navigation }: Readonly<OnboardingProps>) {
     );
   }
 
-  const { dynamicStyles } = useStyles(styles);
-
   return (
     <View style={dynamicStyles.outerContainer}>
       <View style={dynamicStyles.container}>
@@ -51,18 +51,21 @@ export default function Onboarding({ navigation }: Readonly<OnboardingProps>) {
         <Text style={dynamicStyles.ai}>AI - Powered summaries</Text>
       </View>
       <View style={dynamicStyles.innerContainer}>
+        {/* ---------------------------------------- login ---------------------------------------- */}
         <TouchableOpacity
           style={dynamicStyles.signin}
           onPress={() => navigation.navigate("Login")}
         >
           <Text style={dynamicStyles.signinText}>Sign In</Text>
         </TouchableOpacity>
+        {/* ---------------------------------------- register ---------------------------------------- */}
         <TouchableOpacity
           style={dynamicStyles.create}
           onPress={() => navigation.navigate("Register")}
         >
           <Text style={dynamicStyles.createText}>Create Account</Text>
         </TouchableOpacity>
+        {/* ---------------------------------------- guest ---------------------------------------- */}
         <TouchableOpacity
           style={[dynamicStyles.guest]}
           onPress={() => handleGuestLogin()}

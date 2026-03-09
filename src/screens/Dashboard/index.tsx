@@ -46,16 +46,13 @@ import Animated, {
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 type DashboardProps = NativeStackScreenProps<any, "Dashboard">;
-async function removePendingNote(note: any) {
-  if (note.syncStatus !== 3) {
-    await pendingDb.delete(pendingNotes).where(eq(pendingNotes.id, note.id));
-  }
-}
+
 export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [allNotes, setAllNotes] = useState<any[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const [searchText, setSearchText] = useState("");
   const userId = useSelector((state: RootState) => state.auth.token);
+  const isGuest = useSelector((state: RootState) => state.auth.isGuest);
   const { isConnected } = useNetInfo();
   const [page, setPage] = useState(1);
   const { dynamicStyles } = useStyles(styles);
@@ -65,15 +62,23 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   const [uploadApi] = useUploadFileMutation();
   const { Colors } = useTheme();
   const dispatch = useDispatch();
+  const [getNoteById] = useLazyGetNoteByIdQuery();
+  const token = useSelector((state: RootState) => state.auth.token);
+  const notesUnlockUntil = useSelector(
+    (state: RootState) => state.auth.notesUnlockUntil,
+  );
+  const [loadingLocalNotes, setLoadingLocalNotes] = useState(true);
+
   function clearSearchText() {
     setSearchText("");
   }
-  const [loadingLocalNotes, setLoadingLocalNotes] = useState(true);
 
   useEffect(() => {
     createTable();
     createPendingTable();
   }, []);
+
+  // --------------- pagination -------------------
   const pageSize = 10;
   const { data, isFetching } = useGetQuery<any>(
     {
@@ -88,19 +93,12 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
 
   useEffect(() => {
     if (!data?.data) return;
-
     if (page === 1) {
       setAllNotes(data.data);
     } else {
       setAllNotes((prev) => [...prev, ...data.data]);
     }
   }, [data]);
-
-  const token = useSelector((state: RootState) => state.auth.token);
-
-  const notesUnlockUntil = useSelector(
-    (state: RootState) => state.auth.notesUnlockUntil,
-  );
 
   const loadMore = () => {
     if (!isSearching && !isFetching && data?.data?.length === pageSize) {
@@ -136,8 +134,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     return () => clearTimeout(timer);
   }, [notesUnlockUntil]);
 
-  const isGuest = useSelector((state: RootState) => state.auth.isGuest);
-  // notes load flow based on connection
+  // notes load based on connection
   useFocusEffect(
     useCallback(() => {
       if (isGuest) {
@@ -157,7 +154,97 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
     await syncPendingNotesToBackend();
     await fetchBackendAndStoreLocal();
   }
-  const [getNoteById] = useLazyGetNoteByIdQuery();
+
+  async function uploadOfflineImages(content: string) {
+    const imageUris =
+      content.match(/(file:\/\/|content:\/\/|ph:\/\/)[^"]+/g) || [];
+    const uploadedPaths: string[] = [];
+    let updatedContent = content;
+
+    for (const uri of imageUris) {
+      try {
+        const formData = new FormData();
+
+        formData.append("file", {
+          uri,
+          type: "image/jpeg",
+          name: "offline-image.jpg",
+        } as any);
+
+        const response = await uploadApi(formData).unwrap();
+        const serverPath = response?.data?.path;
+
+        if (serverPath) {
+          updatedContent = updatedContent.replace(uri, serverPath);
+          uploadedPaths.push(serverPath);
+        }
+      } catch (error) {
+        console.log("Offline image upload failed", error);
+      }
+    }
+
+    return { updatedContent, uploadedPaths };
+  }
+
+  async function handleSave(note: any, content: string, filePaths: string[]) {
+    await saveApi({
+      id: note.id,
+      title: note.title,
+      content,
+      filePaths,
+    }).unwrap();
+  }
+
+  async function handleEdit(note: any, content: string, filePaths: string[]) {
+    const idExists = await getNoteById({ id: note.id }).unwrap();
+
+    if (idExists?.success) {
+      await editApi({
+        id: note.id,
+        title: note.title,
+        content,
+        filePaths,
+      }).unwrap();
+    } else {
+      await handleSave(note, content, filePaths);
+    }
+  }
+
+  async function handleDelete(note: any) {
+    await deleteApi({ id: note.id }).unwrap();
+    await db.delete(notesTable).where(eq(notesTable.id, note.id));
+  }
+
+  async function processNote(note: any) {
+    let content = note.content || "";
+
+    const { updatedContent, uploadedPaths } =
+      await uploadOfflineImages(content);
+    content = updatedContent;
+
+    const filePaths =
+      uploadedPaths.length > 0
+        ? uploadedPaths
+        : JSON.parse(note.filePaths || "[]");
+
+    switch (note.syncStatus) {
+      case 1:
+        await handleSave(note, content, filePaths);
+        break;
+
+      case 2:
+        await handleEdit(note, content, filePaths);
+        break;
+
+      case 3:
+        await handleDelete(note);
+        break;
+    }
+
+    if (note.syncStatus !== 3) {
+      await pendingDb.delete(pendingNotes).where(eq(pendingNotes.id, note.id));
+    }
+  }
 
   async function syncPendingNotesToBackend() {
     const notesToSendBackend = await pendingDb
@@ -169,84 +256,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
 
     for (const note of notesToSendBackend) {
       try {
-        let content = note.content || "";
-
-        const imageUris =
-          content.match(/(file:\/\/|content:\/\/|ph:\/\/)[^"]+/g) || [];
-
-        const uploadedPaths = [];
-
-        for (const uri of imageUris) {
-          try {
-            const formData = new FormData();
-
-            formData.append("file", {
-              uri,
-              type: "image/jpeg",
-              name: "offline-image.jpg",
-            } as any);
-
-            const response = await uploadApi(formData).unwrap();
-
-            const serverPath = response?.data?.path;
-
-            if (serverPath) {
-              content = content.replace(uri, serverPath);
-              uploadedPaths.push(serverPath);
-            }
-          } catch (e) {
-            console.log("Offline image upload failed", e);
-          }
-        }
-
-        const filePaths =
-          uploadedPaths.length > 0
-            ? uploadedPaths
-            : JSON.parse(note.filePaths || "[]");
-
-        switch (note.syncStatus) {
-          case 1:
-            await saveApi({
-              id: note.id,
-              title: note.title,
-              content,
-              filePaths,
-            }).unwrap();
-            break;
-
-          case 2: {
-            const idExists = await getNoteById({ id: note.id }).unwrap();
-
-            if (idExists?.success) {
-              await editApi({
-                id: note.id,
-                title: note.title,
-                content,
-                filePaths,
-              }).unwrap();
-            } else {
-              await saveApi({
-                id: note.id,
-                title: note.title,
-                content,
-                filePaths,
-              }).unwrap();
-            }
-            break;
-          }
-
-          case 3:
-            await deleteApi({ id: note.id }).unwrap();
-
-            await db.delete(notesTable).where(eq(notesTable.id, note.id));
-            break;
-        }
-
-        if (note.syncStatus !== 3) {
-          await pendingDb
-            .delete(pendingNotes)
-            .where(eq(pendingNotes.id, note.id));
-        }
+        await processNote(note);
       } catch (error) {
         console.log(error);
       }
@@ -414,6 +424,7 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
   }));
 
   const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
   //display
   const displayNotes = isSearching
     ? (SearchedNotes?.data ?? [])
@@ -464,7 +475,6 @@ export function Dashboard({ navigation }: Readonly<DashboardProps>) {
             onFocus={() => setIsFocused(true)}
             onBlur={() => {
               setIsFocused(false);
-              // clearSearchText();
             }}
             onSubmitEditing={() => {
               searchInputRef.current?.blur();

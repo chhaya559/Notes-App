@@ -41,7 +41,10 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
   const dispatch = useDispatch<AppDispatch>();
   const [loginapi, { isLoading }] = useLoginMutation();
   const [googleApi, { isLoading: isGoogleLoading }] = useGoogleMutation();
-
+  const { isConnected } = useNetInfo();
+  const [pushApi] = usePushNotificationMutation();
+  const { dynamicStyles } = useStyles(styles);
+  const { Colors } = useTheme();
   const {
     control,
     handleSubmit,
@@ -53,13 +56,10 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       password: "",
     },
   });
-
-  const { isConnected } = useNetInfo();
-  const [pushApi] = usePushNotificationMutation();
+  // ----------- internet connection check ----------------
   useEffect(() => {
-    console.log(isConnected, "isisisi");
+    console.log(isConnected, "internet connected?");
     if (isConnected === null) return;
-
     if (!isConnected) {
       Toast.show({
         text1: "Connection error",
@@ -71,6 +71,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
     }
   }, [isConnected]);
 
+  // ------------------- FCM token send -------------------
   async function handleTokenSend(token: string) {
     try {
       const response = await pushApi({
@@ -84,7 +85,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       console.log("Error sending device token", err);
     }
   }
-
+  // ------------- push notifications send ----------------
   async function requestUserPermission() {
     const authStatus = await messaging().requestPermission();
     const enabled =
@@ -106,6 +107,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
     );
   }, []);
 
+  // ------------------ google login ----------------------
   useEffect(() => {
     GoogleSignin.configure({
       webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
@@ -176,6 +178,8 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       });
     }
   }
+
+  // --------------- regular login ----------------------
   async function handleLogin(data: any) {
     try {
       const response = await loginapi({
@@ -232,8 +236,7 @@ export default function Login({ navigation }: Readonly<LoginProps>) {
       }
     }
   }
-  const { dynamicStyles } = useStyles(styles);
-  const { Colors } = useTheme();
+
   return (
     <KeyboardAwareScrollView style={dynamicStyles.container}>
       <View style={dynamicStyles.innerContainer}>

@@ -37,13 +37,15 @@ export default function ForgotPassword({
     },
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
-
   const isNotesReset = route?.params?.name === "notes";
   console.log(route?.params?.name);
   console.log(isNotesReset, "resetrest");
   const [forgotapi] = useForgotpasswordMutation();
   const [forgotNotesApi] = useForgotNotesPasswordMutation();
+  const { dynamicStyles } = useStyles(styles);
+  const { Colors } = useTheme();
 
+  // --------submit action -----------
   async function handle(data: any) {
     try {
       if (isNotesReset) {
@@ -75,7 +77,7 @@ export default function ForgotPassword({
           Toast.show({
             text1: "Email sent",
             visibilityTime: 2000,
-            onHide: () => setIsModalVisible(true),
+            onShow: () => setIsModalVisible(true),
             type: "success",
             swipeable: false,
             onPress: () => Toast.hide(),
@@ -99,20 +101,21 @@ export default function ForgotPassword({
       });
     }
   }
+
+  // -------- modal timer -----------
   useEffect(() => {
     let timer: any;
     if (isModalVisible) {
       timer = setTimeout(() => {
         setIsModalVisible(false);
         navigation.goBack();
-      }, 4000);
+      }, 2000);
     }
     return () => {
       clearTimeout(timer);
     };
   }, [isModalVisible, navigation]);
-  const { dynamicStyles } = useStyles(styles);
-  const { Colors } = useTheme();
+
   return (
     <>
       <Modal
@@ -131,7 +134,9 @@ export default function ForgotPassword({
           </View>
           <Text style={dynamicStyles.modalHeading}>Reset your Password</Text>
           <Text style={dynamicStyles.modalText}>
-            Check your email for a link to reset your password. If it doesn't
+            {
+              "Check your email for a link to reset your password. If it doesn't"
+            }
             appear within a few minutes,check your spam folder.
           </Text>
           <TouchableOpacity

@@ -14,6 +14,7 @@ type props = {
   onBlur?: () => void;
   isPassword?: boolean;
 };
+
 export default function CustomInput({
   text,
   placeholder,
@@ -30,6 +31,7 @@ export default function CustomInput({
     setIsVisible((p) => !p);
   }
   const { Colors } = useTheme();
+
   return (
     <View style={dynamicStyles.container}>
       <Text style={dynamicStyles.label}>{text}</Text>

@@ -523,7 +523,6 @@ export default function CreateNote({
         }
       }
       if (navigate) {
-        //if (!notesRef.current?.title.trim() || existingFiles.length > 0) {
         if (!notesRef.current?.title.trim()) {
           notesRef.current.title = "New Note";
         }

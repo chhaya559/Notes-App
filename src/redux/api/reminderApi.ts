@@ -15,6 +15,7 @@ export const reminderApi = createApi({
   }),
   reducerPath: "reminderApi",
   endpoints: (builder) => ({
+    // ------------------------- Create Reminder -------------------------
     setReminder: builder.mutation({
       query: (data) => ({
         url: "/",
@@ -22,6 +23,7 @@ export const reminderApi = createApi({
         body: data,
       }),
     }),
+    // ------------------------- Update Reminder -------------------------
     updateReminder: builder.mutation({
       query: (data) => ({
         url: "/",
@@ -29,13 +31,14 @@ export const reminderApi = createApi({
         method: "PUT",
       }),
     }),
+    // ------------------------- Read Reminder -------------------------
     getReminderById: builder.query<any, { id: string }>({
       query: ({ id }) => ({
         url: `/${id}`,
         method: "GET",
       }),
     }),
-
+    // ------------------------- Delete Reminder -------------------------
     deleteReminder: builder.mutation({
       query: (id) => ({
         url: `/${id}`,

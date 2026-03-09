@@ -47,7 +47,14 @@ export default function GuestConversion({
       password: "",
     },
   });
+  const dispatch = useDispatch();
+  const [conversionApi] = useGuestConversionMutation();
+  const [pushApi] = usePushNotificationMutation();
+  const { dynamicStyles } = useStyles(style);
+  const { Colors } = useTheme();
   const { isConnected } = useNetInfo();
+
+  // -------------- connection check -------------------
   useEffect(() => {
     if (isConnected == null) return;
     if (!isConnected) {
@@ -60,8 +67,8 @@ export default function GuestConversion({
       });
     }
   }, [isConnected]);
-  const [pushApi] = usePushNotificationMutation();
 
+  // -------------- FCM token send ---------------------
   async function handleTokenSend(token: string) {
     try {
       const response = await pushApi({
@@ -75,7 +82,7 @@ export default function GuestConversion({
       console.log("Error sending device token", err);
     }
   }
-
+  // -------------- push notificatins permission -------------
   async function requestUserPermission() {
     const authStatus = await messaging().requestPermission();
     const enabled =
@@ -96,9 +103,8 @@ export default function GuestConversion({
       PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
     );
   }, []);
-  const dispatch = useDispatch();
-  const [conversionApi] = useGuestConversionMutation();
 
+  // ----------- guest conversion ------------
   async function handleConversion(data: any) {
     if (!isConnected) {
       Toast.show({
@@ -162,8 +168,7 @@ export default function GuestConversion({
       }
     }
   }
-  const { dynamicStyles } = useStyles(style);
-  const { Colors } = useTheme();
+
   return (
     <KeyboardAwareScrollView style={{ backgroundColor: Colors.background }}>
       <View style={dynamicStyles.container}>

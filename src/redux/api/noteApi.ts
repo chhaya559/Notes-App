@@ -16,6 +16,7 @@ export const noteApi = createApi({
   tagTypes: ["Notes", "Notifications", "NotificationCount"],
   reducerPath: "noteApi",
   endpoints: (builder) => ({
+    // ------------------------- Save Note : Create -------------------------
     saveNote: builder.mutation<any, any>({
       query: (body) => ({
         url: "/notes",
@@ -24,6 +25,7 @@ export const noteApi = createApi({
       }),
       invalidatesTags: ["Notes"],
     }),
+    // ------------------------- Get Notes : Read  -------------------------
     get: builder.query<any, { pageNumber?: number; pageSize: number }>({
       query: ({ pageNumber, pageSize }) => ({
         url: "/Notes",
@@ -35,6 +37,7 @@ export const noteApi = createApi({
       }),
       providesTags: ["Notes"],
     }),
+    // ------------------------- Edit Note : Update  -------------------------
     update: builder.mutation<any, any>({
       query: (body) => ({
         url: `/Notes/${body.id}`,
@@ -43,14 +46,14 @@ export const noteApi = createApi({
       }),
       invalidatesTags: ["Notes"],
     }),
-
+    // ----------------------------- Get Note by Id --------------------------------
     getNoteById: builder.query<any, { id: string }>({
       query: ({ id }) => ({
         url: `/Notes/${id}`,
         method: "GET",
       }),
     }),
-
+    // ------------------------- Delete Note : Delete ----------------------------
     delete: builder.mutation<any, { id: string }>({
       query: ({ id }) => ({
         url: `/Notes/${id}`,
@@ -58,17 +61,18 @@ export const noteApi = createApi({
       }),
       invalidatesTags: ["Notes"],
     }),
-
+    // -------------------------- Search Note ----------------------------------
     searchNotes: builder.query<any, string>({
       query: (text) => `/Notes?search=${text}`,
     }),
-
+    // ------------------------- Ai Summary -------------------------
     aiSummary: builder.mutation<any, { id: string }>({
       query: ({ id }) => ({
         url: `Notes/${id}/generate-summary`,
         method: "POST",
       }),
     }),
+    // ------------------------- Note Unlock -------------------------
     unlockNote: builder.mutation<
       any,
       { password: string; unlockMinutes: number }
@@ -79,6 +83,7 @@ export const noteApi = createApi({
         body,
       }),
     }),
+    // ------------------------- Note Lock -------------------------
     noteLock: builder.mutation<
       any,
       { id: string; isPasswordProtected: boolean; password?: string }
@@ -90,6 +95,7 @@ export const noteApi = createApi({
       }),
       invalidatesTags: ["Notes"],
     }),
+    // ------------------------- Change Password - notes -------------------------
     changePassword: builder.mutation({
       query: (data) => ({
         url: "/users/change-common-password",
@@ -97,6 +103,7 @@ export const noteApi = createApi({
         body: data,
       }),
     }),
+    // ------------------------- Get Notifications -------------------------
     getNotifications: builder.query<
       any,
       { pageNumber: number; pageSize: number }
@@ -108,6 +115,7 @@ export const noteApi = createApi({
       }),
       providesTags: ["Notifications"],
     }),
+    // ------------------------- Read Notification -------------------------
     markNoificationRead: builder.mutation({
       query: ({ id }) => ({
         url: `/notifications/${id}/read`,
@@ -115,6 +123,7 @@ export const noteApi = createApi({
       }),
       invalidatesTags: ["NotificationCount", "Notifications"],
     }),
+    // ------------------------- Get Notifications Count -------------------------
     getNotificationsCount: builder.query({
       query: () => ({
         url: "/notifications/unread-count",
@@ -122,6 +131,7 @@ export const noteApi = createApi({
       }),
       providesTags: ["NotificationCount"],
     }),
+    // ------------------------- Read All Notifications -------------------------
     readAllNotification: builder.mutation<void, void>({
       query: () => ({
         url: "/notifications/read-all",
@@ -129,6 +139,7 @@ export const noteApi = createApi({
       }),
       invalidatesTags: ["NotificationCount", "Notifications"],
     }),
+    // ------------------------- Clear All Notifications --------------------------
     clearAllNotification: builder.mutation<void, void>({
       query: () => ({
         url: "/notifications/clear-all",
@@ -136,6 +147,7 @@ export const noteApi = createApi({
       }),
       invalidatesTags: ["NotificationCount", "Notifications"],
     }),
+    // ------------------------- Delete Notification -------------------------
     deleteNotification: builder.mutation({
       query: ({ id }) => ({
         url: `/notifications/${id}`,
@@ -143,12 +155,14 @@ export const noteApi = createApi({
       }),
       invalidatesTags: ["NotificationCount", "Notifications"],
     }),
+    // ------------------------- Get Single Notification by Id -------------------------
     getNotificationById: builder.mutation({
       query: ({ id }) => ({
         url: `/notifications/${id}`,
         method: "GET",
       }),
     }),
+    // ------------------------- File upload - notes -------------------------
     uploadFile: builder.mutation<any, FormData>({
       query: (body) => ({
         url: "/Notes/upload-file",
@@ -156,6 +170,7 @@ export const noteApi = createApi({
         body,
       }),
     }),
+    // ------------------------- Lock Remove --------------------------------
     RemoveLock: builder.mutation({
       query: ({ id }) => ({
         url: `/Notes/${id}/unlock-protection`,
@@ -163,6 +178,7 @@ export const noteApi = createApi({
       }),
       invalidatesTags: ["Notes"],
     }),
+    // ------------------------- File Remove(*) ---------------------------------
     removeFile: builder.mutation({
       query: ({ id, fileUrl }) => ({
         url: `/Notes/${id}/files`,
