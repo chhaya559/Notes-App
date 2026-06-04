@@ -3,7 +3,7 @@ import { RootState } from "../store/index";
 
 export const noteApi = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://cloudnotes.clashhub.online/api",
+    baseUrl: "https://uninitiated-jerrold-coverable.ngrok-free.dev/api",
     prepareHeaders: (headers, { getState }) => {
       const token = (getState() as RootState).auth.token;
       if (token) {

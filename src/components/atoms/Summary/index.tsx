@@ -14,7 +14,7 @@ import useTheme from "@hooks/useTheme";
 type props = {
   onClose: () => void;
   id: string;
-  data?: string;
+  data?: string | null;
   isLoading?: boolean;
 };
 export default function Summary({
@@ -25,9 +25,56 @@ export default function Summary({
 }: Readonly<props>) {
   const { dynamicStyles } = useStyles(styles);
   const { Colors } = useTheme();
-  if (isLoading) {
-    return <ActivityIndicator size="large" color={Colors.iconPrimary} />;
-  }
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <View
+          style={[
+            dynamicStyles.content,
+            { alignItems: "center", justifyContent: "center", minHeight: 80 },
+          ]}
+        >
+          <ActivityIndicator size="large" color={Colors.iconPrimary} />
+          <Text
+            style={[
+              dynamicStyles.contentText,
+              { marginTop: 12, opacity: 0.6, textAlign: "center" },
+            ]}
+          >
+            Generating summary…
+          </Text>
+        </View>
+      );
+    }
+
+    if (!data) {
+      return (
+        <View
+          style={[
+            dynamicStyles.content,
+            { alignItems: "center", justifyContent: "center", minHeight: 80 },
+          ]}
+        >
+          <Text
+            style={[
+              dynamicStyles.contentText,
+              { opacity: 0.5, textAlign: "center" },
+            ]}
+          >
+            No summary available.
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <ScrollView style={dynamicStyles.content} bounces={false}>
+        <Text style={dynamicStyles.contentText}>{data}</Text>
+      </ScrollView>
+    );
+  };
+
   return (
     <View style={dynamicStyles.container}>
       <View style={dynamicStyles.headingContainer}>
@@ -50,9 +97,7 @@ export default function Summary({
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={dynamicStyles.content} bounces={false}>
-        <Text style={dynamicStyles.contentText}>{data}</Text>
-      </ScrollView>
+      {renderContent()}
     </View>
   );
 }

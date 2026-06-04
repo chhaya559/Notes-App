@@ -132,38 +132,60 @@ export default function CreateNote({
 
   const [AISummary, { isLoading: summaryLoading }] = useAiSummaryMutation();
 
-  const [aiSummary, setAiSummary] = useState(" ");
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
 
   async function generateSummary() {
-    try {
-      console.log(isConnected);
-      if (!isConnected) {
-        handleToggle("summary");
-        Toast.show({
-          text1: "You need internet to generate AI summary",
-          type: "info",
-          swipeable: false,
-          onPress: () => Toast.hide(),
-        });
-        return;
-      }
+    if (!isConnected) {
+      Toast.show({
+        text1: "You need internet to generate AI summary",
+        type: "info",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
+      return;
+    }
 
+    // Reset any previous summary so stale text doesn't flash
+    setAiSummary(null);
+
+    try {
       const response: any = await AISummary({ id: String(noteId) });
 
-      if (response?.error?.data?.message) {
+      if (response?.error) {
+        const errMsg =
+          response.error?.data?.message ??
+          response.error?.error ??
+          "Failed to generate summary";
         Toast.show({
-          text1: response.error.data.message,
+          text1: errMsg,
+          type: "error",
+          swipeable: false,
+          onPress: () => Toast.hide(),
+        });
+        return;
+      }
+
+      const summary = response?.data?.summary;
+      if (!summary) {
+        Toast.show({
+          text1: "AI could not generate a summary for this note",
           type: "info",
           swipeable: false,
           onPress: () => Toast.hide(),
         });
-        handleToggle("summary");
+        setAiSummary("");
         return;
       }
 
-      setAiSummary(response?.data?.summary);
-    } catch (error) {
+      setAiSummary(summary);
+    } catch (error: any) {
       console.log("Error generating AI summary:", error);
+      Toast.show({
+        text1: "Something went wrong while generating summary",
+        type: "error",
+        swipeable: false,
+        onPress: () => Toast.hide(),
+      });
     }
   }
 
@@ -1036,10 +1058,19 @@ export default function CreateNote({
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                generateSummary();
+                if (!isConnected) {
+                  Toast.show({
+                    text1: "You need internet to generate AI summary",
+                    type: "info",
+                    swipeable: false,
+                    onPress: () => Toast.hide(),
+                  });
+                  return;
+                }
                 handleToggle("summary");
                 richText.current?.dismissKeyboard();
                 Keyboard.dismiss();
+                generateSummary();
               }}
               style={[
                 dynamicStyles.optionButton,

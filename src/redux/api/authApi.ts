@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "../store/index";
 export const authApi = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://cloudnotes.clashhub.online/api",
+    baseUrl: "https://uninitiated-jerrold-coverable.ngrok-free.dev/api",
     prepareHeaders: (headers, { getState, endpoint }) => {
       const token = (getState() as RootState).auth.token;
 
